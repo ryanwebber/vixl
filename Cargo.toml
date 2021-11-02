@@ -3,21 +3,23 @@ name = "vixl"
 version = "0.1.0"
 authors = ["Ryan Webber <wbbr.ryan@gmail.com>"]
 edition = "2018"
+build = "build.rs"
 
 [dependencies]
-gfx-hal = "~0.6.0"
-shaderc = "~0.7.2"
-winit   = "~0.20.0"
+image = "0.23"
+winit = "0.24"
+cgmath = "0.18"
+env_logger = "~0.8"
+log = "0.4"
+futures = "0.3"
 
-[target.'cfg(target_os = "macos")'.dependencies.backend]
-package = "gfx-backend-metal"
-version = "=0.6.2"
+[dependencies.wgpu]
+version = "0.7"
+features = ["vulkan-portability"]
 
-[target.'cfg(windows)'.dependencies.backend]
-package = "gfx-backend-dx12"
-version = "=0.6.3"
-
-[target.'cfg(all(unix, not(target_os = "macos")))'.dependencies.backend]
-package = "gfx-backend-vulkan"
-version = "=0.6.1"
-
+[build-dependencies]
+anyhow = "1.0"
+fs_extra = "1.1"
+glob = "0.3"
+shaderc = "0.7"
+rayon = "~1.5"
