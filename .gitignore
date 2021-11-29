@@ -2,6 +2,9 @@
 /build/
 /cmake-build-debug/
 
+$ Imgui preferences
+imgui.ini
+
 # Compiled Object files
 *.slo
 *.lo
