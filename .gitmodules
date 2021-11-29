@@ -1,0 +1,9 @@
+[submodule "3rdParty/GLFW"]
+	path = 3rdParty/GLFW
+	url = git@github.com:glfw/glfw.git
+[submodule "3rdParty/imgui-wrapper/imgui"]
+	path = 3rdParty/imgui-wrapper/imgui
+	url = git@github.com:ocornut/imgui.git
+[submodule "3rdParty/spdlog"]
+	path = 3rdParty/spdlog
+	url = git@github.com:gabime/spdlog.git
