@@ -7,7 +7,10 @@ public:
     virtual void OnDestroy() { };
 
     virtual void OnUpdate() { };
-    virtual void OnRender() const = 0;
 
-    virtual ~RenderLayer() { };
+    virtual void OnWillRender() { };
+    virtual void OnRender() = 0;
+    virtual void OnDidRender() { };
+
+    virtual ~RenderLayer() = default;
 };

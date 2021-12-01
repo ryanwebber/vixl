@@ -7,9 +7,14 @@ void RenderStack::Update() const {
 }
 
 void RenderStack::Render() const {
-    for (auto &&layer : m_Layers) {
+    for (auto &&layer : m_Layers)
+        layer->OnWillRender();
+
+    for (auto &&layer : m_Layers)
         layer->OnRender();
-    }
+
+    for (auto &&layer : m_Layers)
+        layer->OnDidRender();
 }
 
 void RenderStack::AddLayer(std::unique_ptr<RenderLayer> layer) {

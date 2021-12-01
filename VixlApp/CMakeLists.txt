@@ -3,16 +3,20 @@ project(vixl CXX)
 set(TARGET vixl)
 
 set(LIBS
-    imgui
+    fmt
     glfw
+    glm
+    imgui
     spdlog
     )
 
 set(INCLUDES
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "../3rdParty/GLFW/include"
+    "../3rdParty/glfw/include"
     "../3rdParty/spdlog/include"
     "../3rdParty/imgui-wrapper"
+    "../3rdParty/glm"
+    "../3rdParty/fmt/include"
     )
 
 set(SOURCES
@@ -20,6 +24,8 @@ set(SOURCES
     src/Logger.cpp
     src/RenderStack.cpp
     src/GUILayer.cpp
+
+    src/Common/Error.cpp
     )
 
 set(RESOURCES
@@ -55,7 +61,10 @@ if(PLATFORM_WIN32 OR PLATFORM_LINUX)
             "\"$<TARGET_FILE_DIR:${TARGET}>\"")
 endif()
 
-target_compile_features(${TARGET} PRIVATE cxx_std_17)
+target_compile_features(${TARGET} PUBLIC cxx_std_17)
+
 target_include_directories(${TARGET} PUBLIC ${INCLUDES})
 target_link_libraries(${TARGET} ${LIBS})
 target_compile_definitions(${TARGET} PRIVATE VERSION="${CMAKE_PROJECT_VERSION}")
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)

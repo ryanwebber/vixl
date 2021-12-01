@@ -2,6 +2,8 @@
 #include <Glad/gl.h>
 #include <GLFW/glfw3.h>
 
+#include <Common/Error.h>
+
 #include <App/Logger.h>
 #include <App/RenderStack.h>
 #include <App/GUILayer.h>
@@ -9,12 +11,7 @@
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
-// The MAIN function, from here we start the application and run the game loop
-int main()
-{
-    Logger::Initialize();
-    Logger::Core->debug("Booting Vixl {}", "v" VERSION);
-
+std::optional<Error> run() {
     // Init GLFW
     glfwInit();
 
@@ -29,15 +26,13 @@ int main()
     glfwMakeContextCurrent(window);
     if (window == nullptr)
     {
-        Logger::Core->critical("Failed to create GLFW window");
         glfwTerminate();
-        return -1;
+        return Error("Failed to create GLFW window");
     }
 
     if (!gladLoadGL((GLADloadfunc) glfwGetProcAddress))
     {
-        Logger::Core->critical("Failed to initialize OpenGL context");
-        return -1;
+        return Error("Failed to initialize OpenGL context");
     }
 
     // Define the viewport dimensions
@@ -71,5 +66,17 @@ int main()
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    return 0;
+    return { };
+}
+
+// The MAIN function, from here we start the application and run the game loop
+int main()
+{
+    Logger::Initialize();
+    Logger::Core->debug("Booting Vixl {}", "v" VERSION);
+
+    auto maybe_error = run();
+    if (maybe_error) {
+        Logger::Core->critical("Failed to boot application. {}", maybe_error->description());
+    }
 }

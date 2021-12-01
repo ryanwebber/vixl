@@ -17,8 +17,8 @@ public:
         { }
 
     void OnInitialize() override;
-    void OnDestroy() override
-    ;
-    void OnUpdate() override;
-    void OnRender() const override;
+    void OnDestroy() override;
+
+    void OnRender() override;
+    void OnDidRender() override;
 };

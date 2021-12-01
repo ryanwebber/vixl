@@ -18,9 +18,10 @@ void GUILayer::OnInitialize() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
-    // Enable Keyboard IO
+    // Enable features
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -39,16 +40,20 @@ void GUILayer::OnDestroy() {
     ImGui::DestroyContext();
 }
 
-void GUILayer::OnUpdate() {
+void GUILayer::OnRender() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
+    // Render GUI
     if (m_ShowDemoWindow)
         ImGui::ShowDemoWindow(&m_ShowDemoWindow);
-}
 
-void GUILayer::OnRender() const {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void GUILayer::OnDidRender() {
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
 }
