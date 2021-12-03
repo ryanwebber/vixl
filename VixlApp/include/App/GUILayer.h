@@ -2,18 +2,23 @@
 
 #include <App/RenderLayer.h>
 #include <GLFW/glfw3.h>
+#include <imgui/imgui.h>
+
 #include <memory>
 #include <utility>
+
+int CommandInputTextCallback(ImGuiInputTextCallbackData* data);
 
 class GUILayer final : public RenderLayer {
 private:
     GLFWwindow* m_Window;
-    bool m_ShowDemoWindow;
+    int OnCommandTextInputEvent(ImGuiInputTextCallbackData* data);
+
+    friend int CommandInputTextCallback(ImGuiInputTextCallbackData*);
 
 public:
     explicit GUILayer(GLFWwindow* window)
         : m_Window(window)
-        , m_ShowDemoWindow(true)
         { }
 
     void OnInitialize() override;

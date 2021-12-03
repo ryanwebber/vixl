@@ -15,10 +15,12 @@ private:
 
 public:
     RenderStack() = default;
-    ~RenderStack() { }
+    ~RenderStack() = default;
 
     void Update() const;
     void Render() const;
+
+    void OnWindowResize(int width, int height) const;
 
     void AddLayer(std::unique_ptr<RenderLayer> layer);
     void Destroy() const;

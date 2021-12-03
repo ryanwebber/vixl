@@ -13,6 +13,17 @@
     #define GLSL_VERSION_STRING "#version 130"
 #endif
 
+#define COMMAND_TEXT_INPUT_HEIGHT_SCALE (2.0f)
+#define  COMMAND_TEXT_INPUT_BUFFER_LEN 1024
+#define COMMAND_TEXT_INPUT_FRAME_INSET 24
+
+char cmdInput[COMMAND_TEXT_INPUT_BUFFER_LEN];
+
+// Callbacks
+int CommandInputTextCallback(ImGuiInputTextCallbackData* data) {
+    static_cast<GUILayer*>(data->UserData)->OnCommandTextInputEvent(data);
+}
+
 void GUILayer::OnInitialize() {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -43,11 +54,81 @@ void GUILayer::OnDestroy() {
 void GUILayer::OnRender() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+
     ImGui::NewFrame();
 
-    // Render GUI
-    if (m_ShowDemoWindow)
-        ImGui::ShowDemoWindow(&m_ShowDemoWindow);
+    auto viewport_size = ImGui::GetIO().DisplaySize;
+    auto viewport_position = ImGui::GetMainViewport()->Pos;
+
+    ImGui::SetNextWindowPos(viewport_position);
+    ImGui::SetNextWindowSize(viewport_size);
+    ImGui::SetNextWindowDockID(ImGui::GetWindowDockID());
+    ImGui::GetStyle().WindowRounding = 0.0f;
+
+    ImGui::Begin("Main", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+
+    // Height of single row widgets
+    const auto row_height = ImGui::GetStyle().ItemSpacing.y // Separator height
+                            +
+                            COMMAND_TEXT_INPUT_HEIGHT_SCALE * ImGui::GetFrameHeightWithSpacing() // Command input height
+                            + ImGui::GetFrameHeightWithSpacing() // Current command overview
+    ;
+
+    // Height of footer region
+    const auto footer_height = 2 * row_height;
+
+    // Command history region
+    if (viewport_size.y - footer_height > 0) {
+        ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height), false, ImGuiWindowFlags_HorizontalScrollbar);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
+        for (int i = 0; i < 50; i++) {
+            ImGui::Text("[{%d}] %s", i, "Hello world!");
+        }
+
+        ImGui::PopStyleVar();
+        ImGui::EndChild();
+    }
+
+    ImGui::Separator();
+
+    // Command input region
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, {});
+
+    ImGui::InputText("##CommandPrompt",
+                     const_cast<char *>("> "),
+                     2,
+                     ImGuiInputTextFlags_ReadOnly);
+
+    ImGui::SetKeyboardFocusHere();
+
+    ImGui::SameLine(COMMAND_TEXT_INPUT_FRAME_INSET);
+
+    ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue
+            | ImGuiInputTextFlags_NoHorizontalScroll
+            | ImGuiInputTextFlags_CallbackCompletion
+            | ImGuiInputTextFlags_CallbackHistory
+            | ImGuiInputTextFlags_CallbackAlways
+            ;
+    bool submit_command = ImGui::InputTextWithHint("##CommandInput",
+                                                   "Command like '(help)'",
+                                                   cmdInput,
+                                                   COMMAND_TEXT_INPUT_BUFFER_LEN,
+                                                   input_text_flags,
+                                                   &CommandInputTextCallback);
+
+    if (submit_command) {
+        Logger::Core->debug("Command: {}", cmdInput);
+        cmdInput[0] = '\0';
+    }
+
+    ImGui::PopStyleColor();
+
+    // Command hint region
+    ImGui::Text("Window: (%f, %f) %fx%f", viewport_position.x, viewport_position.y, viewport_size.x, viewport_size.y);
+
+    ImGui::End();
+
+//    ImGui::ShowDemoWindow(nullptr);
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -56,4 +137,33 @@ void GUILayer::OnRender() {
 void GUILayer::OnDidRender() {
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();
+}
+
+int GUILayer::OnCommandTextInputEvent(ImGuiInputTextCallbackData *data) {
+
+    ImGui::SetItemDefaultFocus();
+    ImGui::SetKeyboardFocusHere(-1);
+
+    std::string word("hello this is some autocomplete");
+
+    if (strcmp(cmdInput, "hello") == 0) {
+        if (data->EventKey == ImGuiKey_Tab) {
+            // Auto complete
+
+            // Update the buffer
+            strncpy(data->Buf, word.c_str(), data->BufSize);
+
+            // Fix cursor position, update selections
+            data->BufTextLen = word.size();
+            data->CursorPos = word.size();
+            data->ClearSelection();
+            data->BufDirty = true;
+        }
+    }
+
+    if (data->BufTextLen > 0)
+    {
+        ImGui::SameLine(COMMAND_TEXT_INPUT_FRAME_INSET + 5);
+        ImGui::TextDisabled("%s%s <TAB>", std::string(data->BufTextLen, ' ').c_str(), "auto");
+    }
 }

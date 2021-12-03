@@ -23,7 +23,11 @@ void RenderStack::AddLayer(std::unique_ptr<RenderLayer> layer) {
 }
 
 void RenderStack::Destroy() const {
-    for (auto &&layer : m_Layers) {
+    for (auto &&layer : m_Layers)
         layer->OnDestroy();
-    }
+}
+
+void RenderStack::OnWindowResize(int width, int height) const {
+    for (auto &&layer : m_Layers)
+        layer->OnWindowResize(width, height);
 }
