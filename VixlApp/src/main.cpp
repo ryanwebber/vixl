@@ -4,32 +4,25 @@
 
 #include <Common/Error.h>
 
-#include <App/EventLoop.h>
+#include <App/Dispatcher.h>
 #include <App/GUILayer.h>
 #include <App/Logger.h>
 #include <App/RenderStack.h>
-#include <App/TimerTask.h>
-#include <App/TimerLoopTask.h>
 #include <App/WorkspaceLayer.h>
 #include <App/WorkspaceRegistry.h>
-
-#ifndef TARGET_FPS
-  #define TARGET_FPS 60
-#endif
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
-RenderStack g_RenderStack;
-
-void draw(GLFWwindow*);
+void draw(GLFWwindow*, RenderStack&);
 
 void OnWindowResize(GLFWwindow* window, int width, int height) {
-    g_RenderStack.OnWindowResize(width, height);
+    Dispatcher::Main().GetWindowResizeHandle().Notify({ width, height });
 
     // GLFW polling prevents redraws while the os window is resizing. We can
     // still do it ourselves if we perform swap buffers
-    draw(window);
+    auto render_stack = static_cast<RenderStack*>(glfwGetWindowUserPointer(window));
+    draw(window, *render_stack);
 }
 
 std::optional<Error> run() {
@@ -66,28 +59,30 @@ std::optional<Error> run() {
 
     auto registry = std::make_shared<WorkspaceRegistry>();
 
-    g_RenderStack.AddLayer(std::make_unique<WorkspaceLayer>(registry));
-    g_RenderStack.AddLayer(std::make_unique<GUILayer>(window));
+    RenderStack render_stack;
+    render_stack.AddLayer(std::make_unique<WorkspaceLayer>(registry));
+    render_stack.AddLayer(std::make_unique<GUILayer>(window));
 
-    static_assert(TARGET_FPS > 0, "Invalid target FPS");
-    auto mills_per_frame = TimerTask::Millis(1000 / TARGET_FPS);
+    glfwSetWindowUserPointer(window, static_cast<void*>(&render_stack));
 
-    auto loop = std::make_shared<EventLoop>();
-    auto timer = loop->Register<TimerLoopTask>("Test Timer", mills_per_frame);
-    auto onTimeout = timer->OnTimeout([&](){
+    auto &dispatcher = Dispatcher::Main();
+    auto ui_loop_connection = dispatcher.GetUILoopHandle().OnTimeout([&](){
         glfwPollEvents();
-        draw(window);
+        draw(window, render_stack);
 
         if (glfwWindowShouldClose(window)) {
-            timer->Close();
+            dispatcher.Terminate();
         }
     });
 
-    timer->Start();
-    loop->Run();
+    auto resize_connection = dispatcher.GetWindowResizeHandle().OnCallback([&](glm::vec2 size){
+        render_stack.OnWindowResize(size.x, size.y);
+    });
+
+    dispatcher.GetEventLoop().Run();
 
     // Destroy all render layers
-    g_RenderStack.Destroy();
+    render_stack.Destroy();
 
     // Terminates GLFW, clearing any resources allocated by GLFW.
     glfwDestroyWindow(window);
@@ -96,13 +91,13 @@ std::optional<Error> run() {
     return { };
 }
 
-void draw(GLFWwindow *window) {
+void draw(GLFWwindow *window, RenderStack &render_stack) {
     // Clear the color buffer
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    g_RenderStack.Update();
-    g_RenderStack.Render();
+    render_stack.Update();
+    render_stack.Render();
 
     // Swap the screen buffers
     glfwSwapBuffers(window);

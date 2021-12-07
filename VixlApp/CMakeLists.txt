@@ -25,6 +25,7 @@ set(INCLUDES
 
 set(SOURCES
     src/main.cpp
+    src/Dispatcher.cpp
     src/GUILayer.cpp
     src/Logger.cpp
     src/RenderStack.cpp

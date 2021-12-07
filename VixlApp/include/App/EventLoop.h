@@ -1,6 +1,8 @@
 #pragma once
 
+#include <uvw/async.h>
 #include <uvw/loop.h>
+#include <uvw/timer.h>
 
 class Task;
 
@@ -17,6 +19,15 @@ public:
 
     [[nodiscard]] std::shared_ptr<uvw::Loop> GetInternal() const { return m_Loop; }
     void Run() { m_Loop->run(); }
+    void Close() {
+        m_Loop->walk(uvw::Overloaded{
+            [](uvw::TimerHandle &h){ h.close(); }, // Kill timers
+            [](uvw::AsyncHandle &h){ h.close(); }, // Kill basic event listeners
+            [](auto &&) {},
+        });
+
+        m_Loop->close();
+    }
 
     template<typename R, typename... Args>
     std::shared_ptr<R> Register(const std::string_view &name, Args&&... args) {
