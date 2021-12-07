@@ -28,7 +28,6 @@ public:
 
 template<typename... Args>
 Error Error::with_context_format(std::string_view format, Args&&... args) noexcept {
-    auto x = fmt::format("{}", 1);
     auto context_string = fmt::vformat(format, fmt::make_format_args(args...));
     m_Context.push_back(std::move(context_string));
     return std::move(*this);

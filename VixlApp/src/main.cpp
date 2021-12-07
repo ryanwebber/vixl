@@ -4,9 +4,18 @@
 
 #include <Common/Error.h>
 
+#include <App/EventLoop.h>
+#include <App/GUILayer.h>
 #include <App/Logger.h>
 #include <App/RenderStack.h>
-#include <App/GUILayer.h>
+#include <App/TimerTask.h>
+#include <App/TimerLoopTask.h>
+#include <App/WorkspaceLayer.h>
+#include <App/WorkspaceRegistry.h>
+
+#ifndef TARGET_FPS
+  #define TARGET_FPS 60
+#endif
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -55,17 +64,27 @@ std::optional<Error> run() {
     // Define the viewport dimensions
     glViewport(0, 0, WIDTH, HEIGHT);
 
+    auto registry = std::make_shared<WorkspaceRegistry>();
+
+    g_RenderStack.AddLayer(std::make_unique<WorkspaceLayer>(registry));
     g_RenderStack.AddLayer(std::make_unique<GUILayer>(window));
 
-    // Game loop
-    while (!glfwWindowShouldClose(window))
-    {
-        // Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
-        glfwPollEvents();
+    static_assert(TARGET_FPS > 0, "Invalid target FPS");
+    auto mills_per_frame = TimerTask::Millis(1000 / TARGET_FPS);
 
-        // Draw!
+    auto loop = std::make_shared<EventLoop>();
+    auto timer = loop->Register<TimerLoopTask>("Test Timer", mills_per_frame);
+    auto onTimeout = timer->OnTimeout([&](){
+        glfwPollEvents();
         draw(window);
-    }
+
+        if (glfwWindowShouldClose(window)) {
+            timer->Close();
+        }
+    });
+
+    timer->Start();
+    loop->Run();
 
     // Destroy all render layers
     g_RenderStack.Destroy();
@@ -89,7 +108,6 @@ void draw(GLFWwindow *window) {
     glfwSwapBuffers(window);
 }
 
-// The MAIN function, from here we start the application and run the game loop
 int main()
 {
     Logger::Initialize();

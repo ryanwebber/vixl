@@ -13,3 +13,7 @@
 [submodule "3rdParty/fmt"]
 	path = 3rdParty/fmt
 	url = git@github.com:fmtlib/fmt.git
+[submodule "3rdParty/uvw"]
+	path = 3rdParty/uvw
+	url = git@github.com:skypjack/uvw.git
+

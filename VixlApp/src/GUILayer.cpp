@@ -13,7 +13,6 @@
     #define GLSL_VERSION_STRING "#version 130"
 #endif
 
-#define COMMAND_TEXT_INPUT_HEIGHT_SCALE (2.0f)
 #define  COMMAND_TEXT_INPUT_BUFFER_LEN 1024
 #define COMMAND_TEXT_INPUT_FRAME_INSET 24
 
@@ -21,7 +20,7 @@ char cmdInput[COMMAND_TEXT_INPUT_BUFFER_LEN];
 
 // Callbacks
 int CommandInputTextCallback(ImGuiInputTextCallbackData* data) {
-    static_cast<GUILayer*>(data->UserData)->OnCommandTextInputEvent(data);
+    return static_cast<GUILayer*>(data->UserData)->OnCommandTextInputEvent(data);
 }
 
 void GUILayer::OnInitialize() {
@@ -68,10 +67,7 @@ void GUILayer::OnRender() {
     ImGui::Begin("Main", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
     // Height of single row widgets
-    const auto row_height = ImGui::GetStyle().ItemSpacing.y // Separator height
-                            +
-                            COMMAND_TEXT_INPUT_HEIGHT_SCALE * ImGui::GetFrameHeightWithSpacing() // Command input height
-                            + ImGui::GetFrameHeightWithSpacing() // Current command overview
+    const auto row_height = + ImGui::GetFrameHeightWithSpacing(); // Command input height
     ;
 
     // Height of footer region
@@ -124,11 +120,66 @@ void GUILayer::OnRender() {
     ImGui::PopStyleColor();
 
     // Command hint region
-    ImGui::Text("Window: (%f, %f) %fx%f", viewport_position.x, viewport_position.y, viewport_size.x, viewport_size.y);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+    ImGui::Text("(");
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+    ImGui::Text("%s", "color");
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_Text]);
+    ImGui::Text(" %s", "red");
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_Text]);
+    ImGui::Text(" :: \"%s\"", "the red channel component from (0.0, 1.0).");
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+    ImGui::Text(" %s", "green");
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+    ImGui::Text(" %s", "blue");
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+    ImGui::Text(" %s", "alpha");
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+    ImGui::Text(")");
+    ImGui::PopStyleColor();
 
     ImGui::End();
 
-//    ImGui::ShowDemoWindow(nullptr);
+    // Buffer window
+    ImGui::Begin("GameWindow");
+    {
+        // Using a Child allow to fill all the space of the window.
+        // It also alows customization
+        ImGui::BeginChild("GameRender");
+        // Get the size of the child (i.e. the whole draw size of the windows).
+        ImVec2 wsize = ImGui::GetWindowSize();
+        // Because I use the texture from OpenGL, I need to invert the V from the UV.
+//        ImGui::Image((ImTextureID)tex, wsize, ImVec2(0, 1), ImVec2(1, 0));
+
+        ImGui::Text("Test");
+
+        ImGui::EndChild();
+    }
+
+    ImGui::End();
+
+//    ImGui::ShowDemoWindow(nullptr);/76oin
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -166,4 +217,6 @@ int GUILayer::OnCommandTextInputEvent(ImGuiInputTextCallbackData *data) {
         ImGui::SameLine(COMMAND_TEXT_INPUT_FRAME_INSET + 5);
         ImGui::TextDisabled("%s%s <TAB>", std::string(data->BufTextLen, ' ').c_str(), "auto");
     }
+
+    return 0;
 }

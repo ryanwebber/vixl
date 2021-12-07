@@ -1,31 +1,37 @@
-project(vixl CXX)
 
 set(TARGET vixl)
 
 set(LIBS
+    c++
     fmt
     glfw
     glm
     imgui
     spdlog
+    uv_a
+    vixl_common
     )
 
 set(INCLUDES
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "../3rdParty/glfw/include"
-    "../3rdParty/spdlog/include"
-    "../3rdParty/imgui-wrapper"
-    "../3rdParty/glm"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../VixlCommon/include"
     "../3rdParty/fmt/include"
+    "../3rdParty/glfw/include"
+    "../3rdParty/glm"
+    "../3rdParty/imgui-wrapper"
+    "../3rdParty/spdlog/include"
+    "../3rdParty/uvw/src"
     )
 
 set(SOURCES
     src/main.cpp
+    src/GUILayer.cpp
     src/Logger.cpp
     src/RenderStack.cpp
-    src/GUILayer.cpp
-
-    src/Common/Error.cpp
+    src/TimerTask.cpp
+    src/TimerLoopTask.cpp
+    src/Workspace.cpp
+    src/WorkspaceRegistry.cpp
     )
 
 set(RESOURCES
