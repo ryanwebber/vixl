@@ -60,7 +60,7 @@ std::optional<Error> run() {
     auto registry = std::make_shared<WorkspaceRegistry>();
 
     RenderStack render_stack;
-    render_stack.AddLayer(std::make_unique<WorkspaceLayer>(registry));
+    render_stack.AddLayer(std::make_unique<WorkspaceLayer>());
     render_stack.AddLayer(std::make_unique<GUILayer>(window));
 
     glfwSetWindowUserPointer(window, static_cast<void*>(&render_stack));

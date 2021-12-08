@@ -13,30 +13,32 @@ set(LIBS
     )
 
 set(INCLUDES
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../VixlCommon/include"
-    "../3rdParty/fmt/include"
-    "../3rdParty/glfw/include"
-    "../3rdParty/glm"
-    "../3rdParty/imgui-wrapper"
-    "../3rdParty/spdlog/include"
-    "../3rdParty/uvw/src"
-    )
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../VixlCommon/include"
+        "../3rdParty/fmt/include"
+        "../3rdParty/glfw/include"
+        "../3rdParty/glm"
+        "../3rdParty/imgui-wrapper"
+        "../3rdParty/spdlog/include"
+        "../3rdParty/uvw/src"
+        )
 
 set(SOURCES
-    src/main.cpp
-    src/Dispatcher.cpp
-    src/GUILayer.cpp
-    src/Logger.cpp
-    src/RenderStack.cpp
-    src/TimerTask.cpp
-    src/TimerLoopTask.cpp
-    src/Workspace.cpp
-    src/WorkspaceRegistry.cpp
-    )
+        src/main.cpp
+        src/Assert.cpp
+        src/Dispatcher.cpp
+        src/GUILayer.cpp
+        src/Logger.cpp
+        src/RenderStack.cpp
+        src/TimerTask.cpp
+        src/TimerLoopTask.cpp
+        src/Workspace.cpp
+        src/WorkspaceLayer.cpp
+        src/WorkspaceRegistry.cpp
+        src/WorkspaceRenderer.cpp src/Assert.cpp)
 
 set(RESOURCES
-    )
+        )
 
 add_executable(${TARGET} ${SOURCES})
 

@@ -6,7 +6,8 @@
 #include <Common/Noncopyable.h>
 #include <App/EventLoop.h>
 #include <App/CallbackTask.h>
-#include "TimerLoopTask.h"
+#include <App/TimerLoopTask.h>
+#include <App/Workspace.h>
 
 class Dispatcher final {
     VX_MAKE_NONMOVABLE(Dispatcher);
@@ -22,6 +23,9 @@ private:
     // Events
     std::shared_ptr<CallbackTask<glm::vec2>> m_WindowResizeCallback;
 
+    std::shared_ptr<CallbackTask<std::shared_ptr<Workspace>>> m_WorkspaceOpenedCallback;
+    std::shared_ptr<CallbackTask<std::shared_ptr<Workspace>>> m_WorkspaceClosedCallback;
+
 public:
     static Dispatcher& Main();
 
@@ -34,4 +38,8 @@ public:
 
     // Events
     [[nodiscard]] CallbackTask<glm::vec2>& GetWindowResizeHandle() const { return *m_WindowResizeCallback; }
+
+    [[nodiscard]] CallbackTask<std::shared_ptr<Workspace>>& GetWorkspaceOpenedHandle() const { return *m_WorkspaceOpenedCallback; }
+    [[nodiscard]] CallbackTask<std::shared_ptr<Workspace>>& GetWorkspaceClosedHandle() const { return *m_WorkspaceClosedCallback; }
+
 };
