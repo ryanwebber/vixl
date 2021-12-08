@@ -13,13 +13,15 @@ private:
     using WorkspaceEventScope = CallbackTask<std::shared_ptr<Workspace>>::Scope;
 
     std::unordered_map<int, std::unique_ptr<WorkspaceRenderer>> m_Renderers;
+    std::shared_ptr<WorkspaceRegistry> m_Registry;
+
     WorkspaceEventScope m_OnWorkspaceOpenedEventHandle { };
     WorkspaceEventScope m_OnWorkspaceClosedEventHandle { };
 
     void OnUpdate() override { };
 
 public:
-    explicit WorkspaceLayer();
+    explicit WorkspaceLayer(std::shared_ptr<WorkspaceRegistry> registry);
 
     ~WorkspaceLayer() override = default;
 

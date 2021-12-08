@@ -3,10 +3,10 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <tuple>
 
 #include <uvw/async.h>
 
-#include <App/Assert.h>
 #include <App/Task.h>
 #include <App/EventScope.h>
 
@@ -15,6 +15,7 @@ class CallbackTask final: public Task {
 public:
 
     using Scope = EventScope<uvw::AsyncHandle, uvw::AsyncEvent>;
+    using Callback = std::function<void(Args...)>;
 
     CallbackTask() = delete;
     CallbackTask(const std::string_view &name, const EventLoop&);
@@ -23,9 +24,9 @@ public:
     void Clear() override;
     void Close() override;
 
-    void Notify(Args... args);
+    void Notify(Args... args) const;
 
-    [[nodiscard]] Scope OnCallback(std::function<void(Args...)> listener);
+    [[nodiscard]] Scope OnCallback(std::function<void(Args...)> callback);
 
 private:
     std::shared_ptr<uvw::AsyncHandle> m_Handle;
@@ -49,18 +50,18 @@ void CallbackTask<Args...>::Close() {
 }
 
 template<typename... Args>
-void CallbackTask<Args...>::Notify(Args... args) {
-    auto send_args = std::make_shared<std::tuple<Args...>>(args...);
+void CallbackTask<Args...>::Notify(Args... args) const {
+    auto send_args = std::make_shared<std::tuple<Args...>>(std::forward<Args...>(args...));
     m_Handle->data(send_args);
     m_Handle->send();
 }
 
 template<typename... Args>
-typename CallbackTask<Args...>::Scope CallbackTask<Args...>::OnCallback(std::function<void(Args...)> listener) {
-    ASSERT(m_Handle != nullptr, "Callback handle was not initialized");
-    auto connection = m_Handle->on<uvw::AsyncEvent>([&](uvw::AsyncEvent &ev, const uvw::AsyncHandle &handle) {
+typename CallbackTask<Args...>::Scope CallbackTask<Args...>::OnCallback(std::function<void(Args...)> callback) {
+    auto connection = m_Handle->on<uvw::AsyncEvent>([cb = std::move(callback)](const uvw::AsyncEvent &ev, const uvw::AsyncHandle &handle) {
         auto args = handle.data<std::tuple<Args...>>();
-        std::apply(listener, *args);
+        Logger::Core->debug("Got tuple event with argc: {}", std::tuple_size<std::tuple<Args...>>());
+        std::apply(cb, *args);
     });
 
     return std::move(Scope(m_Handle, connection));

@@ -1,8 +1,12 @@
 #include <App/Dispatcher.h>
 #include <App/WorkspaceLayer.h>
 
-WorkspaceLayer::WorkspaceLayer() {
-    m_OnWorkspaceOpenedEventHandle = Dispatcher::Main().GetWorkspaceOpenedHandle().OnCallback([this](auto workspace) {
+#include <utility>
+
+WorkspaceLayer::WorkspaceLayer(std::shared_ptr<WorkspaceRegistry> registry)
+    : m_Registry(std::move(registry))
+{
+    m_OnWorkspaceOpenedEventHandle = m_Registry->OnWorkspaceOpened([&](auto workspace) {
         auto workspace_identifier = workspace->GetIdentifier();
         auto renderer = std::make_unique<WorkspaceRenderer>(std::move(workspace));
         renderer->Initialize();
@@ -10,7 +14,7 @@ WorkspaceLayer::WorkspaceLayer() {
         m_Renderers.insert_or_assign(workspace_identifier, std::move(renderer));
     });
 
-    m_OnWorkspaceClosedEventHandle = Dispatcher::Main().GetWorkspaceOpenedHandle().OnCallback([this](auto workspace) {
+    m_OnWorkspaceClosedEventHandle = m_Registry->OnWorkspaceClosed([&](auto workspace) {
         auto& renderer = m_Renderers[workspace->GetIdentifier()];
         renderer->Destroy();
 

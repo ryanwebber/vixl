@@ -1,5 +1,7 @@
 #pragma once
 
+#include <App/Logger.h>
+
 typedef int WorkspaceIdentifier;
 
 class Workspace {
@@ -12,7 +14,10 @@ private:
 
 public:
 
-    ~Workspace() = default;
+    ~Workspace() {
+        Logger::Core->debug("Closing workspace {}", m_Identifier);
+    };
+
     [[nodiscard]] WorkspaceIdentifier GetIdentifier() const { return m_Identifier; }
 
     static std::shared_ptr<Workspace> Create();

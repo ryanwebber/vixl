@@ -57,15 +57,17 @@ std::optional<Error> run() {
     // Define the viewport dimensions
     glViewport(0, 0, WIDTH, HEIGHT);
 
-    auto registry = std::make_shared<WorkspaceRegistry>();
+    auto &dispatcher = Dispatcher::Main();
+    auto registry = std::make_shared<WorkspaceRegistry>(dispatcher.GetEventLoop());
 
     RenderStack render_stack;
-    render_stack.AddLayer(std::make_unique<WorkspaceLayer>());
+    render_stack.AddLayer(std::make_unique<WorkspaceLayer>(registry));
     render_stack.AddLayer(std::make_unique<GUILayer>(window));
+
+    registry->InsertWorkspace(Workspace::Create());
 
     glfwSetWindowUserPointer(window, static_cast<void*>(&render_stack));
 
-    auto &dispatcher = Dispatcher::Main();
     auto ui_loop_connection = dispatcher.GetUILoopHandle().OnTimeout([&](){
         glfwPollEvents();
         draw(window, render_stack);
@@ -76,6 +78,7 @@ std::optional<Error> run() {
     });
 
     auto resize_connection = dispatcher.GetWindowResizeHandle().OnCallback([&](glm::vec2 size){
+        Logger::Core->debug("Window resize {}x{}", size.x, size.y);
         render_stack.OnWindowResize(size.x, size.y);
     });
 

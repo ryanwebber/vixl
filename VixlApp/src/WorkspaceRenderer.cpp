@@ -34,6 +34,8 @@ void WorkspaceRenderer::Initialize() {
         Logger::Core->debug("Unable to build framebuffer: status={}", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    Logger::Core->debug("Finished initializing graphics buffers for workspace {}", m_Workspace->GetIdentifier());
 }
 
 void WorkspaceRenderer::Render() const {

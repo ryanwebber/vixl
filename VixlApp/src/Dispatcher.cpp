@@ -18,9 +18,6 @@ Dispatcher::Dispatcher()
 
     // Initialize the callbacks
     m_WindowResizeCallback = m_EventLoop->Register<CallbackTask<glm::vec2>>("OnWindowResize");
-
-    m_WorkspaceOpenedCallback = m_EventLoop->Register<CallbackTask<std::shared_ptr<Workspace>>>("OnWorkspaceOpened");
-    m_WorkspaceClosedCallback = m_EventLoop->Register<CallbackTask<std::shared_ptr<Workspace>>>("OnWorkspaceClosed");
 }
 
 EventLoop &Dispatcher::GetEventLoop() {
