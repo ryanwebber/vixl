@@ -161,25 +161,22 @@ void GUILayer::OnRender() {
 
     ImGui::End();
 
-    // Buffer window
-    ImGui::Begin("GameWindow");
-    {
-        // Using a Child allow to fill all the space of the window.
-        // It also alows customization
-        ImGui::BeginChild("GameRender");
-        // Get the size of the child (i.e. the whole draw size of the windows).
-        ImVec2 wsize = ImGui::GetWindowSize();
-        // Because I use the texture from OpenGL, I need to invert the V from the UV.
-//        ImGui::Image((ImTextureID)tex, wsize, ImVec2(0, 1), ImVec2(1, 0));
+    m_WorkspaceRegistry->ForEachWorkspace([](auto& workspace) {
+        auto size = workspace.GetViewport().GetSize();
+        ImVec2 im_size = { size.x, size.y };
 
-        ImGui::Text("Test");
+        ImGui::Begin("[unsaved] Workspace 1", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoSavedSettings);
+        {
+            ImGui::Text("size = %f x %f", im_size.x, im_size.y);
+            ImGui::Text("More formatted text");
 
-        ImGui::EndChild();
-    }
+            // Texture is from open OpenGL, uvs need to be inverted
+            ImGui::Image(workspace.GetViewport().GetTexture(), im_size, ImVec2(0, 1), ImVec2(1, 0));
+        }
+        ImGui::End();
+    });
 
-    ImGui::End();
-
-//    ImGui::ShowDemoWindow(nullptr);/76oin
+//    ImGui::ShowDemoWindow(nullptr);
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

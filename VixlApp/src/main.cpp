@@ -62,7 +62,7 @@ std::optional<Error> run() {
 
     RenderStack render_stack;
     render_stack.AddLayer(std::make_unique<WorkspaceLayer>(registry));
-    render_stack.AddLayer(std::make_unique<GUILayer>(window));
+    render_stack.AddLayer(std::make_unique<GUILayer>(window, registry));
 
     registry->InsertWorkspace(Workspace::Create());
 

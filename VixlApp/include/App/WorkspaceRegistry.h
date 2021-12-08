@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <functional>
 
 #include <Common/Noncopyable.h>
 
@@ -25,6 +26,12 @@ public:
 
     [[nodiscard]] std::optional<std::shared_ptr<Workspace>> LookupWorkspace(WorkspaceIdentifier id) const;
     void InsertWorkspace(std::shared_ptr<Workspace> workspace);
+
+    void ForEachWorkspace(const std::function<void(Workspace&)>& callback) const {
+        for (auto&& entry : m_Workspaces) {
+            callback(*entry.second);
+        }
+    }
 
     [[nodiscard]] CallbackTask<std::shared_ptr<Workspace>>::Scope OnWorkspaceOpened(CallbackTask<std::shared_ptr<Workspace>>::Callback &&callback) const;
     [[nodiscard]] CallbackTask<std::shared_ptr<Workspace>>::Scope OnWorkspaceClosed(CallbackTask<std::shared_ptr<Workspace>>::Callback &&callback) const;
