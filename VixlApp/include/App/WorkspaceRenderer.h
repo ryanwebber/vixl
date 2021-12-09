@@ -1,10 +1,15 @@
 #pragma once
 
 #include <memory>
-#include <glm/glm.hpp>
 #include <utility>
+
+#include <glm/glm.hpp>
+#include <pixman/pixman.h>
+
 #include <Common/Noncopyable.h>
 
+#include <App/Bitmap.h>
+#include <App/Colors.h>
 #include <App/Workspace.h>
 
 class WorkspaceRenderer {

@@ -60,7 +60,6 @@ template<typename... Args>
 typename CallbackTask<Args...>::Scope CallbackTask<Args...>::OnCallback(std::function<void(Args...)> callback) {
     auto connection = m_Handle->on<uvw::AsyncEvent>([cb = std::move(callback)](const uvw::AsyncEvent &ev, const uvw::AsyncHandle &handle) {
         auto args = handle.data<std::tuple<Args...>>();
-        Logger::Core->debug("Got tuple event with argc: {}", std::tuple_size<std::tuple<Args...>>());
         std::apply(cb, *args);
     });
 

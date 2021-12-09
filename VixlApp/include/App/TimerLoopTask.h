@@ -14,7 +14,7 @@ public:
     using Millis = uvw::TimerHandle::Time;
     using Scope = EventScope<uvw::TimerHandle, uvw::TimerEvent>;
 
-    TimerLoopTask(const std::string_view &name, const EventLoop&, Millis duration, bool wait_for_first_tick = true);
+    TimerLoopTask(const std::string_view &name, const EventLoop&, Millis duration);
     ~TimerLoopTask() override = default;
 
     void Clear() override;
@@ -28,5 +28,4 @@ public:
 private:
     std::shared_ptr<uvw::TimerHandle> m_Handle;
     Millis m_Duration;
-    bool m_WaitForFirstTick;
 };

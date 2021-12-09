@@ -7,6 +7,7 @@ set(LIBS
     glfw
     glm
     imgui
+    pixman
     spdlog
     uv_a
     vixl_common
@@ -15,10 +16,12 @@ set(LIBS
 set(INCLUDES
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/../VixlCommon/include"
+        "${CMAKE_BINARY_DIR}"
         "../3rdParty/fmt/include"
         "../3rdParty/glfw/include"
         "../3rdParty/glm"
         "../3rdParty/imgui-wrapper"
+        "../3rdParty/pixman-wrapper/pixman"
         "../3rdParty/spdlog/include"
         "../3rdParty/uvw/src"
         )
@@ -35,7 +38,7 @@ set(SOURCES
         src/Workspace.cpp
         src/WorkspaceLayer.cpp
         src/WorkspaceRegistry.cpp
-        src/WorkspaceRenderer.cpp src/Assert.cpp)
+        src/WorkspaceRenderer.cpp src/Assert.cpp include/App/Colors.h include/App/Size.h)
 
 set(RESOURCES
         )

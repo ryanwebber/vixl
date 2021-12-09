@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
+#include <imgui_internal.h>
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
     #define GLSL_VERSION_STRING "#version 100"
@@ -50,141 +51,190 @@ void GUILayer::OnDestroy() {
     ImGui::DestroyContext();
 }
 
+static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+
 void GUILayer::OnRender() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
 
     ImGui::NewFrame();
 
-    auto viewport_size = ImGui::GetIO().DisplaySize;
-    auto viewport_position = ImGui::GetMainViewport()->Pos;
+    // --------------------
 
-    ImGui::SetNextWindowPos(viewport_position);
-    ImGui::SetNextWindowSize(viewport_size);
-    ImGui::SetNextWindowDockID(ImGui::GetWindowDockID());
-    ImGui::GetStyle().WindowRounding = 0.0f;
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+    ImGui::SetNextWindowViewport(viewport->ID);
 
-    ImGui::Begin("Main", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
-
-    // Height of single row widgets
-    const auto row_height = + ImGui::GetFrameHeightWithSpacing(); // Command input height
-    ;
-
-    // Height of footer region
-    const auto footer_height = 2 * row_height;
-
-    // Command history region
-    if (viewport_size.y - footer_height > 0) {
-        ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height), false, ImGuiWindowFlags_HorizontalScrollbar);
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
-        for (int i = 0; i < 50; i++) {
-            ImGui::Text("[{%d}] %s", i, "Hello world!");
-        }
-
-        ImGui::PopStyleVar();
-        ImGui::EndChild();
-    }
-
-    ImGui::Separator();
-
-    // Command input region
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, {});
-
-    ImGui::InputText("##CommandPrompt",
-                     const_cast<char *>("> "),
-                     2,
-                     ImGuiInputTextFlags_ReadOnly);
-
-    ImGui::SetKeyboardFocusHere();
-
-    ImGui::SameLine(COMMAND_TEXT_INPUT_FRAME_INSET);
-
-    ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue
-            | ImGuiInputTextFlags_NoHorizontalScroll
-            | ImGuiInputTextFlags_CallbackCompletion
-            | ImGuiInputTextFlags_CallbackHistory
-            | ImGuiInputTextFlags_CallbackAlways
-            ;
-    bool submit_command = ImGui::InputTextWithHint("##CommandInput",
-                                                   "Command like '(help)'",
-                                                   cmdInput,
-                                                   COMMAND_TEXT_INPUT_BUFFER_LEN,
-                                                   input_text_flags,
-                                                   &CommandInputTextCallback);
-
-    if (submit_command) {
-        Logger::Core->debug("Command: {}", cmdInput);
-        cmdInput[0] = '\0';
-    }
-
-    ImGui::PopStyleColor();
-
-    // Command hint region
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::Text("(");
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::Text("%s", "color");
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_Text]);
-    ImGui::Text(" %s", "red");
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_Text]);
-    ImGui::Text(" :: \"%s\"", "the red channel component from (0.0, 1.0).");
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::Text(" %s", "green");
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::Text(" %s", "blue");
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::Text(" %s", "alpha");
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::Text(")");
-    ImGui::PopStyleColor();
-
-    ImGui::End();
-
-    m_WorkspaceRegistry->ForEachWorkspace([](auto& workspace) {
-        auto size = workspace.GetViewport().GetSize();
-        ImVec2 im_size = { size.x, size.y };
-
-        ImGui::Begin("[unsaved] Workspace 1", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         {
-            ImGui::Text("size = %f x %f", im_size.x, im_size.y);
-            ImGui::Text("More formatted text");
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                            ImGuiWindowFlags_NoMove;
+            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+            ImGui::Begin("DockSpace", nullptr, window_flags);
+            {
+
+                char input[12];
+
+                ImGui::LabelText("Hello", "%s", "World");
+                ImGui::InputText("Name", input, 12);
+            }
+            ImGui::End();
+        }
+        ImGui::PopStyleVar();
+    }
+    ImGui::PopStyleVar();
+
+    // ---------------------
+
+//    auto viewport_size = ImGui::GetIO().DisplaySize;
+//    auto viewport_position = ImGui::GetMainViewport()->Pos;
+
+//    ImGui::SetNextWindowPos(viewport_position);
+//    ImGui::SetNextWindowSize(viewport_size);
+//    ImGui::GetStyle().WindowRounding = 0.0f;
+
+//    ImGui::BeginChild("Main", viewport_size, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+//    ImGui::Begin("Main", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+//    ImGui::Begin("Hello, world!");
+//
+//    // Height of single row widgets
+//    const auto row_height = + ImGui::GetFrameHeightWithSpacing(); // Command input height
+//    ;
+//
+//    // Height of footer region
+//    const auto footer_height = 2 * row_height;
+//
+//    // Command history region
+//    ImGui::BeginChild("ScrollingRegion", { }, false, ImGuiWindowFlags_HorizontalScrollbar);
+//    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
+//    for (int i = 0; i < 50; i++) {
+//        ImGui::Text("[{%d}] %s", i, "Hello world!");
+//    }
+//
+//    ImGui::PopStyleVar();
+//    ImGui::EndChild();
+//
+//    ImGui::Separator();
+//
+//    // Command input region
+//    ImGui::PushStyleColor(ImGuiCol_FrameBg, {});
+//    {
+//
+//        ImGui::InputText("##CommandPrompt",
+//                         const_cast<char *>("> "),
+//                         2,
+//                         ImGuiInputTextFlags_ReadOnly);
+//
+//        ImGui::SetKeyboardFocusHere();
+//
+//        ImGui::SameLine(COMMAND_TEXT_INPUT_FRAME_INSET);
+//
+//        ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue
+//                                               | ImGuiInputTextFlags_NoHorizontalScroll
+//                                               | ImGuiInputTextFlags_CallbackCompletion
+//                                               | ImGuiInputTextFlags_CallbackHistory
+//                                               | ImGuiInputTextFlags_CallbackAlways;
+//        bool submit_command = ImGui::InputTextWithHint("##CommandInput",
+//                                                       "Command like '(help)'",
+//                                                       cmdInput,
+//                                                       COMMAND_TEXT_INPUT_BUFFER_LEN,
+//                                                       input_text_flags,
+//                                                       &CommandInputTextCallback);
+//
+//        if (submit_command) {
+//            Logger::Core->debug("Command: {}", cmdInput);
+//            cmdInput[0] = '\0';
+//        }
+//    }
+//    ImGui::PopStyleColor();
+//
+//    // Command hint region
+//    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+//    ImGui::Text("(");
+//    ImGui::PopStyleColor();
+//
+//    ImGui::SameLine();
+//    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+//    ImGui::Text("%s", "color");
+//    ImGui::PopStyleColor();
+//
+//    ImGui::SameLine();
+//    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_Text]);
+//    ImGui::Text(" %s", "red");
+//    ImGui::PopStyleColor();
+//
+//    ImGui::SameLine();
+//    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_Text]);
+//    ImGui::Text(" :: \"%s\"", "the red channel component from (0.0, 1.0).");
+//    ImGui::PopStyleColor();
+//
+//    ImGui::SameLine();
+//    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+//    ImGui::Text(" %s", "green");
+//    ImGui::PopStyleColor();
+//
+//    ImGui::SameLine();
+//    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+//    ImGui::Text(" %s", "blue");
+//    ImGui::PopStyleColor();
+//
+//    ImGui::SameLine();
+//    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+//    ImGui::Text(" %s", "alpha");
+//    ImGui::PopStyleColor();
+//
+//    ImGui::SameLine();
+//    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+//    ImGui::Text(")");
+//    ImGui::PopStyleColor();
+//
+//    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+//
+//    ImGui::End();
+
+    std::vector<WorkspaceIdentifier> workspaces_to_close;
+
+    m_WorkspaceRegistry->ForEachWorkspace([&](auto& workspace) {
+        auto& viewport = workspace.GetViewport();
+        auto size = viewport.GetSize();
+        ImVec2 im_size = { size.width, size.height };
+
+        bool keep_window = true;
+        auto show_window = ImGui::Begin("[unsaved] Workspace 1", &keep_window, ImGuiWindowFlags_NoSavedSettings);
+        if (show_window) {
+            ImGui::LabelText("Size", "%f x %f", size.width, size.height);
+            ImGui::LabelText("Path", "/Path/To/File");
 
             // Texture is from open OpenGL, uvs need to be inverted
             ImGui::Image(workspace.GetViewport().GetTexture(), im_size, ImVec2(0, 1), ImVec2(1, 0));
         }
+
+        if (!keep_window)
+            workspaces_to_close.push_back(workspace.GetIdentifier());
+
         ImGui::End();
     });
 
-//    ImGui::ShowDemoWindow(nullptr);
+    for (auto workspace_identifier : workspaces_to_close) {
+        Logger::Core->debug("User asked to close workspace: {}", workspace_identifier);
+        m_WorkspaceRegistry->CloseWorkspace(workspace_identifier);
+    }
 
+    ImGui::EndFrame();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void GUILayer::OnDidRender() {
+    GLFWwindow* old_context = glfwGetCurrentContext();
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();
+    glfwMakeContextCurrent(old_context);
 }
 
 int GUILayer::OnCommandTextInputEvent(ImGuiInputTextCallbackData *data) {

@@ -3,9 +3,10 @@
 #include <App/WorkspaceRenderer.h>
 #include <App/Logger.h>
 
+void RenderScene(const Workspace&, glm::mat4x4 transform);
+
 void WorkspaceRenderer::Initialize() {
-    const auto width = m_Workspace->GetViewport().GetSize().x;
-    const auto height = m_Workspace->GetViewport().GetSize().y;
+    const auto[width,height] = m_Workspace->GetViewport().GetSize().dimensions;
 
     // Initialize  frame buffer
     glGenFramebuffers(1, &m_GLFrameBuffer);
@@ -41,17 +42,26 @@ void WorkspaceRenderer::Initialize() {
 }
 
 void WorkspaceRenderer::Render() const {
+    const auto[r,g,b,a] = Colors::workspace_background.rgba;
+
     // First pass: draw scene to framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, m_GLFrameBuffer);
-    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+    glClearColor(r,g,b,a);
     glClear(GL_COLOR_BUFFER_BIT); // we're not using the stencil buffer now
 
-    // TODO: draw now
+    RenderScene(*m_Workspace, glm::mat4x4());
 
     // Unbind the framebuffer so we don't do further drawing to it
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void WorkspaceRenderer::Destroy() {
-    // TODO: destroy this stuff
+    Logger::Core->debug("Deallocating rendering resources for workspace {}", m_Workspace->GetIdentifier());
+
+    // TODO: destroy GL memory
+}
+
+void RenderScene(const Workspace&, glm::mat4x4 transform) {
+    pixman_region16_t region;
+    pixman_region_init(&region);
 }

@@ -17,3 +17,6 @@
 	path = 3rdParty/uvw
 	url = git@github.com:skypjack/uvw.git
 
+[submodule "3rdParty/pixman-wrapper/pixman"]
+	path = 3rdParty/pixman-wrapper/pixman
+	url = https://gitlab.freedesktop.org/pixman/pixman.git

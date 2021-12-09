@@ -7,6 +7,7 @@ WorkspaceLayer::WorkspaceLayer(std::shared_ptr<WorkspaceRegistry> registry)
     : m_Registry(std::move(registry))
 {
     m_OnWorkspaceOpenedEventHandle = m_Registry->OnWorkspaceOpened([&](auto workspace) {
+        Logger::Core->debug("Creating new workspace renderer for {}", workspace->GetIdentifier());
         auto workspace_identifier = workspace->GetIdentifier();
         auto renderer = std::make_unique<WorkspaceRenderer>(std::move(workspace));
         renderer->Initialize();
@@ -15,6 +16,7 @@ WorkspaceLayer::WorkspaceLayer(std::shared_ptr<WorkspaceRegistry> registry)
     });
 
     m_OnWorkspaceClosedEventHandle = m_Registry->OnWorkspaceClosed([&](auto workspace) {
+        Logger::Core->debug("Closing workspace renderer for {}", workspace->GetIdentifier());
         auto& renderer = m_Renderers[workspace->GetIdentifier()];
         renderer->Destroy();
 

@@ -12,7 +12,7 @@ Dispatcher::Dispatcher()
 {
     // Initialize the event loop
     static_assert(TARGET_FPS > 0, "Invalid target FPS");
-    auto mills_per_frame = TimerTask::Millis(1000 / TARGET_FPS);
+    auto mills_per_frame = TimerTask::Millis(500 / TARGET_FPS); // Why does this need to be scaled by 2x to work right?
     m_UILoop = m_EventLoop->Register<TimerLoopTask>("UILoop", mills_per_frame);
     m_UILoop->Start();
 

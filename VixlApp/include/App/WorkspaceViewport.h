@@ -2,15 +2,17 @@
 
 #include <glm/glm.hpp>
 
+#include <App/Size.h>
+
 class WorkspaceViewport final {
 private:
-    glm::vec2 m_Size;
-    void* m_Texture;
+    Size m_Size;
+    void* m_Texture { nullptr };
 
 public:
-    explicit WorkspaceViewport(glm::vec2 size)
+
+    explicit WorkspaceViewport(Size size)
         : m_Size(size)
-        , m_Texture(nullptr)
     { }
 
     ~WorkspaceViewport() = default;
@@ -18,6 +20,6 @@ public:
     [[nodiscard]] void* GetTexture() const { return m_Texture; }
     void SetTexture(void* texture) { m_Texture = texture; }
 
-    [[nodiscard]] glm::vec2 GetSize() const { return m_Size; }
-    void SetSize(const glm::vec2& size) { m_Size = size; }
+    [[nodiscard]] Size GetSize() const { return m_Size; }
+    void SetSize(const Size& size) { m_Size = size; }
 };

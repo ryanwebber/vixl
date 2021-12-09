@@ -26,6 +26,7 @@ public:
 
     [[nodiscard]] std::optional<std::shared_ptr<Workspace>> LookupWorkspace(WorkspaceIdentifier id) const;
     void InsertWorkspace(std::shared_ptr<Workspace> workspace);
+    void CloseWorkspace(WorkspaceIdentifier id);
 
     void ForEachWorkspace(const std::function<void(Workspace&)>& callback) const {
         for (auto&& entry : m_Workspaces) {

@@ -2,5 +2,12 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdParty/fmt" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdParty/glfw" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdParty/glm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdParty/imgui-wrapper/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdParty/pixman-wrapper/pixman" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdParty/spdlog" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdParty/uvw" vcs="Git" />
   </component>
 </project>
