@@ -7,16 +7,12 @@
 [submodule "3rdParty/glm"]
 	path = 3rdParty/glm
 	url = git@github.com:g-truc/glm.git
-[submodule "3rdParty/glfw"]
-	path = 3rdParty/glfw
-	url = git@github.com:glfw/glfw.git
 [submodule "3rdParty/fmt"]
 	path = 3rdParty/fmt
 	url = git@github.com:fmtlib/fmt.git
 [submodule "3rdParty/uvw"]
 	path = 3rdParty/uvw
 	url = git@github.com:skypjack/uvw.git
-
 [submodule "3rdParty/pixman-wrapper/pixman"]
 	path = 3rdParty/pixman-wrapper/pixman
 	url = https://gitlab.freedesktop.org/pixman/pixman.git
