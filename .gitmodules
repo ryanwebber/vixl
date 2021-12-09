@@ -16,3 +16,6 @@
 [submodule "3rdParty/pixman-wrapper/pixman"]
 	path = 3rdParty/pixman-wrapper/pixman
 	url = https://gitlab.freedesktop.org/pixman/pixman.git
+[submodule "3rdParty/glfw"]
+	path = 3rdParty/glfw
+	url = git@github.com:glfw/glfw.git
