@@ -1,25 +1,38 @@
 #pragma once
 
+#include <memory>
+
+#include <pixman/pixman.h>
+#include <Common/Copyable.h>
+
 #include <App/Size.h>
-#include <cinttypes>
+#include <App/UnmanagedBuffer.h>
 
-template<typename T>
-class BitmapBuffer final {
-private:
-    Size m_Size;
-    T* m_Data;
+class Painter;
 
-public:
-
-    explicit BitmapBuffer(Size size)
-        : m_Size(size)
-        , m_Data(nullptr)
-    {};
-
-    ~BitmapBuffer() = default;
-
-    const T* GetData() const { return m_Data; }
-    T* GetData() { return m_Data; }
+struct PixmanContainer final {
+    SizeInt dimensions;
+    UnmanagedBuffer<uint32_t> data;
+    std::shared_ptr<pixman_image_t> image;
 };
 
-typedef BitmapBuffer<uint32_t> Bitmap;
+class Bitmap final {
+    VX_DEFAULT_COPYABLE(Bitmap);
+    VX_DEFAULT_MOVABLE(Bitmap);
+
+private:
+    PixmanContainer m_Container;
+
+    [[nodiscard]] pixman_image_t* GetImage() const { return m_Container.image.get(); }
+
+public:
+    explicit Bitmap(SizeInt size);
+
+    ~Bitmap() = default;
+
+    [[nodiscard]] SizeInt GetSize() const { return m_Container.dimensions; }
+    [[nodiscard]] UnmanagedBuffer<uint32_t>& GetBuffer() { return m_Container.data; }
+    [[nodiscard]] const UnmanagedBuffer<uint32_t>& GetBuffer() const { return m_Container.data; }
+
+    friend class Painter;
+};

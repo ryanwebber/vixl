@@ -17,7 +17,7 @@ Dispatcher::Dispatcher()
     m_UILoop->Start();
 
     // Initialize the callbacks
-    m_WindowResizeCallback = m_EventLoop->Register<CallbackTask<glm::vec2>>("OnWindowResize");
+    m_WindowResizeCallback = m_EventLoop->Register<CallbackTask<SizeInt>>("OnWindowResize");
 }
 
 EventLoop &Dispatcher::GetEventLoop() {

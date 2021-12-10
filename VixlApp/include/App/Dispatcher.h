@@ -3,11 +3,12 @@
 #include <memory>
 #include <glm/glm.hpp>
 
-#include <Common/Noncopyable.h>
-#include <App/EventLoop.h>
 #include <App/CallbackTask.h>
+#include <App/EventLoop.h>
+#include <App/Size.h>
 #include <App/TimerLoopTask.h>
 #include <App/Workspace.h>
+#include <Common/Noncopyable.h>
 
 class Dispatcher final {
     VX_MAKE_NONMOVABLE(Dispatcher);
@@ -21,7 +22,7 @@ private:
     std::shared_ptr<TimerLoopTask> m_UILoop;
 
     // Events
-    std::shared_ptr<CallbackTask<glm::vec2>> m_WindowResizeCallback;
+    std::shared_ptr<CallbackTask<SizeInt>> m_WindowResizeCallback;
 
 public:
     static Dispatcher& Main();
@@ -34,5 +35,5 @@ public:
     [[nodiscard]] TimerLoopTask& GetUILoopHandle() const { return *m_UILoop; }
 
     // Events
-    [[nodiscard]] CallbackTask<glm::vec2>& GetWindowResizeHandle() const { return *m_WindowResizeCallback; }
+    [[nodiscard]] CallbackTask<SizeInt>& GetWindowResizeHandle() const { return *m_WindowResizeCallback; }
 };

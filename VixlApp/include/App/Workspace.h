@@ -20,7 +20,7 @@ private:
     explicit Workspace(WorkspaceIdentifier identifier)
         : m_Identifier(identifier)
         , m_Viewport(g_ViewportSize)
-        , m_Bitmap(g_ViewportSize)
+        , m_Bitmap(g_ViewportSize.cast<int>())
         { }
 
 public:
@@ -31,6 +31,7 @@ public:
 
     [[nodiscard]] WorkspaceIdentifier GetIdentifier() const { return m_Identifier; }
     [[nodiscard]] WorkspaceViewport& GetViewport() { return m_Viewport; }
+    [[nodiscard]] Bitmap& GetBitmap() { return m_Bitmap; }
 
     static std::shared_ptr<Workspace> Create();
 };

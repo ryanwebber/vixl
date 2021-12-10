@@ -7,7 +7,7 @@ set(INCLUDES
 
 set(SOURCES
     src/Error.cpp
-    )
+        include/Common/Copyable.h)
 
 ADD_LIBRARY(${TARGET} STATIC ${SOURCES})
 

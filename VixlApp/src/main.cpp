@@ -17,7 +17,7 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 void draw(GLFWwindow*, RenderStack&);
 
 void OnWindowResize(GLFWwindow* window, int width, int height) {
-    Dispatcher::Main().GetWindowResizeHandle().Notify({ width, height });
+    Dispatcher::Main().GetWindowResizeHandle().Notify({ .width =  width, .height = height });
 
     // GLFW polling prevents redraws while the os window is resizing. We can
     // still do it ourselves if we perform swap buffers
@@ -77,9 +77,9 @@ std::optional<Error> run() {
         }
     });
 
-    auto resize_connection = dispatcher.GetWindowResizeHandle().OnCallback([&](glm::vec2 size){
-        Logger::Core->debug("Window resize {}x{}", size.x, size.y);
-        render_stack.OnWindowResize(size.x, size.y);
+    auto resize_connection = dispatcher.GetWindowResizeHandle().OnCallback([&](auto size) {
+        Logger::Core->debug("Window resize {}x{}", size.width, size.height);
+        render_stack.OnWindowResize(size.width, size.height);
     });
 
     dispatcher.GetEventLoop().Run();
@@ -96,8 +96,8 @@ std::optional<Error> run() {
 
 void draw(GLFWwindow *window, RenderStack &render_stack) {
     // Clear the color buffer
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+//    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//    glClear(GL_COLOR_BUFFER_BIT);
 
     render_stack.Update();
     render_stack.Render();

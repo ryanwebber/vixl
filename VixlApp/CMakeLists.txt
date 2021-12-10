@@ -16,7 +16,7 @@ set(LIBS
 set(INCLUDES
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/../VixlCommon/include"
-        "${CMAKE_BINARY_DIR}"
+        "${CMAKE_BINARY_DIR}" # Generated headers for pixman
         "../3rdParty/fmt/include"
         "../3rdParty/glfw/include"
         "../3rdParty/glm"
@@ -38,12 +38,17 @@ set(SOURCES
         src/Workspace.cpp
         src/WorkspaceLayer.cpp
         src/WorkspaceRegistry.cpp
-        src/WorkspaceRenderer.cpp src/Assert.cpp include/App/Colors.h include/App/Size.h)
+        src/WorkspaceRenderer.cpp
+        src/Assert.cpp src/Bitmap.cpp)
 
 set(RESOURCES
         )
 
 add_executable(${TARGET} ${SOURCES})
+
+target_compile_definitions(${TARGET} PRIVATE
+        DEBUG_MEMORY=1
+        )
 
 if (APPLE)
     find_library(COCOA_LIBRARY Cocoa)
