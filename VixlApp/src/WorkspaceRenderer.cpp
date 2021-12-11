@@ -1,17 +1,20 @@
 #include <Glad/gl.h>
 
+#include <glm/gtx/string_cast.hpp>
+
 #include <App/WorkspaceRenderer.h>
 #include <App/Logger.h>
-#include <App/Math.h>
 #include <App/Painter.h>
+#include <App/Camera.h>
 
-void RenderScene(Workspace&, glm::mat4x4 transform);
+void RenderScene(Workspace&, glm::mat4x4);
 
 GLuint vertex_shader;
 GLuint fragment_shader;
 GLuint shader_program;
 GLuint vertex_buffer;
 GLuint vertex_array;
+
 char infoLog[512];
 float vertices[] = {
         -0.5f, -0.5f, 0.0f,
@@ -19,18 +22,26 @@ float vertices[] = {
         0.0f,  0.5f, 0.0f
 };
 
-const char *vertexShaderSource = "#version 330 core\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                 "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                                   "}\n\0";
+const char *vertex_shader_source = R"glsl(
+#version 330 core
+
+layout (location = 0) in vec3 aPos;
+uniform mat4 transform;
+
+void main()
+{
+    gl_Position = transform * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+}
+)glsl";
+
+const char *fragment_shader_source = R"glsl(
+#version 330 core
+out vec4 FragColor;
+void main()
+{
+    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+}
+)glsl";
 
 void WorkspaceRenderer::Initialize() {
     auto[width,height] = m_Workspace->GetViewport().GetSize().cast<int>().dimensions;
@@ -74,7 +85,7 @@ void WorkspaceRenderer::Initialize() {
 
     // Vertex shader
     vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertexShaderSource, nullptr);
+    glShaderSource(vertex_shader, 1, &vertex_shader_source, nullptr);
     glCompileShader(vertex_shader);
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
@@ -85,7 +96,7 @@ void WorkspaceRenderer::Initialize() {
 
     // Fragment shader
     fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragmentShaderSource, nullptr);
+    glShaderSource(fragment_shader, 1, &fragment_shader_source, nullptr);
     glCompileShader(fragment_shader);
     // check for shader compile errors
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
@@ -150,8 +161,16 @@ void WorkspaceRenderer::Destroy() {
     // TODO: destroy GL memory
 }
 
-void RenderScene(Workspace& workspace, glm::mat4x4 transform) {
+void RenderScene(Workspace& workspace, glm::mat4x4 _) {
     glUseProgram(shader_program);
+
+    auto transform = Camera().GetProjection(workspace.GetViewport().GetSize());
+//    auto transform = glm::mat4x4(1.0f);
+    GLint uniform_location = glGetUniformLocation(shader_program, "transform");
+    glUniformMatrix4fv(uniform_location, 1, GL_FALSE, &transform[0][0]);
+
     glBindVertexArray(vertex_array);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    Logger::Core->debug("Got mvp matrix:{}", glm::to_string(transform));
 }
