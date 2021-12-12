@@ -37,13 +37,13 @@ std::optional<Error> run() {
 
     // Create a GLFWwindow object that we can use for GLFW's functions
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vixl " VERSION, nullptr, nullptr);
-
     if (window == nullptr)
     {
         glfwTerminate();
         return Error("Failed to create GLFW window");
     }
 
+    Logger::Core->debug("Created main window handle: {}", static_cast<void*>(window));
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGL((GLADloadfunc) glfwGetProcAddress))
@@ -59,12 +59,13 @@ std::optional<Error> run() {
 
     auto &dispatcher = Dispatcher::Main();
     auto registry = std::make_shared<WorkspaceRegistry>(dispatcher.GetEventLoop());
+    auto state = std::make_shared<GUIState>(registry);
 
     RenderStack render_stack;
-    render_stack.AddLayer(std::make_unique<WorkspaceLayer>(registry));
-    render_stack.AddLayer(std::make_unique<GUILayer>(window, registry));
+    render_stack.AddLayer(std::make_unique<WorkspaceLayer>(registry, state));
+    render_stack.AddLayer(std::make_unique<GUILayer>(window, state));
 
-    registry->InsertWorkspace(Workspace::Create());
+    registry->InsertWorkspace(Workspace::Create({ .width = 400, .height = 400 }));
 
     glfwSetWindowUserPointer(window, static_cast<void*>(&render_stack));
 

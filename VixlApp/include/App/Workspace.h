@@ -14,13 +14,13 @@ typedef int WorkspaceIdentifier;
 class Workspace {
 private:
     WorkspaceIdentifier m_Identifier;
-    WorkspaceViewport m_Viewport;
+    SizeInt m_Size;
     Bitmap m_Bitmap; // This will get replaced with a layer/frame system
 
-    explicit Workspace(WorkspaceIdentifier identifier)
+    explicit Workspace(WorkspaceIdentifier identifier, SizeInt size)
         : m_Identifier(identifier)
-        , m_Viewport(g_ViewportSize)
-        , m_Bitmap(g_ViewportSize.cast<int>())
+        , m_Size(size)
+        , m_Bitmap(size)
         { }
 
 public:
@@ -30,8 +30,9 @@ public:
     };
 
     [[nodiscard]] WorkspaceIdentifier GetIdentifier() const { return m_Identifier; }
-    [[nodiscard]] WorkspaceViewport& GetViewport() { return m_Viewport; }
     [[nodiscard]] Bitmap& GetBitmap() { return m_Bitmap; }
 
-    static std::shared_ptr<Workspace> Create();
+    [[nodiscard]] SizeInt GetSize() const { return m_Size; }
+
+    static std::shared_ptr<Workspace> Create(SizeInt size);
 };

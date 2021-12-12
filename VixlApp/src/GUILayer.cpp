@@ -1,3 +1,5 @@
+#include <span>
+
 #include <App/GUILayer.h>
 #include <App/Logger.h>
 
@@ -75,13 +77,15 @@ void GUILayer::OnRender() {
                             ImGuiWindowFlags_NoMove;
             window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-            ImGui::Begin("DockSpace", nullptr, window_flags);
+            ImGui::Begin("Main", nullptr, window_flags);
             {
 
                 char input[12];
 
                 ImGui::LabelText("Hello", "%s", "World");
                 ImGui::InputText("Name", input, 12);
+
+                Logger::Core->debug("Main window handle: {}", ImGui::GetWindowViewport()->PlatformHandle);
             }
             ImGui::End();
         }
@@ -198,31 +202,36 @@ void GUILayer::OnRender() {
 //    ImGui::End();
 
     std::vector<WorkspaceIdentifier> workspaces_to_close;
-
-    m_WorkspaceRegistry->ForEachWorkspace([&](auto& workspace) {
-        auto& viewport = workspace.GetViewport();
-        auto size = viewport.GetSize();
-        ImVec2 im_size = { size.width, size.height };
+    for (auto &ww : m_GUIState->GetOpenWorkspaces()) {
+        auto &workspace_viewport = ww.GetViewport();
+        auto size = workspace_viewport.GetSize();
+        ImVec2 im_size = {size.width, size.height};
 
         bool keep_window = true;
-        auto show_window = ImGui::Begin("[unsaved] Workspace 1", &keep_window, ImGuiWindowFlags_NoSavedSettings);
+        auto show_window = ImGui::Begin(ww.GetWindowIdentifier().c_str(), &keep_window,ImGuiWindowFlags_NoSavedSettings);
         if (show_window) {
             ImGui::LabelText("Size", "%f x %f", size.width, size.height);
             ImGui::LabelText("Path", "/Path/To/File");
 
             // Texture is from open OpenGL, uvs need to be inverted
-            ImGui::Image(workspace.GetViewport().GetTexture(), im_size, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image(ww.GetFrameBuffer().GetData(), im_size, ImVec2(0, 1), ImVec2(1, 0));
         }
 
-        if (!keep_window)
-            workspaces_to_close.push_back(workspace.GetIdentifier());
+        if (!keep_window) {
+            workspaces_to_close.push_back(ww.GetWorkspace().GetIdentifier());
+        }
+
+        ww.SetWindowHandle(ImGui::GetWindowViewport()->PlatformHandle);
+        Logger::Core->debug("Set window handle for workspace={}: {}",
+                            ww.GetWorkspace().GetIdentifier(),
+                            ImGui::GetWindowViewport()->PlatformHandle);
 
         ImGui::End();
-    });
+    }
 
     for (auto workspace_identifier : workspaces_to_close) {
         Logger::Core->debug("User asked to close workspace: {}", workspace_identifier);
-        m_WorkspaceRegistry->CloseWorkspace(workspace_identifier);
+        m_GUIState->CloseWorkspaceWindow(workspace_identifier);
     }
 
     ImGui::EndFrame();

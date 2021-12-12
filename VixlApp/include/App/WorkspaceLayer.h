@@ -1,9 +1,10 @@
 #pragma once
 
+#include <App/CallbackTask.h>
+#include <App/GUIState.h>
 #include <App/RenderLayer.h>
 #include <App/WorkspaceRegistry.h>
 #include <App/WorkspaceRenderer.h>
-#include <App/CallbackTask.h>
 
 #include <unordered_map>
 #include <memory>
@@ -14,6 +15,7 @@ private:
 
     std::unordered_map<int, std::unique_ptr<WorkspaceRenderer>> m_Renderers;
     std::shared_ptr<WorkspaceRegistry> m_Registry;
+    std::shared_ptr<GUIState> m_GUIState;
 
     WorkspaceEventScope m_OnWorkspaceOpenedEventHandle { };
     WorkspaceEventScope m_OnWorkspaceClosedEventHandle { };
@@ -21,7 +23,7 @@ private:
     void OnUpdate() override { };
 
 public:
-    explicit WorkspaceLayer(std::shared_ptr<WorkspaceRegistry> registry);
+    explicit WorkspaceLayer(std::shared_ptr<WorkspaceRegistry>, std::shared_ptr<GUIState>);
 
     ~WorkspaceLayer() override = default;
 

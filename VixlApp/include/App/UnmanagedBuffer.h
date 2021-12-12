@@ -21,6 +21,12 @@ private:
     size_t m_Length { 0 };
 
 public:
+    UnmanagedBuffer()
+        : m_Owner({ })
+        , m_Buffer(nullptr)
+        , m_Length(0)
+    { };
+
     explicit UnmanagedBuffer(std::shared_ptr<void> owner, T* buffer, size_t length)
             : m_Owner(std::move(owner))
             , m_Buffer(buffer)

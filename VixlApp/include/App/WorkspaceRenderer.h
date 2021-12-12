@@ -19,7 +19,6 @@ VX_MAKE_NONMOVABLE(WorkspaceRenderer);
 
 private:
     std::shared_ptr<Workspace> m_Workspace;
-
     unsigned int m_GLFrameBuffer { };
     unsigned int m_GLTextureBuffer { };
     unsigned int m_GLRenderBuffer { };
@@ -32,8 +31,9 @@ public:
 
     ~WorkspaceRenderer() = default;
 
-    void Initialize();
-    void Render() const;
+    UnmanagedBuffer<void> Initialize();
+
+    void Render(const WorkspaceViewport &viewport) const;
     void Destroy();
 
     std::weak_ptr<Workspace> GetWorkspace() { return m_Workspace; }

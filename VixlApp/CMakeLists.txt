@@ -31,6 +31,7 @@ set(SOURCES
         src/Assert.cpp
         src/Dispatcher.cpp
         src/GUILayer.cpp
+        src/GUIState.cpp
         src/Logger.cpp
         src/RenderStack.cpp
         src/TimerTask.cpp
@@ -78,7 +79,7 @@ if(PLATFORM_WIN32 OR PLATFORM_LINUX)
             "\"$<TARGET_FILE_DIR:${TARGET}>\"")
 endif()
 
-target_compile_features(${TARGET} PUBLIC cxx_std_17)
+target_compile_features(${TARGET} PUBLIC cxx_std_20)
 
 target_include_directories(${TARGET} PUBLIC ${INCLUDES})
 target_link_libraries(${TARGET} ${LIBS})

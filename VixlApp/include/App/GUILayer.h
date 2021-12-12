@@ -8,21 +8,22 @@
 
 #include <App/RenderLayer.h>
 #include <App/WorkspaceRegistry.h>
+#include <App/GUIState.h>
 
 int CommandInputTextCallback(ImGuiInputTextCallbackData* data);
 
 class GUILayer final : public RenderLayer {
 private:
     GLFWwindow* m_Window;
-    std::shared_ptr<WorkspaceRegistry> m_WorkspaceRegistry;
+    std::shared_ptr<GUIState> m_GUIState;
 
     int OnCommandTextInputEvent(ImGuiInputTextCallbackData* data);
     friend int CommandInputTextCallback(ImGuiInputTextCallbackData*);
 
 public:
-    explicit GUILayer(GLFWwindow* window, std::shared_ptr<WorkspaceRegistry> registry)
+    explicit GUILayer(GLFWwindow* window, std::shared_ptr<GUIState> gui_state)
         : m_Window(window)
-        , m_WorkspaceRegistry(std::move(registry))
+        , m_GUIState(std::move(gui_state))
         { }
 
     void OnInitialize() override;

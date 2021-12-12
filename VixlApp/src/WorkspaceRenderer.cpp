@@ -7,7 +7,7 @@
 #include <App/Painter.h>
 #include <App/Camera.h>
 
-void RenderScene(Workspace&, glm::mat4x4);
+void RenderScene(const Workspace& workspace, const WorkspaceViewport &viewport);
 
 GLuint vertex_shader;
 GLuint fragment_shader;
@@ -43,8 +43,8 @@ void main()
 }
 )glsl";
 
-void WorkspaceRenderer::Initialize() {
-    auto[width,height] = m_Workspace->GetViewport().GetSize().cast<int>().dimensions;
+UnmanagedBuffer<void> WorkspaceRenderer::Initialize() {
+    auto[width,height] = m_Workspace->GetSize().cast<int>().dimensions;
 //
     // Initialize  frame buffer
     glGenFramebuffers(1, &m_GLFrameBuffer);
@@ -56,6 +56,11 @@ void WorkspaceRenderer::Initialize() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Also grab the size of the texture data
+    GLint texture_data_size;
+    glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &texture_data_size);
+
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // Bind the texture buffer to the frame buffer
@@ -76,8 +81,6 @@ void WorkspaceRenderer::Initialize() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     Logger::Core->debug("Finished initializing graphics buffers for workspace {}", m_Workspace->GetIdentifier());
-    m_Workspace->GetViewport().SetTexture(reinterpret_cast<void*>(m_GLTextureBuffer));
-
 
     // --------- Test drawing --------------
 
@@ -91,7 +94,7 @@ void WorkspaceRenderer::Initialize() {
     if (!success) {
         glGetShaderInfoLog(vertex_shader, 512, nullptr, infoLog);
         Logger::Core->critical("Unable to compile shader: {}", infoLog);
-        return;
+        return { };
     }
 
     // Fragment shader
@@ -103,7 +106,7 @@ void WorkspaceRenderer::Initialize() {
     if (!success) {
         glGetShaderInfoLog(fragment_shader, 512, nullptr, infoLog);
         Logger::Core->critical("Unable to compile shader: {}", infoLog);
-        return;
+        return { };
     }
 
     // link shaders
@@ -140,9 +143,12 @@ void WorkspaceRenderer::Initialize() {
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
+
+    // Finally, return a pointer to the buffer we'll be rendering to
+    return UnmanagedBuffer<void>(nullptr, reinterpret_cast<void*>(m_GLTextureBuffer), texture_data_size);
 }
 
-void WorkspaceRenderer::Render() const {
+void WorkspaceRenderer::Render(const WorkspaceViewport &viewport) const {
     const auto[r,g,b,a] = Colors::workspace_background.rgba;
 
     // First pass: draw scene to framebuffer
@@ -150,7 +156,7 @@ void WorkspaceRenderer::Render() const {
     glClearColor(r,g,b,a);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    RenderScene(*m_Workspace, glm::mat4x4());
+    RenderScene(*m_Workspace, viewport);
 
     // Unbind the framebuffer to avoid further drawing to it
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -161,16 +167,13 @@ void WorkspaceRenderer::Destroy() {
     // TODO: destroy GL memory
 }
 
-void RenderScene(Workspace& workspace, glm::mat4x4 _) {
+void RenderScene(const Workspace& workspace, const WorkspaceViewport &viewport) {
     glUseProgram(shader_program);
 
-    auto transform = Camera().GetProjection(workspace.GetViewport().GetSize());
-//    auto transform = glm::mat4x4(1.0f);
+    auto transform = viewport.GetCamera().GetProjection();
     GLint uniform_location = glGetUniformLocation(shader_program, "transform");
     glUniformMatrix4fv(uniform_location, 1, GL_FALSE, &transform[0][0]);
 
     glBindVertexArray(vertex_array);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    Logger::Core->debug("Got mvp matrix:{}", glm::to_string(transform));
 }
