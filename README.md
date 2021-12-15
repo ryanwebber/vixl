@@ -1,4 +1,4 @@
 # Vixl
 
-Vim-like pixel art editor
+A minimal, modern, c++ game engine toolchain assembled from existing libraries.
 
