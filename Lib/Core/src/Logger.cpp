@@ -3,17 +3,12 @@
 
 #include <Core/Logger.h>
 
-namespace Core {
-    namespace Logger {
-        std::shared_ptr<spdlog::logger> Engine;
-        std::shared_ptr<spdlog::logger> App;
+namespace Core::Logger {
+    std::shared_ptr<spdlog::logger> Core = Create("core");
 
-        void Initialize(const std::string &app_name) {
-            Engine = spdlog::stdout_color_mt("engine");
-            Engine->set_level(spdlog::level::debug);
-
-            App = spdlog::stdout_color_mt(app_name);
-            App->set_level(spdlog::level::debug);
-        }
+    std::shared_ptr<spdlog::logger> Create(const std::string& name) {
+        auto logger = spdlog::stdout_color_mt(name);
+        logger->set_level(spdlog::level::debug);
+        return logger;
     }
 }

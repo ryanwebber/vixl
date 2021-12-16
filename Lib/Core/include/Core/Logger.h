@@ -4,8 +4,7 @@
 #include <spdlog/spdlog.h>
 
 namespace Core::Logger {
-    extern std::shared_ptr<spdlog::logger> Engine;
-    extern std::shared_ptr<spdlog::logger> App;
+    extern std::shared_ptr<spdlog::logger> Core;
 
-    void Initialize(const std::string &app_name);
+    std::shared_ptr<spdlog::logger> Create(const std::string& name);
 }

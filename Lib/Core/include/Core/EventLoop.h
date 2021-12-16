@@ -33,7 +33,7 @@ namespace Core {
 
         template<typename R, typename... Args>
         std::shared_ptr<R> Register(const std::string_view &name, Args &&... args) {
-            static_assert(std::is_base_of<Task, R>::value, "Not an EventHandle type");
+            static_assert(std::is_base_of<Task, R>::value, "Not an Core::Task type");
             return std::make_shared<R>(name, *this, args...);
         }
     };

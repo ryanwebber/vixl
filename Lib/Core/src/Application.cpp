@@ -1,118 +1,98 @@
+#include <memory>
 
-// This has to come first
-#define GLAD_GL_IMPLEMENTATION 1
-
-#include <Glad/gl.h>
 #include <GLFW/glfw3.h>
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
 
 #include <Common/Error.h>
+#include <Common/Expected.h>
 
 #include <Core/Application.h>
-#include <Core/Dispatcher.h>
 #include <Core/Logger.h>
-#include <Core/RenderStack.h>
+#include <Core/Renderer.h>
+#include <Core/NativeWindow.h>
+#include <Core/Window.h>
 
 namespace Core {
 
     using Common::Error;
+    using Common::Expected;
 
-    // Window dimensions
-    const GLuint WIDTH = 800, HEIGHT = 600;
-
-    void draw(GLFWwindow*, RenderStack&);
+    // View identifier for the main window is always 0
+    const bgfx::ViewId kClearView = 0;
 
     void OnWindowResize(GLFWwindow* window, int width, int height) {
-        Dispatcher::Main().GetWindowResizeHandle().Notify({ .width =  width, .height = height });
-
         // GLFW polling prevents redraws while the os window is resizing. We can
         // still do it ourselves if we perform swap buffers
-        auto render_stack = static_cast<RenderStack*>(glfwGetWindowUserPointer(window));
-        draw(window, *render_stack);
+        bgfx::reset((uint32_t)width, (uint32_t)height, BGFX_RESET_VSYNC);
+        bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
     }
 
-    std::optional<Error> run() {
-        // Init GLFW
-        glfwInit();
+    Expected<std::shared_ptr<Renderer>> InitializeGraphics(const NativeWindow &nw) {
 
-        // Set all the required options for GLFW
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+        SizeInt actual_window_size = nw.GetSize();
 
-        // Create a GLFWwindow object that we can use for GLFW's functions
-        GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vixl " VX_VERSION, nullptr, nullptr);
-        if (window == nullptr)
-        {
-            glfwTerminate();
-            return Error("Failed to create GLFW window");
+        // Call bgfx::renderFrame before bgfx::init to signal to bgfx not to create a render thread.
+        bgfx::renderFrame();
+
+        // Setup bgfx rendering
+        bgfx::Init init;
+        init.platformData.nwh = nw.GetPlatformWindowHandle();
+        init.platformData.ndt = nw.GetPlatformDisplayType();
+        init.resolution.width = actual_window_size.width;
+        init.resolution.height = actual_window_size.height;
+        init.resolution.reset = BGFX_RESET_VSYNC;
+
+        if (!bgfx::init(init)) {
+            return Common::MakeUnexpected<std::shared_ptr<Renderer>>("Unable to initialize graphics pipeline");
         }
 
-        glfwMakeContextCurrent(window);
+        // Set view 0 to the same dimensions as the window and to clear the color buffer.
+        bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
+        bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
 
-        if (!gladLoadGL((GLADloadfunc) glfwGetProcAddress))
-        {
-            return Error("Failed to initialize OpenGL context");
-        }
-
-        // Setup window callbacks
-        glfwSetWindowSizeCallback(window, OnWindowResize);
-
-        // Define the viewport dimensions
-        glViewport(0, 0, WIDTH, HEIGHT);
-
-        auto &dispatcher = Dispatcher::Main();
-        RenderStack render_stack;
-
-        glfwSetWindowUserPointer(window, static_cast<void*>(&render_stack));
-
-        auto ui_loop_connection = dispatcher.GetUILoopHandle().OnTimeout([&](){
-            glfwPollEvents();
-            draw(window, render_stack);
-
-            if (glfwWindowShouldClose(window)) {
-                dispatcher.Terminate();
-            }
-        });
-
-        auto resize_connection = dispatcher.GetWindowResizeHandle().OnCallback([&](auto size) {
-            Logger::Engine->debug("Window resize {}x{}", size.width, size.height);
-        });
-
-        dispatcher.GetEventLoop().Run();
-
-        // Destroy all render layers
-        render_stack.Destroy();
-
-        // Terminates GLFW, clearing any resources allocated by GLFW.
-        glfwDestroyWindow(window);
-        glfwTerminate();
-
-        return { };
-    }
-
-    void draw(GLFWwindow *window, RenderStack &render_stack) {
-        // Clear the color buffer
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        render_stack.Update();
-        render_stack.Render();
-
-        // Swap the screen buffers
-        glfwSwapBuffers(window);
+        return std::make_shared<Renderer>();
     }
 
     void Application::Run() {
-        auto maybe_error = run();
-        if (maybe_error)
-            Logger::Engine->critical("Failed to boot application. {}", maybe_error->description());
-        else
-            Logger::Engine->debug("Goodbye!");
+        Logger::Core->debug("Vixl v{}", VX_VERSION);
+
+        // Run
+        m_EventLoop->Run();
+
+        m_Renderer->Destroy();
+        m_Window->GetNativeWindow().Destroy();
+
+        Logger::Core->debug("Goodbye!");
     }
 
-    void Application::Initialize(const std::string &app_subsystem) {
-        Logger::Initialize(app_subsystem);
-        Logger::Engine->debug("Vixl v{}", VX_VERSION);
+    void Application::Terminate() {
+        m_EventLoop->Close();
     }
+
+    Common::Expected<std::unique_ptr<Application>> Application::Create(SizeInt window_size) {
+        return NativeWindow::Create(window_size).and_then([](NativeWindow nw) {
+            return InitializeGraphics(nw).map([&](std::shared_ptr<Renderer> renderer) {
+                auto window = std::make_shared<Window>(nw);
+                auto input = std::make_shared<Input>(nw);
+                auto event_loop = std::make_shared<EventLoop>();
+                auto application = new Application(std::move(window), std::move(input), std::move(renderer), event_loop);
+                return std::unique_ptr<Application>(application);
+            });
+        });
+    }
+
+    Application::Application(std::shared_ptr<Window> window, std::shared_ptr<Input> input, std::shared_ptr<Renderer> renderer, std::shared_ptr<EventLoop> event_loop)
+        : m_Window(std::move(window))
+        , m_Input(std::move(input))
+        , m_Renderer(std::move(renderer))
+        , m_EventLoop(std::move(event_loop))
+        {
+            // Hook into GLFW to get involved in events. First, we set this application to
+            // be the userdata pointer, so this instance can handle the events
+            glfwSetWindowUserPointer(m_Window->GetNativeWindow().GetWindowPointer(), static_cast<void*>(this));
+
+            // Setup window callbacks
+            glfwSetWindowSizeCallback(m_Window->GetNativeWindow().GetWindowPointer(), OnWindowResize);
+        }
 }

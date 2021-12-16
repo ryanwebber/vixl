@@ -11,7 +11,7 @@ namespace Core {
 
     void dealloc_image(pixman_image_t *img) {
 #ifdef DEBUG_MEMORY
-        Logger::Engine->debug("Deallocating unmanaged buffer data ptr={}", static_cast<void *>(img));
+        Logger::Core->debug("Deallocating unmanaged buffer data ptr={}", static_cast<void *>(img));
 #endif
         pixman_image_unref(img);
     }

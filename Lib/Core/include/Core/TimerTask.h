@@ -27,7 +27,7 @@ namespace Core {
 
         void Start();
 
-        Scope OnTimeout(const std::function<void(void)> &listener);
+        [[nodiscard]] Scope OnTimeout(const std::function<void(void)> &listener);
 
     private:
         std::shared_ptr<uvw::TimerHandle> m_Handle;

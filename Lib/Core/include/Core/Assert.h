@@ -5,7 +5,7 @@
 
 #ifndef NDEBUG
     #define VX_ASSERT(Expr, Msg) Core::RuntimeAssert(#Expr, Expr, __FILE__, __LINE__, Msg, *Core::Logger::App)
-    #define VX_ENGINE_ASSERT(Expr, Msg) Core::RuntimeAssert(#Expr, Expr, __FILE__, __LINE__, Msg, *Core::Logger::Engine)
+    #define VX_ENGINE_ASSERT(Expr, Msg) Core::RuntimeAssert(#Expr, Expr, __FILE__, __LINE__, Msg, *Core::Logger::Core)
 #else
     #define ASSERT(Expr, Msg) ;
     #define ENGINE_ASSERT(Expr, Msg) ;

@@ -4,6 +4,10 @@ add_subdirectory(glm)
 add_subdirectory(imgui-wrapper)
 add_subdirectory(pixman-wrapper)
 
+set(BGFX_BUILD_TOOLS OFF CACHE BOOL "Disable building bgfx tools" FORCE)
+set(BGFX_BUILD_EXAMPLES OFF CACHE BOOL "Disable building bgfx examples" FORCE)
+add_subdirectory(bgfx)
+
 set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Avoid statically linking fmt twice" FORCE)
 add_subdirectory(spdlog)
 

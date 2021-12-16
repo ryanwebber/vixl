@@ -8,12 +8,14 @@ set(SOURCES
         src/Application.cpp
         src/Assert.cpp
         src/Bitmap.cpp
-        src/Dispatcher.cpp
         src/Logger.cpp
+        src/Material.cpp
+        src/NativeWindow.cpp
         src/RenderStack.cpp
         src/TimerLoopTask.cpp
         src/TimerTask.cpp
-        )
+        src/Window.cpp
+        src/Renderer.cpp src/Input.cpp)
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
 
@@ -26,10 +28,13 @@ target_link_libraries(${TARGET}
             glfw
             imgui
             pixman
-            uvw
+            bx
+            bimg
+            bgfx
         PUBLIC
             glm
             spdlog
+            uvw
         )
 
 target_include_directories(${TARGET}
@@ -38,12 +43,13 @@ target_include_directories(${TARGET}
             "../../3rdParty/glfw/include"
             "../../3rdParty/imgui-wrapper"
             "../../3rdParty/pixman-wrapper/pixman"
-            "../../3rdParty/uvw/src"
             "${CMAKE_CURRENT_SOURCE_DIR}/../Common/include"
             "${CMAKE_BINARY_DIR}" # Generated headers for pixman
         PUBLIC
             "../../3rdParty/glm"
             "../../3rdParty/spdlog/include"
+            "../../3rdParty/expected/include"
+            "../../3rdParty/uvw/src"
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
         )
 

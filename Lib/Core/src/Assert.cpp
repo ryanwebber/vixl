@@ -1,5 +1,3 @@
-
-#include <Core/Dispatcher.h>
 #include <Core/Assert.h>
 
 namespace Core {
@@ -7,8 +5,6 @@ namespace Core {
                        spdlog::logger &logger) {
         if (!expr) {
             logger.critical("Assertion failed: {}\n\tExpected: {}\n\tAt: {}:{}", msg, expr_str, file, line);
-
-            Dispatcher::Main().Terminate();
             abort();
         }
     }
