@@ -15,7 +15,7 @@ set(SOURCES
         src/TimerLoopTask.cpp
         src/TimerTask.cpp
         src/Window.cpp
-        src/Renderer.cpp src/Input.cpp)
+        src/Renderer.cpp src/Input.cpp src/SceneRenderer.cpp src/Scene.cpp)
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
 

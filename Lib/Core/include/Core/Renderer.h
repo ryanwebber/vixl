@@ -18,5 +18,7 @@ namespace Core {
 
         void RenderFrame();
         void Destroy();
+
+        RenderStack& GetRenderStack() { return m_RenderStack; }
     };
 }

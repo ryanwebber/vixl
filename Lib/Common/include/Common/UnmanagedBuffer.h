@@ -9,7 +9,7 @@ namespace Common {
 // Manages a buffer by holding onto a type-erased shared ptr to the owning
 // system. The shared_ptr keeps the parent from deallocating the buffer
 // while this object lives. Deallocating this object doesn't deallocate the
-// buffer, the object captured by the shared_ptr should do that in it's
+// buffer, the object captured by the shared_ptr should do that in its
 // destructor. Moving or copying this object is an effective move or copy
 // of the owning shared_ptr.
     template<typename T>
