@@ -7,16 +7,14 @@
 
 #include <uvw/async.h>
 
+#include <Core/Closable.h>
 #include <Core/Task.h>
-#include <Core/EventScope.h>
 
 namespace Core {
 
     template<typename... Args>
     class CallbackTask final : public Task {
     public:
-
-        using Scope = EventScope<uvw::AsyncHandle, uvw::AsyncEvent>;
         using Callback = std::function<void(Args...)>;
 
         CallbackTask() = delete;
@@ -31,7 +29,7 @@ namespace Core {
 
         void Notify(Args... args) const;
 
-        [[nodiscard]] Scope OnCallback(std::function<void(Args...)> callback);
+        [[nodiscard]] Closable OnCallback(std::function<void(Args...)> callback);
 
     private:
         std::shared_ptr<uvw::AsyncHandle> m_Handle;
@@ -60,13 +58,17 @@ namespace Core {
     }
 
     template<typename... Args>
-    typename CallbackTask<Args...>::Scope CallbackTask<Args...>::OnCallback(std::function<void(Args...)> callback) {
+    typename Core::Closable CallbackTask<Args...>::OnCallback(std::function<void(Args...)> callback) {
         auto connection = m_Handle->on<uvw::AsyncEvent>(
                 [cb = std::move(callback)](const uvw::AsyncEvent &ev, const uvw::AsyncHandle &handle) {
                     auto args = handle.data<std::tuple<Args...>>();
                     std::apply(cb, *args);
                 });
 
-        return std::move(Scope(m_Handle, connection));
+        Closable closable([=](){
+            m_Handle->erase(connection);
+        });
+
+        return std::move(closable);
     }
 }

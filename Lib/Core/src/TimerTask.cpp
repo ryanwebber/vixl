@@ -24,11 +24,15 @@ namespace Core {
         m_Handle->close();
     }
 
-    TimerTask::Scope TimerTask::OnTimeout(const std::function<void(void)> &listener) {
+    Closable TimerTask::OnTimeout(const std::function<void(void)> &listener) {
         auto connection = m_Handle->on<uvw::TimerEvent>([&](const uvw::TimerEvent &ev, const uvw::TimerHandle &handle) {
             listener();
         });
 
-        return std::move(Scope(m_Handle, connection));
+        Closable closable([=](){
+            m_Handle->erase(connection);
+        });
+
+        return std::move(closable);
     }
 }

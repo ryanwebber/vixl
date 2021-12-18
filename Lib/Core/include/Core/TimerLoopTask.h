@@ -6,14 +6,12 @@
 
 #include <uvw/timer.h>
 #include <Core/Task.h>
-#include <Core/EventScope.h>
+#include <Core/Closable.h>
 
 namespace Core {
     class TimerLoopTask final : public Task {
     public:
-
         using Millis = uvw::TimerHandle::Time;
-        using Scope = EventScope<uvw::TimerHandle, uvw::TimerEvent>;
 
         TimerLoopTask(const std::string_view &name, const EventLoop &, Millis duration);
 
@@ -27,7 +25,7 @@ namespace Core {
 
         void Start();
 
-        [[nodiscard]] Scope OnTimeout(const std::function<void(void)> &listener);
+        [[nodiscard]] Closable OnTimeout(const std::function<void(void)> &listener);
 
     private:
         std::shared_ptr<uvw::TimerHandle> m_Handle;

@@ -9,10 +9,12 @@ namespace Core {
     Closable::Closable(Closable &&other) noexcept
         : m_CloseFn(std::move(other.m_CloseFn))
         {
+            other.m_CloseFn = nullptr;
         }
 
     Closable &Closable::operator=(Closable &&other) noexcept {
         m_CloseFn = std::move(other.m_CloseFn);
+        other.m_CloseFn = nullptr;
         return *this;
     }
 
