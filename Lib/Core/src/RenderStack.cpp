@@ -19,7 +19,7 @@ namespace Core {
             layer->OnDidRender();
     }
 
-    void RenderStack::AddLayer(std::unique_ptr <RenderLayer> layer) {
+    void RenderStack::AddLayer(std::shared_ptr <RenderLayer> layer) {
         layer->OnInitialize();
         m_Layers.push_back(std::move(layer));
     }

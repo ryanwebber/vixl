@@ -9,7 +9,7 @@
 #include <Core/RenderLayer.h>
 
 namespace Core {
-    class SceneRenderer final : RenderLayer {
+    class SceneRenderer final : public RenderLayer {
         VX_MAKE_NONMOVABLE(SceneRenderer);
         VX_MAKE_NONCOPYABLE(SceneRenderer);
     private:
