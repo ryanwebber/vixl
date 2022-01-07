@@ -6,7 +6,7 @@ namespace Core {
             system->Update();
     }
 
-    void Scene::Render(RenderCamera &target) {
+    void Scene::Render(RenderTarget &target) {
         SceneCamera camera;
         for (auto &&system : m_RenderSystems)
             system->Render(target, camera);

@@ -8,18 +8,18 @@
 
 namespace Core {
     class SceneRenderer;
-    class RenderCamera final {
-        VX_MAKE_NONCOPYABLE(RenderCamera);
-        VX_MAKE_NONMOVABLE(RenderCamera);
+    class RenderTarget final {
+        VX_MAKE_NONCOPYABLE(RenderTarget);
+        VX_MAKE_NONMOVABLE(RenderTarget);
 
     private:
         std::vector<std::unique_ptr<RenderCommand>> m_Commands;
         bool m_Enabled = true;
 
-        RenderCamera() = default;
+        RenderTarget() = default;
 
     public:
-        ~RenderCamera() = default;
+        ~RenderTarget() = default;
 
         [[nodiscard]] std::span<const std::unique_ptr<RenderCommand>> GetRenderCommands() const { return m_Commands; }
 

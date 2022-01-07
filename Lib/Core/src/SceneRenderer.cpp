@@ -9,16 +9,16 @@ namespace Core {
     }
 
     void SceneRenderer::OnUpdate() {
-        auto it = std::remove_if(m_Cameras.begin(), m_Cameras.end(), [](std::weak_ptr<RenderCamera> cam) {
+        auto it = std::remove_if(m_Targets.begin(), m_Targets.end(), [](const std::weak_ptr<RenderTarget>& cam) {
             return cam.expired();
         });
 
-        m_Cameras.erase(it, m_Cameras.end());
+        m_Targets.erase(it, m_Targets.end());
     }
 
     void SceneRenderer::OnRender() {
         RenderPass rp;
-        for (auto&& weak_rc : m_Cameras) {
+        for (auto&& weak_rc : m_Targets) {
             if (weak_rc.expired()) {
                 auto rc = weak_rc.lock();
                 for (auto&& command : rc->GetRenderCommands()) {
@@ -28,10 +28,10 @@ namespace Core {
         }
     }
 
-    std::shared_ptr<RenderCamera> SceneRenderer::CreateRenderCamera() {
-        auto camera_ptr = new RenderCamera();
-        auto camera = std::shared_ptr<RenderCamera>(camera_ptr);
-        m_Cameras.push_back(camera);
-        return std::move(camera);
+    std::shared_ptr<RenderTarget> SceneRenderer::CreateRenderTarget() {
+        auto target_ptr = new RenderTarget();
+        auto target = std::shared_ptr<RenderTarget>(target_ptr);
+        m_Targets.push_back(target);
+        return std::move(target);
     }
 }

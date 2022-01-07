@@ -13,7 +13,7 @@ set(SOURCES
         src/Logger.cpp
         src/Material.cpp
         src/NativeWindow.cpp
-        src/RenderCamera.cpp
+        src/RenderTarget.cpp
         src/RenderStack.cpp
         src/RenderSystem.cpp
         src/Renderer.cpp

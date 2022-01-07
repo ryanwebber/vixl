@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <Common/Noncopyable.h>
-#include <Core/RenderCamera.h>
+#include <Core/RenderTarget.h>
 #include <Core/RenderSystem.h>
 #include <Core/UpdateSystem.h>
 
@@ -26,7 +26,7 @@ namespace Core {
         ~Scene() = default;
 
         void Update();
-        void Render(RenderCamera &target);
+        void Render(RenderTarget &target);
 
         std::vector<std::shared_ptr<UpdateSystem>>& UpdateSystems() { return m_UpdateSystems; }
         [[nodiscard]] const std::vector<std::shared_ptr<UpdateSystem>>& UpdateSystems() const { return m_UpdateSystems; }

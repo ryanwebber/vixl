@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include <Core/RenderCamera.h>
+#include <Core/RenderTarget.h>
 #include <Core/SceneCamera.h>
 
 namespace Core {
@@ -14,6 +14,6 @@ namespace Core {
         RenderSystem() = default;
         virtual ~RenderSystem() = default;
 
-        virtual void Render(RenderCamera& target, SceneCamera const &camera) = 0;
+        virtual void Render(RenderTarget&, SceneCamera const &camera) = 0;
     };
 }

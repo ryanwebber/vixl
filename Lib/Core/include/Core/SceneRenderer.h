@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <Common/Noncopyable.h>
-#include <Core/RenderCamera.h>
+#include <Core/RenderTarget.h>
 #include <Core/RenderLayer.h>
 
 namespace Core {
@@ -13,7 +13,7 @@ namespace Core {
         VX_MAKE_NONMOVABLE(SceneRenderer);
         VX_MAKE_NONCOPYABLE(SceneRenderer);
     private:
-        std::vector<std::weak_ptr<RenderCamera>> m_Cameras;
+        std::vector<std::weak_ptr<RenderTarget>> m_Targets;
 
     public:
         SceneRenderer() = default;
@@ -24,6 +24,6 @@ namespace Core {
         void OnUpdate() override;
         void OnRender() override;
 
-        std::shared_ptr<RenderCamera> CreateRenderCamera();
+        std::shared_ptr<RenderTarget> CreateRenderTarget();
     };
 }

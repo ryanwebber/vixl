@@ -12,7 +12,7 @@ namespace Core {
         }
     }
 
-    void SceneManager::Render(RenderCamera &target) {
+    void SceneManager::Render(RenderTarget &target) {
         if (m_CurrentScene != nullptr) {
             m_CurrentScene->Render(target);
         }

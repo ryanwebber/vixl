@@ -4,7 +4,6 @@
 #include <Core/Logger.h>
 #include <Core/TimerLoopTask.h>
 #include <Core/SceneRenderer.h>
-#include <Core/Scene.h>
 
 #ifndef TARGET_FPS
     #define TARGET_FPS 60
@@ -23,7 +22,7 @@ int main()
     app->GetRenderer().GetRenderStack().AddLayer(scene_renderer);
 
     // Create a render target for our scene to render into
-    auto render_target = scene_renderer->CreateRenderCamera();
+    auto render_target = scene_renderer->CreateRenderTarget();
 
     // Create a new scene manager that will manage our various scenes
     Core::SceneManager scene_manager;

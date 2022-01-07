@@ -1,7 +1,10 @@
 #pragma once
 
 #include <memory>
+
 #include <Common/Noncopyable.h>
+
+#include <Core/RenderTarget.h>
 #include <Core/Scene.h>
 #include <Core/SceneRenderer.h>
 
@@ -16,7 +19,7 @@ namespace Core {
         SceneManager();
 
         void Update();
-        void Render(RenderCamera &target);
+        void Render(RenderTarget &target);
 
         [[nodiscard]] const Scene& GetCurrentScene() const;
         Scene& GetCurrentScene();
