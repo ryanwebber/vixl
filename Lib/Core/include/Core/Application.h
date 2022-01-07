@@ -13,6 +13,9 @@
 #include <Core/RenderStack.h>
 #include <Core/Size.h>
 
+// TODO: Remove this
+#include <Core/SceneManager.h>
+
 namespace Core {
     class Application final {
         VX_MAKE_NONMOVABLE(Application);

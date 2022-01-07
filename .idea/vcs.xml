@@ -6,6 +6,7 @@
     <mapping directory="$PROJECT_DIR$/3rdParty/bgfx/bgfx" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/bgfx/bimg" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/bgfx/bx" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdParty/entt" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/expected" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/fmt" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/glfw" vcs="Git" />

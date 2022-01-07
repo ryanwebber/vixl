@@ -2,18 +2,18 @@
 
 #include <memory>
 
-#include <Core/RenderService.h>
-#include <Core/UpdateSystem.h>
+#include <Core/RenderCamera.h>
+#include <Core/SceneCamera.h>
 
 namespace Core {
-    class RenderSystem final : public UpdateSystem {
-    private:
-        std::shared_ptr<RenderService> m_RenderService;
+    class RenderSystem {
+    VX_MAKE_NONMOVABLE(RenderSystem);
+    VX_MAKE_NONCOPYABLE(RenderSystem);
 
     public:
-        explicit RenderSystem(std::shared_ptr<RenderService>);
-        ~RenderSystem() override = default;
+        RenderSystem() = default;
+        virtual ~RenderSystem() = default;
 
-        void Update() override;
+        virtual void Render(RenderCamera& target, SceneCamera const &camera) = 0;
     };
 }

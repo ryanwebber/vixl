@@ -25,3 +25,6 @@
 [submodule "3rdParty/expected"]
 	path = 3rdParty/expected
 	url = git@github.com:TartanLlama/expected.git
+[submodule "3rdParty/entt"]
+	path = 3rdParty/entt
+	url = git@github.com:skypjack/entt.git

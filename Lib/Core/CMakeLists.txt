@@ -8,14 +8,21 @@ set(SOURCES
         src/Application.cpp
         src/Assert.cpp
         src/Bitmap.cpp
+        src/Closable.cpp
+        src/Input.cpp
         src/Logger.cpp
         src/Material.cpp
         src/NativeWindow.cpp
+        src/RenderCamera.cpp
         src/RenderStack.cpp
+        src/RenderSystem.cpp
+        src/Renderer.cpp
+        src/Scene.cpp
+        src/SceneRenderer.cpp
         src/TimerLoopTask.cpp
         src/TimerTask.cpp
         src/Window.cpp
-        src/Renderer.cpp src/Input.cpp src/SceneRenderer.cpp src/Scene.cpp src/RenderCamera.cpp src/RenderService.cpp src/RenderSystem.cpp src/Closable.cpp)
+        src/SceneManager.cpp)
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
 
@@ -35,6 +42,7 @@ target_link_libraries(${TARGET}
             glm
             spdlog
             uvw
+            EnTT::EnTT
         )
 
 target_include_directories(${TARGET}
@@ -49,6 +57,7 @@ target_include_directories(${TARGET}
             "../../3rdParty/glm"
             "../../3rdParty/spdlog/include"
             "../../3rdParty/expected/include"
+            "../../3rdParty/entt/src"
             "../../3rdParty/uvw/src"
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
         )

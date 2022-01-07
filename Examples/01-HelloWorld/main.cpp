@@ -1,7 +1,7 @@
+#include <entt/entity/registry.hpp>
+
 #include <Core/Application.h>
 #include <Core/Logger.h>
-#include <Core/RenderService.h>
-#include <Core/RenderSystem.h>
 #include <Core/TimerLoopTask.h>
 #include <Core/SceneRenderer.h>
 #include <Core/Scene.h>
@@ -18,19 +18,15 @@ int main()
     // Create an application, which opens up a native window
     auto app = Core::Application::Create({ .width = 800, .height = 600 }).value();
 
-    // Create a new renderer layer for scenes
+    // Create a new scene renderer and add it to the render stack
     auto scene_renderer = std::make_shared<Core::SceneRenderer>();
     app->GetRenderer().GetRenderStack().AddLayer(scene_renderer);
 
-    // Create a new test scene
-    auto scene = std::make_shared<Core::Scene>();
+    // Create a render target for our scene to render into
+    auto render_target = scene_renderer->CreateRenderCamera();
 
-    // Create a render service and a render camera which we'll use to render things in our scene
-    auto render_service = std::make_shared<Core::RenderService>();
-    render_service->AddCamera(std::move(scene_renderer->CreateRenderCamera()));
-
-    // Create a render system which will update the render service
-    Core::RenderSystem render_system(render_service);
+    // Create a new scene manager that will manage our various scenes
+    Core::SceneManager scene_manager;
 
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");
@@ -47,14 +43,19 @@ int main()
 
     // Update the scene and render a frame every main tick
     auto render_handle = main_loop->OnTimeout([&]() {
-        scene->Update(render_system);
+        // Update the scene and render it into our target
+        scene_manager.Update();
+        scene_manager.Render(*render_target);
 
+        // Present the rendered scene onto our window
         app->GetRenderer().RenderFrame();
         app->GetWindow().GetNativeWindow().SwapBuffers();
     });
 
     // Start the main loop timer
     main_loop->Start();
+
+    entt::registry registry;
 
     // Start the application event loop
     app->Run();
