@@ -6,6 +6,8 @@
 #include <Common/Noncopyable.h>
 #include <Core/RenderCommand.h>
 
+#define RENDER_COMMAND_CAPACITY 64
+
 namespace Core {
     class SceneRenderer;
     class RenderTarget final {
@@ -13,15 +15,21 @@ namespace Core {
         VX_MAKE_NONMOVABLE(RenderTarget);
 
     private:
-        std::vector<std::unique_ptr<RenderCommand>> m_Commands;
         bool m_Enabled = true;
+        std::vector<RenderCommand> m_Commands;
 
-        RenderTarget() = default;
+        RenderTarget()
+            : m_Commands(RENDER_COMMAND_CAPACITY)
+        {
+        }
 
     public:
         ~RenderTarget() = default;
 
-        [[nodiscard]] std::span<const std::unique_ptr<RenderCommand>> GetRenderCommands() const { return m_Commands; }
+        void Reset();
+
+        std::vector<RenderCommand>& Commands() { return m_Commands; }
+        [[nodiscard]] const std::vector<RenderCommand>& GetCommands() const { return m_Commands; }
 
         [[nodiscard]] bool IsEnabled() const { return m_Enabled; }
         void SetEnabled(bool enabled) { m_Enabled = enabled; }

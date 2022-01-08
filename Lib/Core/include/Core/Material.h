@@ -6,13 +6,9 @@
 #include <bgfx/bgfx.h>
 
 #include <Core/Handle.h>
+#include <Core/Types.h>
 
 namespace Core {
-
-    typedef Handle<bgfx::ShaderHandle> VertexShader;
-    typedef Handle<bgfx::ShaderHandle> FragmentShader;
-    typedef Handle<bgfx::ProgramHandle> ShaderProgram;
-
     class Material final {
     private:
         std::string m_Name;

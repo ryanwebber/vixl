@@ -2,6 +2,8 @@
 
 #include <Common/Noncopyable.h>
 
+#include <entt/entity/registry.hpp>
+
 namespace Core {
     class UpdateSystem {
         VX_MAKE_NONMOVABLE(UpdateSystem);
@@ -11,6 +13,6 @@ namespace Core {
         UpdateSystem() = default;
         virtual ~UpdateSystem() = default;
 
-        virtual void Update() = 0;
+        virtual void Update(entt::registry& entities) = 0;
     };
 }

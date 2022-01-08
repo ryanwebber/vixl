@@ -9,20 +9,22 @@ set(SOURCES
         src/Assert.cpp
         src/Bitmap.cpp
         src/Closable.cpp
+        src/DemoRenderSystem.cpp
         src/Input.cpp
         src/Logger.cpp
         src/Material.cpp
         src/NativeWindow.cpp
-        src/RenderTarget.cpp
         src/RenderStack.cpp
         src/RenderSystem.cpp
+        src/RenderTarget.cpp
         src/Renderer.cpp
         src/Scene.cpp
+        src/SceneManager.cpp
         src/SceneRenderer.cpp
         src/TimerLoopTask.cpp
         src/TimerTask.cpp
         src/Window.cpp
-        src/SceneManager.cpp)
+        src/RenderPass.cpp)
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
 
@@ -59,6 +61,7 @@ target_include_directories(${TARGET}
             "../../3rdParty/expected/include"
             "../../3rdParty/entt/src"
             "../../3rdParty/uvw/src"
+            "../../3rdParty/bgfx/bgfx/include"
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
         )
 

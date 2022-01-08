@@ -13,7 +13,7 @@ namespace Core {
         VX_MAKE_NONCOPYABLE(SceneManager);
         VX_MAKE_NONMOVABLE(SceneManager);
     private:
-        std::unique_ptr<Scene> m_CurrentScene;
+        std::shared_ptr<Scene> m_CurrentScene;
 
     public:
         SceneManager();
@@ -21,8 +21,8 @@ namespace Core {
         void Update();
         void Render(RenderTarget &target);
 
-        [[nodiscard]] const Scene& GetCurrentScene() const;
-        Scene& GetCurrentScene();
-        void SetCurrentScene(std::unique_ptr<Scene>);
+        void SetActiveScene(std::shared_ptr<Scene> scene) {
+            m_CurrentScene = std::move(scene);
+        }
     };
 }

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <Common/Noncopyable.h>
+
 #include <Core/RenderTarget.h>
 #include <Core/RenderLayer.h>
 

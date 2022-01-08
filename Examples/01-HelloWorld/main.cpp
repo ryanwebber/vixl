@@ -2,8 +2,10 @@
 
 #include <Core/Application.h>
 #include <Core/Logger.h>
-#include <Core/TimerLoopTask.h>
+#include <Core/Scene.h>
 #include <Core/SceneRenderer.h>
+#include <Core/TimerLoopTask.h>
+#include <Core/DemoRenderSystem.h>
 
 #ifndef TARGET_FPS
     #define TARGET_FPS 60
@@ -26,6 +28,10 @@ int main()
 
     // Create a new scene manager that will manage our various scenes
     Core::SceneManager scene_manager;
+
+    // Create a scene and set it as the active scene
+    auto scene = std::make_shared<Core::Scene>("Main");
+    scene_manager.SetActiveScene(std::move(scene));
 
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");

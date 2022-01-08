@@ -3,7 +3,7 @@
 namespace Core {
     void Scene::Update() {
         for (auto &&system : m_UpdateSystems)
-            system->Update();
+            system->Update(m_EntityRegistry);
     }
 
     void Scene::Render(RenderTarget &target) {

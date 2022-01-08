@@ -1,3 +1,4 @@
+#include <Core/RenderPass.h>
 #include <Core/SceneRenderer.h>
 
 namespace Core {
@@ -18,11 +19,12 @@ namespace Core {
 
     void SceneRenderer::OnRender() {
         RenderPass rp;
-        for (auto&& weak_rc : m_Targets) {
-            if (weak_rc.expired()) {
-                auto rc = weak_rc.lock();
-                for (auto&& command : rc->GetRenderCommands()) {
-                    command->Render(rp);
+        for (auto&& weak_target : m_Targets) {
+            if (!weak_target.expired()) {
+                auto target = weak_target.lock();
+                target->Reset();
+                for (auto&& command : target->Commands()) {
+                    rp.Submit(command);
                 }
             }
         }
