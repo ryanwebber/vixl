@@ -28,11 +28,11 @@ namespace Core {
         bx::mtxProj(proj, 80.0f, (800.0f / 600.0f), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
         bgfx::setViewTransform(0, view, proj);
 
-        static int counter;
-        float mtx[16];
-        bx::mtxRotateXY(mtx, counter * 0.01f, counter * 0.01f);
-        bgfx::setTransform(mtx);
-        counter++;
+//        static int counter;
+//        float mtx[16];
+//        bx::mtxRotateXY(mtx, counter * 0.01f, counter * 0.01f);
+//        bgfx::setTransform(mtx);
+//        counter++;
 
         RenderPass rp;
         for (auto&& weak_target : m_Targets) {
