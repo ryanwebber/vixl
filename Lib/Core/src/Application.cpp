@@ -37,6 +37,7 @@ namespace Core {
 
         // Setup bgfx rendering
         bgfx::Init init;
+        init.type = bgfx::RendererType::Metal;
         init.platformData.nwh = nw.GetPlatformWindowHandle();
         init.platformData.ndt = nw.GetPlatformDisplayType();
         init.resolution.width = actual_window_size.width;
