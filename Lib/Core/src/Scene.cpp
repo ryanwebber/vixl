@@ -1,3 +1,6 @@
+#include <bx/math.h>
+#include <glm/glm.hpp>
+
 #include <Core/Scene.h>
 
 namespace Core {
@@ -6,10 +9,23 @@ namespace Core {
             system->Update(m_EntityRegistry);
     }
 
-    void Scene::Render(RenderTarget &target) {
-        SceneCamera camera;
+    void Scene::Render(RenderContext &context) {
+
+        // TODO: Track the camera as a scene member
+        glm::vec3 eye(0.0f, 0.0f, -5.0f);
+        glm::vec3 center(0.0f, 0.0f, 0.0f);
+        glm::vec3 up(0.0f, 1.0f, 0.0f);
+        auto view_matrix = glm::lookAt(eye, center, up);
+        auto proj_matrix = glm::perspective(80.0f, (800.0f / 600.0f), 0.1f, 100.0f);
+        SceneCamera camera(view_matrix, proj_matrix);
+
+        context.SetViewProjection(ViewProjection {
+            .view_matrix = camera.GetViewMatrix(),
+            .projection_matrix = camera.GetProjectionMatrix(),
+        });
+
         for (auto &&system : m_RenderSystems)
-            system->Render(target, camera);
+            system->Render(context.Buffer());
     }
 
     void Scene::Reset() {

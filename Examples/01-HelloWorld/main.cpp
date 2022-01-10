@@ -23,8 +23,8 @@ int main()
     auto scene_renderer = std::make_shared<Core::SceneRenderer>();
     app->GetRenderer().GetRenderStack().AddLayer(scene_renderer);
 
-    // Create a render target for our scene to render into
-    auto render_target = scene_renderer->CreateRenderTarget();
+    // Create a render context for our scene to render into
+    auto render_context = scene_renderer->CreateRenderContext();
 
     // Create a new scene manager that will manage our various scenes
     Core::SceneManager scene_manager;
@@ -51,7 +51,7 @@ int main()
     auto render_handle = main_loop->OnTimeout([&]() {
         // Update the scene and render it into our target
         scene_manager.Update();
-        scene_manager.Render(*render_target);
+        scene_manager.Render(*render_context);
 
         // Present the rendered scene onto our window
         app->GetRenderer().RenderFrame();

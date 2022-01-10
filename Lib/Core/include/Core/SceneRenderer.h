@@ -6,7 +6,7 @@
 
 #include <Common/Noncopyable.h>
 
-#include <Core/RenderTarget.h>
+#include <Core/RenderContext.h>
 #include <Core/RenderLayer.h>
 
 namespace Core {
@@ -14,7 +14,7 @@ namespace Core {
         VX_MAKE_NONMOVABLE(SceneRenderer);
         VX_MAKE_NONCOPYABLE(SceneRenderer);
     private:
-        std::vector<std::weak_ptr<RenderTarget>> m_Targets;
+        std::vector<std::weak_ptr<RenderContext>> m_Contexts;
 
     public:
         SceneRenderer() = default;
@@ -25,6 +25,6 @@ namespace Core {
         void OnUpdate() override;
         void OnRender() override;
 
-        std::shared_ptr<RenderTarget> CreateRenderTarget();
+        std::shared_ptr<RenderContext> CreateRenderContext();
     };
 }

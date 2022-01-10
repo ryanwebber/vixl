@@ -16,17 +16,20 @@ set(SOURCES
         src/Logger.cpp
         src/Material.cpp
         src/NativeWindow.cpp
+        src/RenderBuffer.cpp
+        src/RenderContext.cpp
+        src/RenderPass.cpp
         src/RenderStack.cpp
         src/RenderSystem.cpp
-        src/RenderTarget.cpp
         src/Renderer.cpp
         src/Scene.cpp
         src/SceneManager.cpp
         src/SceneRenderer.cpp
+        src/Shader.cpp
         src/TimerLoopTask.cpp
         src/TimerTask.cpp
         src/Window.cpp
-        src/RenderPass.cpp src/Shader.cpp)
+        )
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
 
@@ -43,15 +46,15 @@ target_link_libraries(${TARGET}
             glfw
             imgui
             pixman
-            bx
             bimg
-            bgfx
         PUBLIC
             stdc++
             glm
             spdlog
             uvw
             EnTT::EnTT
+            bx
+            bgfx
         )
 
 target_include_directories(${TARGET}

@@ -1,3 +1,5 @@
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <Core/RenderPass.h>
 
 namespace Core {
@@ -5,6 +7,7 @@ namespace Core {
         bgfx::setVertexBuffer(0, cmd.GetVertexBuffer().Get());
         bgfx::setIndexBuffer(cmd.GetIndexBuffer().Get());
         bgfx::setState(cmd.GetState());
+        bgfx::setTransform(glm::value_ptr(cmd.GetModelTransform()));
 
         // TODO: apply material properties
 

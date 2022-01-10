@@ -4,7 +4,7 @@
 
 #include <Common/Noncopyable.h>
 
-#include <Core/RenderTarget.h>
+#include <Core/RenderContext.h>
 #include <Core/Scene.h>
 #include <Core/SceneRenderer.h>
 
@@ -19,7 +19,7 @@ namespace Core {
         SceneManager();
 
         void Update();
-        void Render(RenderTarget &target);
+        void Render(RenderContext&);
 
         void SetActiveScene(std::shared_ptr<Scene> scene) {
             m_CurrentScene = std::move(scene);

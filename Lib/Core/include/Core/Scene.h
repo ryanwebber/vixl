@@ -7,7 +7,7 @@
 #include <entt/entity/registry.hpp>
 
 #include <Common/Noncopyable.h>
-#include <Core/RenderTarget.h>
+#include <Core/RenderContext.h>
 #include <Core/RenderSystem.h>
 #include <Core/UpdateSystem.h>
 
@@ -30,7 +30,7 @@ namespace Core {
         ~Scene() = default;
 
         void Update();
-        void Render(RenderTarget &target);
+        void Render(RenderContext &context);
 
         [[nodiscard]] const std::string &GetName() const { return m_Name; }
 

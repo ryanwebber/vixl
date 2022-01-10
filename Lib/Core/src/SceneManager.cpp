@@ -13,10 +13,10 @@ namespace Core {
         m_CurrentScene->Update();
     }
 
-    void SceneManager::Render(RenderTarget &target) {
-        if (!target.IsEnabled() || m_CurrentScene == nullptr)
+    void SceneManager::Render(RenderContext &context) {
+        if (m_CurrentScene == nullptr)
             return;
 
-        m_CurrentScene->Render(target);
+        m_CurrentScene->Render(context);
     }
 }

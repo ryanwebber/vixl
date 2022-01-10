@@ -1,4 +1,5 @@
 #include <bgfx/bgfx.h>
+#include <glm/glm.hpp>
 
 #include <Core/DemoRenderSystem.h>
 #include <Core/Shader.h>
@@ -44,8 +45,13 @@ namespace Core {
         m_Material = VX_CREATE_MATERIAL("UVTexture", uvtex);
     }
 
-    void DemoRenderSystem::Render(RenderTarget &target, const SceneCamera &camera) {
-        RenderCommand command(m_VertexBuffer, m_IndexBuffer, m_Material);
-        target.Commands().push_back(command);
+    static int counter = 0;
+    void DemoRenderSystem::Render(RenderBuffer &buffer) {
+        counter++;
+
+        float x = cos((float)counter * 0.01f);
+        float y = sin((float)counter * 0.01f);
+        auto transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x, y, 0.0f));
+        buffer.DrawIndexed(transform, m_VertexBuffer, m_IndexBuffer, m_Material);
     }
 }

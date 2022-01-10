@@ -14,6 +14,6 @@ namespace Core {
         DemoRenderSystem();
         ~DemoRenderSystem() override = default;
 
-        void Render(RenderTarget&, SceneCamera const &camera) override;
+        void Render(RenderBuffer&) override;
     };
 }
