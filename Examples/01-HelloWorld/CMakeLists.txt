@@ -43,5 +43,3 @@ target_compile_features(${TARGET} PRIVATE cxx_std_20)
 
 target_include_directories(${TARGET} PRIVATE ${INCLUDES})
 target_link_libraries(${TARGET} ${LIBS})
-
-set(CMAKE_CXX_STANDARD_REQUIRED ON)

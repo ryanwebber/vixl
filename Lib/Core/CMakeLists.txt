@@ -1,7 +1,9 @@
+include(cmake/shader_utils.cmake)
 
 set(TARGET vixl-core)
 
-set(INCLUDES
+set(SHADERS
+        res/shaders/uvtex
         )
 
 set(SOURCES
@@ -24,15 +26,19 @@ set(SOURCES
         src/TimerLoopTask.cpp
         src/TimerTask.cpp
         src/Window.cpp
-        src/RenderPass.cpp)
+        src/RenderPass.cpp src/Shader.cpp)
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
+
+foreach (shader IN LISTS SHADERS)
+    add_compiled_shader_dependency(${TARGET} fragment ${shader})
+    add_compiled_shader_dependency(${TARGET} vertex ${shader})
+endforeach()
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 
 target_link_libraries(${TARGET}
         PRIVATE
-            c++
             fmt
             glfw
             imgui
@@ -41,6 +47,7 @@ target_link_libraries(${TARGET}
             bimg
             bgfx
         PUBLIC
+            stdc++
             glm
             spdlog
             uvw
@@ -54,6 +61,7 @@ target_include_directories(${TARGET}
             "../../3rdParty/imgui-wrapper"
             "../../3rdParty/pixman-wrapper/pixman"
             "${CMAKE_CURRENT_SOURCE_DIR}/../Common/include"
+            "${CMAKE_CURRENT_BINARY_DIR}/include" # Generated code
             "${CMAKE_BINARY_DIR}" # Generated headers for pixman
         PUBLIC
             "../../3rdParty/glm"
@@ -72,4 +80,3 @@ target_compile_definitions(${TARGET}
             VX_VERSION="${CMAKE_PROJECT_VERSION}"
         )
 
-set(CMAKE_CXX_STANDARD_REQUIRED ON)

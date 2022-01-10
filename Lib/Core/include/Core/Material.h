@@ -6,18 +6,23 @@
 #include <bgfx/bgfx.h>
 
 #include <Core/Handle.h>
+#include <Core/Shader.h>
 #include <Core/Types.h>
+
+#define VX_CREATE_MATERIAL(name, shader_name) \
+    std::make_shared<Core::Material>(name, std::move(VX_CREATE_SHADER(shader_name ## _vertex_shader)), std::move(VX_CREATE_SHADER(shader_name ## _fragment_shader)))
 
 namespace Core {
     class Material final {
     private:
         std::string m_Name;
+        std::shared_ptr<ShaderProgram> m_ShaderProgram;
         std::shared_ptr<VertexShader> m_VertexShader;
         std::shared_ptr<FragmentShader> m_FragmentShader;
-        std::shared_ptr<ShaderProgram> m_ShaderProgram;
 
     public:
         Material(const std::string_view& name, std::shared_ptr<VertexShader> vertex_shader, std::shared_ptr<FragmentShader> fragment_shader);
+        Material(const std::string_view &name, const uint8_t* vertex_data, size_t vertex_data_len, const uint8_t* fragment_data, size_t fragment_data_len);
         ~Material() = default;
 
         [[nodiscard]] bgfx::ShaderHandle GetVertexShaderHandle() const { return **m_VertexShader; }

@@ -18,9 +18,8 @@ namespace Core {
         bool m_Enabled = true;
         std::vector<RenderCommand> m_Commands;
 
-        RenderTarget()
-            : m_Commands(RENDER_COMMAND_CAPACITY)
-        {
+        RenderTarget() {
+            m_Commands.reserve(RENDER_COMMAND_CAPACITY);
         }
 
     public:

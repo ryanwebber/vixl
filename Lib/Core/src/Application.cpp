@@ -48,8 +48,10 @@ namespace Core {
         }
 
         // Set view 0 to the same dimensions as the window and to clear the color buffer.
-        bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
-        bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
+        bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x443355FF, 1.0f, 0);
+        bgfx::setViewRect(kClearView, 0, 0, actual_window_size.width, actual_window_size.height);
+
+        Logger::Core->debug("Initial window size: {}x{}", actual_window_size.width, actual_window_size.height);
 
         return std::make_shared<Renderer>();
     }

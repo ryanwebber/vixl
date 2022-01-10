@@ -31,6 +31,7 @@ int main()
 
     // Create a scene and set it as the active scene
     auto scene = std::make_shared<Core::Scene>("Main");
+    scene->RenderSystems().push_back(std::make_shared<Core::DemoRenderSystem>());
     scene_manager.SetActiveScene(std::move(scene));
 
     // Configure a main loop that runs at a target FPS
