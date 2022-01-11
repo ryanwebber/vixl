@@ -7,6 +7,9 @@
 #include <Common/Error.h>
 #include <Common/Expected.h>
 
+#include <Core/Graphics.h>
+#include <Core/Platform.h>
+
 #include <Core/Application.h>
 #include <Core/Logger.h>
 #include <Core/Renderer.h>
@@ -58,7 +61,7 @@ namespace Core {
     }
 
     void Application::Run() {
-        Logger::Core->debug("Vixl v{}", VX_VERSION);
+        Logger::Core->debug("Vixl v{} platform={} graphics={}", VX_VERSION, Platform::name, GraphicsAPI::name);
 
         // Run
         m_EventLoop->Run();

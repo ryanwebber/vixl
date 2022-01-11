@@ -2,6 +2,8 @@ include(cmake/shader_utils.cmake)
 
 set(TARGET vixl-core)
 
+set(GRAPHICS_API METAL)
+
 set(SHADERS
         res/shaders/colored
         res/shaders/uvmap

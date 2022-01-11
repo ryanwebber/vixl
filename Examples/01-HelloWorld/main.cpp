@@ -1,11 +1,12 @@
 #include <entt/entity/registry.hpp>
 
 #include <Core/Application.h>
+#include <Core/DemoRenderSystem.h>
 #include <Core/Logger.h>
+#include <Core/SceneManager.h>
 #include <Core/Scene.h>
 #include <Core/SceneRenderer.h>
 #include <Core/TimerLoopTask.h>
-#include <Core/DemoRenderSystem.h>
 
 #ifndef TARGET_FPS
     #define TARGET_FPS 60

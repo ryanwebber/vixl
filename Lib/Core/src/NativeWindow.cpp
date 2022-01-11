@@ -1,28 +1,10 @@
-#include <Core/NativeWindow.h>
-
-#include <bgfx/platform.h>
-
-#if BX_PLATFORM_LINUX
-#define GLFW_EXPOSE_NATIVE_X11
-#elif BX_PLATFORM_WINDOWS
-#define GLFW_EXPOSE_NATIVE_WIN32
-#elif BX_PLATFORM_OSX
-#define GLFW_EXPOSE_NATIVE_COCOA
-#endif
-
 #include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
+
+#include <Core/NativeWindow.h>
+#include <Core/Platform.h>
 
 void *Core::NativeWindow::GetPlatformWindowHandle() const {
-#if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
-    return (void*)(uintptr_t)glfwGetX11Window(window);
-#elif BX_PLATFORM_OSX
-    return glfwGetCocoaWindow(m_Window);
-#elif BX_PLATFORM_WINDOWS
-    return glfwGetWin32Window(window);
-#else
-    #error unsupported platform
-#endif
+    return Core::Platform::GetPlatformWindowHandle(m_Window);
 }
 
 void *Core::NativeWindow::GetPlatformDisplayType() const {
