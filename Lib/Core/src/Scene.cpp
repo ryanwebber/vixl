@@ -11,10 +11,9 @@ namespace Core {
 
     void Scene::Render(RenderContext &context) {
 
-        // TODO: Track the camera as a scene member
         glm::vec3 eye(0.0f, 0.0f, -5.0f);
         glm::vec3 center(0.0f, 0.0f, 0.0f);
-        glm::vec3 up(0.0f, 1.0f, 0.0f);
+        glm::vec3 up(0.0f, -1.0f, 0.0f); // TODO: Graphics dependent up/down not working, setting for metal for now
         auto view_matrix = glm::lookAt(eye, center, up);
         auto proj_matrix = glm::perspective(80.0f, (800.0f / 600.0f), 0.1f, 100.0f);
         SceneCamera camera(view_matrix, proj_matrix);

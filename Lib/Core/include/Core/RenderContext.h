@@ -1,7 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include <Common/Noncopyable.h>
 #include <Core/RenderBuffer.h>
+#include <Core/RenderPrimitives.h>
 
 namespace Core {
     struct ViewProjection {
@@ -17,7 +20,16 @@ namespace Core {
         ViewProjection m_ViewProjection;
 
     public:
-        RenderContext() = default;
+        explicit RenderContext(RenderBuffer &buffer)
+            : m_RenderBuffer(std::move(buffer))
+            {
+            }
+
+        explicit RenderContext(std::shared_ptr<RenderPrimitives> primitives)
+            : m_RenderBuffer(std::move(primitives))
+            {
+            }
+
         ~RenderContext() = default;
 
         void Reset();

@@ -3,7 +3,8 @@ include(cmake/shader_utils.cmake)
 set(TARGET vixl-core)
 
 set(SHADERS
-        res/shaders/uvtex
+        res/shaders/colored
+        res/shaders/uvmap
         )
 
 set(SOURCES
@@ -29,13 +30,13 @@ set(SOURCES
         src/TimerLoopTask.cpp
         src/TimerTask.cpp
         src/Window.cpp
-        )
+        src/RenderPrimitives.cpp)
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
 
-foreach (shader IN LISTS SHADERS)
-    add_compiled_shader_dependency(${TARGET} fragment ${shader})
-    add_compiled_shader_dependency(${TARGET} vertex ${shader})
+foreach (shader_dir IN LISTS SHADERS)
+    add_compiled_shader_dependency(${TARGET} fragment ${shader_dir})
+    add_compiled_shader_dependency(${TARGET} vertex ${shader_dir})
 endforeach()
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
@@ -78,8 +79,9 @@ target_include_directories(${TARGET}
 
 target_compile_definitions(${TARGET}
         PRIVATE
-            DEBUG_MEMORY=1
+            VX_DEBUG_MEMORY=1
+            VX_GRAPHICS_${GRAPHICS_API}=1
+            GLM_FORCE_LEFT_HANDED=1 # TODO: This is graphics API dependent
         PUBLIC
             VX_VERSION="${CMAKE_PROJECT_VERSION}"
         )
-

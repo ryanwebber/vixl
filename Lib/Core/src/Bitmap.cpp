@@ -10,7 +10,7 @@ namespace Core {
     using Common::UnmanagedBuffer;
 
     void dealloc_image(pixman_image_t *img) {
-#ifdef DEBUG_MEMORY
+#ifdef VX_DEBUG_MEMORY
         Logger::Core->debug("Deallocating unmanaged buffer data ptr={}", static_cast<void *>(img));
 #endif
         pixman_image_unref(img);

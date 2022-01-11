@@ -4,8 +4,10 @@
 #include <Core/DemoRenderSystem.h>
 #include <Core/Shader.h>
 
-#include <Core/Generated/Shader/uvtex/fragment.h>
-#include <Core/Generated/Shader/uvtex/vertex.h>
+#include <Core/Generated/Shader/colored/fragment.h>
+#include <Core/Generated/Shader/colored/vertex.h>
+#include <Core/Generated/Shader/uvmap/fragment.h>
+#include <Core/Generated/Shader/uvmap/vertex.h>
 
 struct PosColorVertex
 {
@@ -17,9 +19,9 @@ struct PosColorVertex
 
 static PosColorVertex vertexes[] =
     {
-        {0.0f,  1.0f,  0.0f, 0xff0000ff },
-        { 1.41f,  -1.0f,  0.0f, 0xff00ff00 },
-        {-1.41f, -1.0f,  0.0f, 0xffff0000 },
+        {0.0f,  0.5f,  0.0f, 0xfff000ff },
+        { 0.5f,  -0.5f,  0.0f, 0xff00fff0 },
+        {-0.5f, -0.5f,  0.0f, 0xfffff000 },
     };
 
 static const uint16_t indexes[] =
@@ -30,6 +32,8 @@ static const uint16_t indexes[] =
 
 namespace Core {
     DemoRenderSystem::DemoRenderSystem() {
+
+        // Load a vertex and index buffer for our simple triangle
         bgfx::VertexLayout vertex_layout;
         vertex_layout
             .begin()
@@ -40,18 +44,25 @@ namespace Core {
         auto vb = bgfx::createVertexBuffer(bgfx::makeRef(vertexes, sizeof(vertexes)), vertex_layout);
         auto ib =  bgfx::createIndexBuffer(bgfx::makeRef(indexes, sizeof(indexes)));
 
-        m_VertexBuffer = std::make_shared<VertexBuffer>(vb);
-        m_IndexBuffer = std::make_shared<IndexBuffer>(ib);
-        m_Material = VX_CREATE_MATERIAL("UVTexture", uvtex);
+        m_TriangleVertexBuffer = std::make_shared<VertexBuffer>(vb);
+        m_TriangleIndexBuffer = std::make_shared<IndexBuffer>(ib);
+        m_TriangleMaterial = VX_CREATE_MATERIAL("Simple Colored", colored);
+
+        // Load the material for our primative quad
+        m_QuadMaterial = VX_CREATE_MATERIAL("UV Map", uvmap);
     }
 
     static int counter = 0;
     void DemoRenderSystem::Render(RenderBuffer &buffer) {
         counter++;
 
-        float x = cos((float)counter * 0.01f);
-        float y = sin((float)counter * 0.01f);
-        auto transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x, y, 0.0f));
-        buffer.DrawIndexed(transform, m_VertexBuffer, m_IndexBuffer, m_Material);
+        float x = cos((float)counter * 0.025f);
+        float y = sin((float)counter * 0.025f);
+
+        auto triangle_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x + 2, y, 0.0f));
+        buffer.DrawIndexed(triangle_transform, m_TriangleVertexBuffer, m_TriangleIndexBuffer, m_TriangleMaterial);
+
+        auto quad_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x - 2, -y, 0.0f));
+        buffer.DrawTextureQuad(quad_transform, m_QuadMaterial);
     }
 }

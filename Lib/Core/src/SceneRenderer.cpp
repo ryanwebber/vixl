@@ -8,6 +8,8 @@
 namespace Core {
 
     void SceneRenderer::OnInitialize() {
+        if (m_Primitives == nullptr)
+            m_Primitives = std::make_shared<RenderPrimitives>();
     }
 
     void SceneRenderer::OnDestroy() {
@@ -27,14 +29,9 @@ namespace Core {
             if (!weak_context.expired()) {
                 auto context = weak_context.lock();
 
-                // TODO: Remove this in favor of the GLM matrix in the render context
-                const bx::Vec3 at = {0.0f, 0.0f,  0.0f};
-                const bx::Vec3 eye = {0.0f, 0.0f, -5.0f};
-                float view[16];
-                bx::mtxLookAt(view, eye, at);
-                float proj[16];
-                bx::mtxProj(proj, 80.0f, (800.0f / 600.0f), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
-                bgfx::setViewTransform(0, view, proj);
+                auto view_matrix_ptr = glm::value_ptr(context->GetViewProjection().view_matrix);
+                auto proj_matrix_ptr = glm::value_ptr(context->GetViewProjection().projection_matrix);
+                bgfx::setViewTransform(0, view_matrix_ptr, proj_matrix_ptr);
 
                 for (auto &command : context->GetBuffer().GetCommands()) {
                     rp.Submit(command);
@@ -47,7 +44,7 @@ namespace Core {
     }
 
     std::shared_ptr<RenderContext> SceneRenderer::CreateRenderContext() {
-        auto target = std::make_shared<RenderContext>();
+        auto target = std::make_shared<RenderContext>(m_Primitives);
         m_Contexts.push_back(target);
         return std::move(target);
     }
