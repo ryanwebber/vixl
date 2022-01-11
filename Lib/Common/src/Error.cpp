@@ -5,7 +5,7 @@
 
 namespace Common {
 
-    Error::Error(std::string_view reason) {
+    Error::Error(const std::string_view& reason) {
         std::string reason_str(reason);
         m_Context.push_back(std::move(reason_str));
     }

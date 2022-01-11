@@ -16,12 +16,12 @@ namespace Core {
     class Material final {
     private:
         std::string m_Name;
-        std::shared_ptr<ShaderProgram> m_ShaderProgram;
-        std::shared_ptr<VertexShader> m_VertexShader;
-        std::shared_ptr<FragmentShader> m_FragmentShader;
+        std::shared_ptr<ProgramHandle> m_ShaderProgram;
+        std::shared_ptr<ShaderHandle> m_VertexShader;
+        std::shared_ptr<ShaderHandle> m_FragmentShader;
 
     public:
-        Material(const std::string_view& name, std::shared_ptr<VertexShader> vertex_shader, std::shared_ptr<FragmentShader> fragment_shader);
+        Material(const std::string_view& name, std::shared_ptr<ShaderHandle> vertex_shader, std::shared_ptr<ShaderHandle> fragment_shader);
         Material(const std::string_view &name, const uint8_t* vertex_data, size_t vertex_data_len, const uint8_t* fragment_data, size_t fragment_data_len);
         ~Material() = default;
 

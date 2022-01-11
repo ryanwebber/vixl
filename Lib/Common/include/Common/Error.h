@@ -17,7 +17,7 @@ namespace Common {
         std::vector<std::string> m_Context;
 
     public:
-        explicit Error(std::string_view reason);
+        explicit Error(const std::string_view& reason);
 
         Error(Error &&other) noexcept;
 

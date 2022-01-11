@@ -44,8 +44,8 @@ namespace Core {
         auto vb = bgfx::createVertexBuffer(bgfx::makeRef(vertexes, sizeof(vertexes)), vertex_layout);
         auto ib =  bgfx::createIndexBuffer(bgfx::makeRef(indexes, sizeof(indexes)));
 
-        m_TriangleVertexBuffer = std::make_shared<VertexBuffer>(vb);
-        m_TriangleIndexBuffer = std::make_shared<IndexBuffer>(ib);
+        m_TriangleVertexBuffer = std::make_shared<VertexBufferHandle>(vb);
+        m_TriangleIndexBuffer = std::make_shared<IndexBufferHandle>(ib);
         m_TriangleMaterial = VX_CREATE_MATERIAL("Simple Colored", colored);
 
         // Load the material for our primative quad

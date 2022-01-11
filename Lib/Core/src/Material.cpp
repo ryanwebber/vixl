@@ -4,12 +4,12 @@
 
 namespace Core {
 
-    std::shared_ptr<ShaderProgram> Compile(const VertexShader &vs, const FragmentShader &fs) {
+    std::shared_ptr<ProgramHandle> Compile(const ShaderHandle &vs, const ShaderHandle &fs) {
         auto handle = bgfx::createProgram(*vs, *fs, false);
-        return std::make_shared<ShaderProgram>(handle);
+        return std::make_shared<ProgramHandle>(handle);
     }
 
-    Material::Material(const std::string_view &name, std::shared_ptr<VertexShader> vertex_shader, std::shared_ptr<FragmentShader> fragment_shader)
+    Material::Material(const std::string_view &name, std::shared_ptr<ShaderHandle> vertex_shader, std::shared_ptr<ShaderHandle> fragment_shader)
         : m_Name(name)
         , m_ShaderProgram(std::move(Compile(*vertex_shader, *fragment_shader)))
         , m_VertexShader(std::move(vertex_shader))
@@ -28,8 +28,8 @@ namespace Core {
             , m_VertexShader(nullptr)
             , m_FragmentShader(nullptr)
         {
-            auto vs = CreateShader(vertex_data, vertex_data_len);
-            auto fs = CreateShader(fragment_data, fragment_data_len);
+            auto vs = CreateShader({ vertex_data, vertex_data_len });
+            auto fs = CreateShader({ fragment_data, fragment_data_len });
             m_ShaderProgram = Compile(*vs, *fs);
             m_VertexShader = std::move(vs);
             m_FragmentShader = std::move(fs);

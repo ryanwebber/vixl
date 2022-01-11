@@ -20,6 +20,7 @@ set(SOURCES
         src/RenderBuffer.cpp
         src/RenderContext.cpp
         src/RenderPass.cpp
+        src/RenderPrimitives.cpp
         src/RenderStack.cpp
         src/RenderSystem.cpp
         src/Renderer.cpp
@@ -27,17 +28,15 @@ set(SOURCES
         src/SceneManager.cpp
         src/SceneRenderer.cpp
         src/Shader.cpp
+        src/Texture.cpp
         src/TimerLoopTask.cpp
         src/TimerTask.cpp
         src/Window.cpp
-        src/RenderPrimitives.cpp)
+        )
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
 
-foreach (shader_dir IN LISTS SHADERS)
-    add_compiled_shader_dependency(${TARGET} fragment ${shader_dir})
-    add_compiled_shader_dependency(${TARGET} vertex ${shader_dir})
-endforeach()
+add_compiled_shader_dependency(${TARGET} "${SHADERS}")
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 

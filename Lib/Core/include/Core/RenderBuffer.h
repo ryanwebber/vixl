@@ -40,8 +40,8 @@ namespace Core {
 
         void DrawIndexed(
                 glm::mat4x4 transform,
-                std::shared_ptr<VertexBuffer> vertex_buffer,
-                std::shared_ptr<IndexBuffer> index_buffer,
+                std::shared_ptr<VertexBufferHandle> vertex_buffer,
+                std::shared_ptr<IndexBufferHandle> index_buffer,
                 std::shared_ptr<Material> material
                 );
 

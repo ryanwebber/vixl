@@ -5,8 +5,8 @@
 
 namespace Core {
     struct Shape {
-        std::shared_ptr<VertexBuffer> vertex_buffer;
-        std::shared_ptr<IndexBuffer> index_buffer;
+        std::shared_ptr<VertexBufferHandle> vertex_buffer;
+        std::shared_ptr<IndexBufferHandle> index_buffer;
     };
 
     class RenderPrimitives final {

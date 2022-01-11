@@ -41,8 +41,8 @@ namespace Core {
         auto ib =  bgfx::createIndexBuffer(bgfx::makeRef(indexes, sizeof(indexes)));
 
         return {
-            .vertex_buffer = std::move(std::make_shared<VertexBuffer>(vb)),
-            .index_buffer = std::move(std::make_shared<IndexBuffer>(ib))
+            .vertex_buffer = std::move(std::make_shared<VertexBufferHandle>(vb)),
+            .index_buffer = std::move(std::make_shared<IndexBufferHandle>(ib))
         };
     }
 
