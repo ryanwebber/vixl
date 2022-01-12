@@ -59,6 +59,6 @@ namespace Core {
 
         [[nodiscard]] const ResourceManager& GetResourceManager() const { return m_ResourceManager; }
 
-        static Common::Expected<std::unique_ptr<Application>> Create(SizeInt window_size);
+        static Common::Expected<std::unique_ptr<Application>> Create(const ApplicationSettings&);
     };
 }

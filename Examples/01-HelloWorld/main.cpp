@@ -3,6 +3,7 @@
 #include <Core/Application.h>
 #include <Core/DemoRenderSystem.h>
 #include <Core/Logger.h>
+#include <Core/Platform.h>
 #include <Core/SceneManager.h>
 #include <Core/Scene.h>
 #include <Core/SceneRenderer.h>
@@ -17,8 +18,13 @@ int main()
     auto logger = Core::Logger::Create("myapp");
     logger->debug("Running hello world example");
 
+    Core::ApplicationSettings app_settings {
+        .window_size = { .width = 800, .height = 600 },
+        .resource_directory = Core::Platform::GetResourceDirectory(),
+    };
+
     // Create an application, which opens up a native window
-    auto app = Core::Application::Create({ .width = 800, .height = 600 }).value();
+    auto app = Core::Application::Create(app_settings).value();
 
     // Create a new scene renderer and add it to the render stack
     auto scene_renderer = std::make_shared<Core::SceneRenderer>();

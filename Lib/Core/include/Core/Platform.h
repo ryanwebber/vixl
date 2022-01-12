@@ -3,6 +3,7 @@
 #include <bgfx/platform.h>
 
 #if BX_PLATFORM_OSX
+    #define VX_PLATFORM_OSX 1
     #include <Core/Platforms/OSX.h>
     namespace Core {
         namespace Platform = Platforms::OSX;

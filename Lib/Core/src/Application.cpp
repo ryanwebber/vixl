@@ -61,7 +61,6 @@ namespace Core {
     }
 
     void Application::Run() {
-        Logger::Core->debug("Vixl v{} platform={} graphics={}", VX_VERSION, Platform::name, GraphicsAPI::name);
 
         // Run
         m_EventLoop->Run();
@@ -76,12 +75,21 @@ namespace Core {
         m_EventLoop->Close();
     }
 
-    Common::Expected<std::unique_ptr<Application>> Application::Create(SizeInt window_size) {
-        return NativeWindow::Create(window_size).and_then([](NativeWindow nw) {
+    Common::Expected<std::unique_ptr<Application>> Application::Create(const ApplicationSettings &settings) {
+
+        Logger::Core->debug("Vixl v{}\n"
+                            "  Platform: {}\n"
+                            "  Graphics: {}\n"
+                            "  Resource Directory: {}\n",
+                            VX_VERSION,
+                            Platform::name,
+                            GraphicsAPI::name,
+                            settings.resource_directory.string());
+
+        return NativeWindow::Create(settings.window_size).and_then([&settings](NativeWindow nw) {
             return InitializeGraphics(nw).map([&](std::shared_ptr<Renderer> renderer) {
 
-                // TODO: this is wrong
-                ResourceLocator resource_locator("/");
+                ResourceLocator resource_locator(settings.resource_directory);
 
                 auto window = std::make_shared<Window>(nw);
                 auto input = std::make_shared<Input>(nw);

@@ -45,13 +45,13 @@ target_compile_features(${TARGET} PUBLIC cxx_std_20)
 target_link_libraries(${TARGET}
         PRIVATE
             fmt
-            glfw
             imgui
             pixman
             bimg
         PUBLIC
             stdc++
             glm
+            glfw
             spdlog
             uvw
             EnTT::EnTT
