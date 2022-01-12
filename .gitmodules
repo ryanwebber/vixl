@@ -28,3 +28,6 @@
 [submodule "3rdParty/entt"]
 	path = 3rdParty/entt
 	url = git@github.com:skypjack/entt.git
+[submodule "3rdParty/json"]
+	path = 3rdParty/json
+	url = git@github.com:nlohmann/json.git
