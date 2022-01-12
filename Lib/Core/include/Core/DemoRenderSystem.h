@@ -15,6 +15,6 @@ namespace Core {
         DemoRenderSystem();
         ~DemoRenderSystem() override = default;
 
-        void Render(RenderBuffer&) override;
+        void Render(RenderBuffer&, entt::registry& entities) override;
     };
 }

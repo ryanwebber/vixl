@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+
 #include <GLFW/glfw3.h>
 
 #define VX_PLATFORM_OSX 1

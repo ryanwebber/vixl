@@ -9,13 +9,13 @@ namespace Core {
         std::shared_ptr<IndexBufferHandle> index_buffer;
     };
 
-    class RenderPrimitives final {
+    class RenderBuiltins final {
     private:
         Shape m_TextureQuad;
 
     public:
-        RenderPrimitives();
-        ~RenderPrimitives() = default;
+        RenderBuiltins();
+        ~RenderBuiltins() = default;
 
         [[nodiscard]] const Shape& GetTextureQuad() const { return m_TextureQuad; }
     };

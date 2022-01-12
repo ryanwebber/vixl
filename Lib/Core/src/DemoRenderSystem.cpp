@@ -53,7 +53,7 @@ namespace Core {
     }
 
     static int counter = 0;
-    void DemoRenderSystem::Render(RenderBuffer &buffer) {
+    void DemoRenderSystem::Render(RenderBuffer &buffer, entt::registry&) {
         counter++;
 
         float x = cos((float)counter * 0.025f);

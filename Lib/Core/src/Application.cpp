@@ -79,17 +79,33 @@ namespace Core {
     Common::Expected<std::unique_ptr<Application>> Application::Create(SizeInt window_size) {
         return NativeWindow::Create(window_size).and_then([](NativeWindow nw) {
             return InitializeGraphics(nw).map([&](std::shared_ptr<Renderer> renderer) {
+
+                // TODO: this is wrong
+                ResourceLocator resource_locator("/");
+
                 auto window = std::make_shared<Window>(nw);
                 auto input = std::make_shared<Input>(nw);
                 auto event_loop = std::make_shared<EventLoop>();
-                auto application = new Application(std::move(window), std::move(input), std::move(renderer), event_loop);
+
+                auto application = new Application(resource_locator,
+                                                   std::move(window),
+                                                   std::move(input),
+                                                   std::move(renderer),
+                                                   event_loop);
+
                 return std::unique_ptr<Application>(application);
             });
         });
     }
 
-    Application::Application(std::shared_ptr<Window> window, std::shared_ptr<Input> input, std::shared_ptr<Renderer> renderer, std::shared_ptr<EventLoop> event_loop)
-        : m_Window(std::move(window))
+    Application::Application(
+            const ResourceLocator& resource_locator,
+            std::shared_ptr<Window> window,
+            std::shared_ptr<Input> input,
+            std::shared_ptr<Renderer> renderer,
+            std::shared_ptr<EventLoop> event_loop)
+        : m_ResourceManager(resource_locator, event_loop)
+        , m_Window(std::move(window))
         , m_Input(std::move(input))
         , m_Renderer(std::move(renderer))
         , m_EventLoop(std::move(event_loop))

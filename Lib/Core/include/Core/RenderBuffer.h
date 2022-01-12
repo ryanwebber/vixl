@@ -5,18 +5,18 @@
 
 #include <Common/Noncopyable.h>
 #include <Core/RenderCommand.h>
-#include <Core/RenderPrimitives.h>
+#include <Core/RenderBuiltins.h>
 
 namespace Core {
     class RenderBuffer final {
         VX_MAKE_NONCOPYABLE(RenderBuffer);
     private:
-        std::shared_ptr<RenderPrimitives> m_Primitives;
+        std::shared_ptr<RenderBuiltins> m_Builtins;
         std::vector<RenderCommand> m_Commands;
 
     public:
-        explicit RenderBuffer(std::shared_ptr<RenderPrimitives> primitives)
-            : m_Primitives(std::move(primitives))
+        explicit RenderBuffer(std::shared_ptr<RenderBuiltins> builtins)
+            : m_Builtins(std::move(builtins))
             {
             }
 
@@ -24,7 +24,7 @@ namespace Core {
 
         // Move
         RenderBuffer(RenderBuffer&& other) noexcept
-            : m_Primitives(std::move(other.m_Primitives))
+            : m_Builtins(std::move(other.m_Builtins))
             , m_Commands(std::move(other.m_Commands))
             {
             };

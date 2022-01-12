@@ -17,8 +17,8 @@ namespace Core {
         auto imageContainer = new bimg::ImageContainer();
         if (!bimg::imageParse(*imageContainer, data.data(), data.size(), &err)) {
             std::string err_msg(err.getMessage().getPtr(), err.getMessage().getLength());
-            auto err_retval = Common::Error(err_msg).with_context_format("Unable to create texture");
-            return Common::Unexpected(std::move(err_retval));
+            auto our_err = Common::Error(err_msg).with_context_format("Unable to create texture");
+            return Common::Unexpected(std::move(our_err));
         }
 
         const bgfx::Memory* mem = bgfx::makeRef(imageContainer->m_data,

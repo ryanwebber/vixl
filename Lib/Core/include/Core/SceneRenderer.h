@@ -8,14 +8,14 @@
 
 #include <Core/RenderContext.h>
 #include <Core/RenderLayer.h>
-#include <Core/RenderPrimitives.h>
+#include <Core/RenderBuiltins.h>
 
 namespace Core {
     class SceneRenderer final : public RenderLayer {
         VX_MAKE_NONMOVABLE(SceneRenderer);
         VX_MAKE_NONCOPYABLE(SceneRenderer);
     private:
-        std::shared_ptr<RenderPrimitives> m_Primitives;
+        std::shared_ptr<RenderBuiltins> m_Primitives;
         std::vector<std::weak_ptr<RenderContext>> m_Contexts;
 
     public:

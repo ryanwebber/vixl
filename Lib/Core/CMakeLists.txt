@@ -22,7 +22,7 @@ set(SOURCES
         src/RenderBuffer.cpp
         src/RenderContext.cpp
         src/RenderPass.cpp
-        src/RenderPrimitives.cpp
+        src/RenderBuiltins.cpp
         src/RenderStack.cpp
         src/RenderSystem.cpp
         src/Renderer.cpp

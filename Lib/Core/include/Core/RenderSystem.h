@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <entt/entity/registry.hpp>
+
 #include <Core/RenderBuffer.h>
 #include <Core/SceneCamera.h>
 
@@ -14,6 +16,6 @@ namespace Core {
         RenderSystem() = default;
         virtual ~RenderSystem() = default;
 
-        virtual void Render(RenderBuffer&) = 0;
+        virtual void Render(RenderBuffer&, entt::registry&) = 0;
     };
 }

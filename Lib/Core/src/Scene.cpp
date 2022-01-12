@@ -24,7 +24,7 @@ namespace Core {
         });
 
         for (auto &&system : m_RenderSystems)
-            system->Render(context.Buffer());
+            system->Render(context.Buffer(), m_EntityRegistry);
     }
 
     void Scene::Reset() {

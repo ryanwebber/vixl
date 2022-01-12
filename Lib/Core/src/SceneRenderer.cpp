@@ -9,7 +9,7 @@ namespace Core {
 
     void SceneRenderer::OnInitialize() {
         if (m_Primitives == nullptr)
-            m_Primitives = std::make_shared<RenderPrimitives>();
+            m_Primitives = std::make_shared<RenderBuiltins>();
     }
 
     void SceneRenderer::OnDestroy() {

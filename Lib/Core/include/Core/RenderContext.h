@@ -4,7 +4,7 @@
 
 #include <Common/Noncopyable.h>
 #include <Core/RenderBuffer.h>
-#include <Core/RenderPrimitives.h>
+#include <Core/RenderBuiltins.h>
 
 namespace Core {
     struct ViewProjection {
@@ -25,8 +25,8 @@ namespace Core {
             {
             }
 
-        explicit RenderContext(std::shared_ptr<RenderPrimitives> primitives)
-            : m_RenderBuffer(std::move(primitives))
+        explicit RenderContext(std::shared_ptr<RenderBuiltins> builtins)
+            : m_RenderBuffer(std::move(builtins))
             {
             }
 

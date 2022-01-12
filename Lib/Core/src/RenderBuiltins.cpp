@@ -1,5 +1,5 @@
 #include <bgfx/bgfx.h>
-#include <Core/RenderPrimitives.h>
+#include <Core/RenderBuiltins.h>
 
 namespace Core {
     struct Vec3 {
@@ -46,7 +46,7 @@ namespace Core {
         };
     }
 
-    RenderPrimitives::RenderPrimitives()
+    RenderBuiltins::RenderBuiltins()
         : m_TextureQuad(CreateTextureQuad())
         {
         }

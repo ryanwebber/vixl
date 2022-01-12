@@ -17,8 +17,8 @@ namespace Core {
 
     void RenderBuffer::DrawTextureQuad(glm::mat4x4 transform, std::shared_ptr<Material> material) {
         m_Commands.emplace_back(transform,
-                                m_Primitives->GetTextureQuad().vertex_buffer,
-                                m_Primitives->GetTextureQuad().index_buffer,
+                                m_Builtins->GetTextureQuad().vertex_buffer,
+                                m_Builtins->GetTextureQuad().index_buffer,
                                 std::move(material));
     }
 }
