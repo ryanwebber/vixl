@@ -21,6 +21,7 @@ endif()
 
 add_subdirectory(3rdParty)
 add_subdirectory(Examples)
+add_subdirectory(Tools)
 add_subdirectory(Lib)
 
 message(STATUS "CXX Flags: ${CMAKE_CXX_FLAGS}")
