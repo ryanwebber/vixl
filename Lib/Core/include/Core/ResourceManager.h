@@ -2,11 +2,15 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
+#include <string_view>
 
+#include <Common/Expected.h>
 #include <Common/Noncopyable.h>
 
 #include <Core/ResourceLocator.h>
 #include <Core/EventLoop.h>
+#include <Core/FileReadTask.h>
 
 namespace Core {
     class ResourceManager final {
@@ -32,5 +36,7 @@ namespace Core {
         ~ResourceManager() = default;
 
         [[nodiscard]] const ResourceLocator& GetLocator() const { return m_Locator; }
+
+         FileReadTask LoadAsset(const std::string_view &bundle_name, size_t offset, size_t length);
     };
 }

@@ -1,3 +1,4 @@
+include(cmake/resource_utils.cmake)
 include(cmake/shader_utils.cmake)
 
 set(TARGET vixl-core)
@@ -15,17 +16,19 @@ set(SOURCES
         src/Bitmap.cpp
         src/Closable.cpp
         src/DemoRenderSystem.cpp
+        src/FileReadTask.cpp
         src/Input.cpp
         src/Logger.cpp
         src/Material.cpp
         src/NativeWindow.cpp
         src/RenderBuffer.cpp
+        src/RenderBuiltins.cpp
         src/RenderContext.cpp
         src/RenderPass.cpp
-        src/RenderBuiltins.cpp
         src/RenderStack.cpp
         src/RenderSystem.cpp
         src/Renderer.cpp
+        src/ResourceManager.cpp
         src/Scene.cpp
         src/SceneManager.cpp
         src/SceneRenderer.cpp
@@ -39,6 +42,7 @@ set(SOURCES
 ADD_LIBRARY(${TARGET} ${SOURCES})
 
 add_compiled_shader_dependency(${TARGET} "${SHADERS}")
+add_builtins_asset_pack_dependency(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/res/manifest.json ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 

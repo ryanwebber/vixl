@@ -2,6 +2,7 @@ add_subdirectory(entt)
 add_subdirectory(fmt)
 add_subdirectory(glfw)
 add_subdirectory(glm)
+add_subdirectory(json)
 add_subdirectory(imgui-wrapper)
 add_subdirectory(pixman-wrapper)
 

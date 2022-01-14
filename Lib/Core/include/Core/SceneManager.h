@@ -23,6 +23,7 @@ namespace Core {
 
         void SetActiveScene(std::shared_ptr<Scene> scene) {
             m_CurrentScene = std::move(scene);
+            m_CurrentScene->Configure();
         }
     };
 }

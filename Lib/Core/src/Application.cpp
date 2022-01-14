@@ -117,12 +117,12 @@ namespace Core {
         , m_Input(std::move(input))
         , m_Renderer(std::move(renderer))
         , m_EventLoop(std::move(event_loop))
-        {
-            // Hook into GLFW to get involved in events. First, we set this application to
-            // be the userdata pointer, so this instance can handle the events
-            glfwSetWindowUserPointer(m_Window->GetNativeWindow().GetWindowPointer(), static_cast<void*>(this));
+    {
+        // Hook into GLFW to get involved in events. First, we set this application to
+        // be the userdata pointer, so this instance can handle the events
+        glfwSetWindowUserPointer(m_Window->GetNativeWindow().GetWindowPointer(), static_cast<void*>(this));
 
-            // Setup window callbacks
-            glfwSetWindowSizeCallback(m_Window->GetNativeWindow().GetWindowPointer(), OnWindowResize);
-        }
+        // Setup window callbacks
+        glfwSetWindowSizeCallback(m_Window->GetNativeWindow().GetWindowPointer(), OnWindowResize);
+    }
 }

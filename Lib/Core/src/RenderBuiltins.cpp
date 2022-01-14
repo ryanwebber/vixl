@@ -1,6 +1,8 @@
 #include <bgfx/bgfx.h>
 #include <Core/RenderBuiltins.h>
 
+#include <Core/Generated/Assets/builtins.h>
+
 namespace Core {
     struct Vec3 {
         float x, y, z;

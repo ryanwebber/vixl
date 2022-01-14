@@ -2,9 +2,7 @@
   "resources": [
     {
       "name": "uvcoordinates",
-      "namespace": ["Core","Generated","Asset","Texture"],
       "src": "res/textures/uvcoordinates.png",
-      "dest": "builtin/texture/uvcoordinates.png",
       "metadata": {
         "abc": "def",
         "hello": 123,

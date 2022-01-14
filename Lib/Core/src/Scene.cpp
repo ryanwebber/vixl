@@ -1,9 +1,13 @@
-#include <bx/math.h>
 #include <glm/glm.hpp>
-
 #include <Core/Scene.h>
 
 namespace Core {
+    void Scene::Configure() {
+        auto weak_self = WeakSelf();
+        for (auto &&system : m_MetaSystems)
+            system->Configure(weak_self);
+    }
+
     void Scene::Update() {
         for (auto &&system : m_UpdateSystems)
             system->Update(m_EntityRegistry);

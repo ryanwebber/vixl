@@ -1,6 +1,29 @@
+#include <filesystem>
 #include <functional>
 #include <iostream>
+#include <fstream>
 #include <string>
+#include <vector>
+
+#include <fmt/format.h>
+#include <nlohmann/json.hpp>
+
+struct Asset {
+    struct MetadataEntry {
+        enum class Type { String, Int, Bool };
+
+        std::string key;
+        std::string value;
+        Type type { Type::String };
+    };
+
+    std::string name;
+    std::string source;
+    std::vector<MetadataEntry> metadata;
+
+    std::size_t packed_offset { 0 };
+    std::size_t packed_length { 0 };
+};
 
 struct OptionParser {
     const std::string short_form;
@@ -9,36 +32,44 @@ struct OptionParser {
     std::function<void(const char* argp[])> callback;
 };
 
-static std::string s_PathPrefix;
+static std::string s_PathPrefix = std::filesystem::current_path().string();
 static std::string s_InputManifest;
-static std::string s_OutputManifest;
+static std::string s_OutputPackage;
 static std::string s_OutputHeader;
-static bool s_PrintHelp;
+static std::string s_Namespace("Assets");
+static std::filesystem::path s_Cwd(std::filesystem::current_path());
+static bool s_PrintHelp = false;
 
 static OptionParser s_OptionParsers[] = {
         {
             "-i",
-            "--input-manifest",
+            "--input",
             2,
             [](const char* argp[]) { s_InputManifest = argp[1]; }
         },
         {
             "-o",
-            "--output-manifest",
+            "--output",
             2,
-            [](const char* argp[]) { s_OutputManifest = argp[1]; }
-        },
-        {
-            "-p",
-            "--path-prefix",
-            2,
-            [](const char* argp[]) { s_PathPrefix = argp[1]; }
+            [](const char* argp[]) { s_OutputPackage = argp[1]; }
         },
         {
             "-l",
-            "--output-header",
+            "--listing",
             2,
             [](const char* argp[]) { s_OutputHeader = argp[1]; }
+        },
+        {
+            "-n",
+            "--namespace",
+            2,
+            [](const char* argp[]) { s_Namespace = argp[1]; }
+        },
+        {
+            "-c",
+            "--cwd",
+            2,
+            [](const char* argp[]) { s_Cwd = argp[1]; }
         },
         {
             "-h",
@@ -51,16 +82,17 @@ static OptionParser s_OptionParsers[] = {
 static void PrintHelp() {
     auto usage_string = ""
                         "Usage:\n"
-                        "    asset-pack --input-manifest <FILE> --output-manifest <FILE> --output-header <FILE> --path-prefix <FILE>\n"
+                        "    asset-pack --input <FILE> --output <FILE> --listing <FILE> \n"
                         "    asset-pack -h | --help\n"
                         "\n"
                         "Generates asset manifest files.\n"
                         "\n"
                         "Options:\n"
-                        "  -i,--input-manifest      the input asset manifest\n"
-                        "  -o,--output-manifest     the adjusted output asset manifest\n"
-                        "  -l,--output-header       the output header listing of asset metadata\n"
-                        "  -p,--path-prefix         the path prefix to prepend to asset paths\n"
+                        "  -i,--input               the input asset manifest\n"
+                        "  -o,--output              the packed asset output bundle file\n"
+                        "  -l,--listing             the output header listing of asset metadata\n"
+                        "  -c,--cwd                 the current working directory relative to asset manifest source paths\n"
+                        "  -n,--namespace           the namespace to put asset listing data in\n"
                         "  -h,--help                show this help message and exit.\n"
                         ;
 
@@ -110,6 +142,121 @@ int main (int argc, const char *argv[]) {
         return !parse_success;
     }
 
-    std::cout << "Prefix: " << s_PathPrefix << std::endl;
+    if (s_InputManifest.empty() || s_OutputPackage.empty() || s_OutputHeader.empty()) {
+        PrintHelp();
+        return 1;
+    }
+
+    // Read the input manifest
+    std::ifstream input_manifest(s_InputManifest);
+    if (input_manifest.fail() || !input_manifest.is_open()) {
+        std::cerr << "Unable to open asset manifest" << std::endl;
+        return 2;
+    }
+
+    nlohmann::json input_json;
+    std::vector<Asset> assets;
+    try {
+        input_manifest >> input_json;
+        for (auto& element : input_json["resources"].items()) {
+            const auto &value = element.value();
+
+            Asset asset;
+            asset.name = value["name"];
+            asset.source = value["src"];
+
+            for(auto& metadata_item : value["metadata"].items()) {
+                Asset::MetadataEntry entry;
+                entry.key = fmt::format("{}", metadata_item.key());
+                if (metadata_item.value().is_number()) {
+                    entry.value = fmt::format("{}", metadata_item.value().get<int>());
+                    entry.type = Asset::MetadataEntry::Type::Int;
+                } else if (metadata_item.value().is_boolean()) {
+                    entry.value = fmt::format("{}", metadata_item.value().get<bool>());
+                    entry.type = Asset::MetadataEntry::Type::Bool;
+                } else {
+                    entry.value = fmt::format("\"{}\"", metadata_item.value());
+                    entry.type = Asset::MetadataEntry::Type::String;
+                }
+
+                asset.metadata.push_back(entry);
+            }
+
+            assets.push_back(asset);
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Unable to parse input manifest: " << e.what() << std::endl;
+        return 3;
+    }
+
+    // Write the packed output file
+    std::ofstream output_bundle(s_OutputPackage);
+    if (output_bundle.fail() || !output_bundle.is_open()) {
+        std::cerr << "Unable to write to packed output file" << std::endl;
+        return 2;
+    }
+
+    size_t total_bytes_written = 0;
+    for (auto& asset : assets) {
+        auto packed_offset = total_bytes_written;
+        auto filepath = s_Cwd / asset.source;
+
+        std::cout << "Writing '" << filepath << "' >> '" << s_OutputPackage << "'..." << std::endl;
+
+        std::ifstream asset_source(filepath);
+        if (asset_source.fail() || !asset_source.is_open()) {
+            std::cerr << "Unable to open asset file: " << filepath << std::endl;
+            return 2;
+        }
+
+        output_bundle << asset_source.rdbuf();
+        total_bytes_written = output_bundle.tellp();
+
+        asset.packed_offset = packed_offset;
+        asset.packed_length = total_bytes_written - packed_offset;
+    }
+
+    // Write the header listing
+    std::ofstream output_header(s_OutputHeader);
+    if (output_header.fail() || !output_header.is_open()) {
+        std::cerr << "Unable to write to header listing file" << std::endl;
+        return 2;
+    }
+
+    output_header << "#include <string>" << std::endl;
+    output_header << "#include <Core/PackedAsset.h>" << std::endl;
+    output_header << "namespace " << s_Namespace << " {" << std::endl;
+    for (auto& asset : assets) {
+        std::cout << "Asset '" << asset.name << "': " << asset.packed_offset << "+" << asset.packed_length << std::endl;
+        output_header << "namespace " << asset.name << " {" << std::endl;
+        output_header << "  static const Core::PackedAsset asset = {" << std::endl;
+        output_header << "    .resource_name = \"" << asset.name << "\"," << std::endl;
+        output_header << "    .offset = " << asset.packed_offset << "," << std::endl;
+        output_header << "    .size = " << asset.packed_length << "," << std::endl;
+        output_header << "  };" << std::endl;
+        output_header << "  namespace metadata {" << std::endl;
+
+        for (auto& entry : asset.metadata) {
+            output_header << "    static const ";
+            switch (entry.type) {
+                case Asset::MetadataEntry::Type::Bool:
+                    output_header << "bool";
+                    break;
+                case Asset::MetadataEntry::Type::Int:
+                    output_header << "int";
+                    break;
+                case Asset::MetadataEntry::Type::String:
+                    output_header << "std::string";
+                    break;
+            }
+            output_header << " " << entry.key << " = " << entry.value << ";" << std::endl;
+        }
+
+        output_header << "  }" << std::endl;
+        output_header << "}" << std::endl;
+    }
+
+    output_header << "}" << std::endl;
+
     return 0;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <future>
 #include <memory>
 #include <string>
 
@@ -46,7 +47,6 @@ namespace Core {
 
         ~Application() = default;
 
-        // Start the event loop and block until the event loop terminates
         void Run();
 
         // Terminate the application

@@ -37,7 +37,7 @@ int main()
     Core::SceneManager scene_manager;
 
     // Create a scene and set it as the active scene
-    auto scene = std::make_shared<Core::Scene>("Main");
+    auto scene = Core::Scene::Create("Main");
     scene->RenderSystems().push_back(std::make_shared<Core::DemoRenderSystem>());
     scene_manager.SetActiveScene(std::move(scene));
 

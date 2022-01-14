@@ -14,15 +14,11 @@ namespace Core {
         using Millis = uvw::TimerHandle::Time;
 
         TimerLoopTask(const std::string_view &name, const EventLoop &, Millis duration);
-
         ~TimerLoopTask() override = default;
 
         void Clear() override;
-
         void Close() override;
-
         void Stop();
-
         void Start();
 
         [[nodiscard]] Closable OnTimeout(const std::function<void(void)> &listener);

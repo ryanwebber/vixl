@@ -6,12 +6,12 @@
 
 #include <Common/Noncopyable.h>
 
+#include <Core/Closable.h>
 #include <Core/EventLoop.h>
 
 namespace Core {
     class Task {
     VX_MAKE_NONCOPYABLE(Task);
-
     VX_MAKE_NONMOVABLE(Task);
 
     private:

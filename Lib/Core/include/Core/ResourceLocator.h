@@ -20,7 +20,7 @@ namespace Core {
         ~ResourceLocator() = default;
 
         [[nodiscard]] const std::filesystem::path& GetResourcePath() const { return m_ResourcePath; }
-        std::filesystem::path GetResource(std::filesystem::path& appending) const {
+        std::filesystem::path GetResource(const std::filesystem::path& appending) const {
             return m_ResourcePath / appending;
         }
     };

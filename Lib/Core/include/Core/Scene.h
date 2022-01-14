@@ -7,12 +7,14 @@
 #include <entt/entity/registry.hpp>
 
 #include <Common/Noncopyable.h>
+#include <Common/Weakable.h>
 #include <Core/RenderContext.h>
 #include <Core/RenderSystem.h>
 #include <Core/UpdateSystem.h>
+#include <Core/MetaSystem.h>
 
 namespace Core {
-    class Scene final {
+class Scene final : public Common::Weakable<Scene> {
         VX_MAKE_NONMOVABLE(Scene);
         VX_MAKE_NONCOPYABLE(Scene);
     private:
@@ -21,14 +23,17 @@ namespace Core {
         entt::registry m_EntityRegistry;
         std::vector<std::shared_ptr<UpdateSystem>> m_UpdateSystems;
         std::vector<std::shared_ptr<RenderSystem>> m_RenderSystems;
+        std::vector<std::shared_ptr<MetaSystem>> m_MetaSystems;
 
-    public:
         explicit Scene(const std::string_view &name)
             : m_Name(name)
             { }
 
+    public:
+
         ~Scene() = default;
 
+        void Configure();
         void Update();
         void Render(RenderContext &context);
 
@@ -49,6 +54,16 @@ namespace Core {
             m_RenderSystems = std::move(systems);
         }
 
+        std::vector<std::shared_ptr<MetaSystem>>& MetaSystems() { return m_MetaSystems; }
+        [[nodiscard]] const std::vector<std::shared_ptr<MetaSystem>>& GetMetaSystems() const { return m_MetaSystems; }
+        void SetMetaSystems(std::vector<std::shared_ptr<MetaSystem>> systems) {
+            m_MetaSystems = std::move(systems);
+        }
+
         void Reset();
+
+        static std::shared_ptr<Scene> Create(const std::string_view &name) {
+            return std::shared_ptr<Scene>(new Scene(name));
+        }
     };
 }
