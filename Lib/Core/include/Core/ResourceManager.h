@@ -9,10 +9,12 @@
 #include <Common/Noncopyable.h>
 
 #include <Core/ResourceLocator.h>
-#include <Core/EventLoop.h>
-#include <Core/FileReadTask.h>
+#include <Core/Async.h>
 
 namespace Core {
+
+    using namespace Async;
+
     class ResourceManager final {
         VX_MAKE_NONMOVABLE(ResourceManager);
         VX_MAKE_NONCOPYABLE(ResourceManager);
@@ -36,7 +38,5 @@ namespace Core {
         ~ResourceManager() = default;
 
         [[nodiscard]] const ResourceLocator& GetLocator() const { return m_Locator; }
-
-         FileReadTask LoadAsset(const std::string_view &bundle_name, size_t offset, size_t length);
     };
 }

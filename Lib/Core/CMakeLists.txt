@@ -16,7 +16,6 @@ set(SOURCES
         src/Bitmap.cpp
         src/Closable.cpp
         src/DemoRenderSystem.cpp
-        src/FileReadTask.cpp
         src/Input.cpp
         src/Logger.cpp
         src/Material.cpp
@@ -34,8 +33,6 @@ set(SOURCES
         src/SceneRenderer.cpp
         src/Shader.cpp
         src/Texture.cpp
-        src/TimerLoopTask.cpp
-        src/TimerTask.cpp
         src/Window.cpp
         )
 

@@ -8,7 +8,7 @@
 #include <Common/Noncopyable.h>
 #include <Common/Expected.h>
 
-#include <Core/EventLoop.h>
+#include <Core/Async.h>
 #include <Core/Window.h>
 #include <Core/Input.h>
 #include <Core/Renderer.h>

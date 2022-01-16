@@ -1,5 +1,4 @@
-#include <entt/entity/registry.hpp>
-
+#include <Core/Async.h>
 #include <Core/Application.h>
 #include <Core/DemoRenderSystem.h>
 #include <Core/Logger.h>
@@ -7,7 +6,6 @@
 #include <Core/SceneManager.h>
 #include <Core/Scene.h>
 #include <Core/SceneRenderer.h>
-#include <Core/TimerLoopTask.h>
 
 #ifndef TARGET_FPS
     #define TARGET_FPS 60
@@ -43,11 +41,11 @@ int main()
 
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");
-    auto mills_per_frame = Core::TimerLoopTask::Millis(1000 / TARGET_FPS);
-    auto main_loop = app->GetEventLoop().Register<Core::TimerLoopTask>("Main", mills_per_frame);
+    auto mills_per_frame = Core::Async::Millis(1000 / TARGET_FPS);
+    auto render_timer = app->GetEventLoop().GetExecutorRef().CreateTimer({ }, mills_per_frame, false);
 
     // Process events every main tick
-    auto process_input_handle = main_loop->OnTimeout([&]() {
+    auto process_input_handle = render_timer.GetReceiver().On([&](auto _) {
         auto cs = app->GetInput().ProcessEvents();
         if (cs == Core::ControlState::Terminate) {
             app->Terminate();
@@ -55,7 +53,7 @@ int main()
     });
 
     // Update the scene and render a frame every main tick
-    auto render_handle = main_loop->OnTimeout([&]() {
+    auto render_handle = render_timer.GetReceiver().On([&](auto _) {
         // Update the scene and render it into our target
         scene_manager.Update();
         scene_manager.Render(*render_context);
@@ -66,9 +64,7 @@ int main()
     });
 
     // Start the main loop timer
-    main_loop->Start();
-
-    entt::registry registry;
+    render_timer.Start();
 
     // Start the application event loop
     app->Run();

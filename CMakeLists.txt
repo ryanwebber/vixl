@@ -12,10 +12,8 @@ endif()
 if (APPLE)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_CXX_EXTENSIONS OFF)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++17")
-    # note that std17 is required for a libuv cmake check that tests if libc++ is available
-    # TODO: can we make it c++ 20 by default?
+    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++20")
 endif()
 
 # Set public variables to be consumed by API users

@@ -4,11 +4,9 @@
 #include <Core/Logger.h>
 
 #ifndef NDEBUG
-    #define VX_ASSERT(Expr, Msg) Core::RuntimeAssert(#Expr, Expr, __FILE__, __LINE__, Msg, *Core::Logger::App)
-    #define VX_ENGINE_ASSERT(Expr, Msg) Core::RuntimeAssert(#Expr, Expr, __FILE__, __LINE__, Msg, *Core::Logger::Core)
+    #define VX_ASSERT(Expr, Msg) Core::RuntimeAssert(#Expr, Expr, __FILE__, __LINE__, Msg, *Core::Logger::Core)
 #else
-    #define ASSERT(Expr, Msg) ;
-    #define ENGINE_ASSERT(Expr, Msg) ;
+    #define VX_ASSERT(Expr, Msg) ;
 #endif
 
 namespace Core {
