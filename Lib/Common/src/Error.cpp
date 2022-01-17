@@ -10,9 +10,6 @@ namespace Common {
         m_Context.push_back(std::move(reason_str));
     }
 
-    Error::Error(Error &&other) noexcept
-            : m_Context(std::move(other.m_Context)) {}
-
     const char *Error::what() const noexcept {
         return m_Context.front().c_str();
     }

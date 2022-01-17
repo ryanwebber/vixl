@@ -42,10 +42,22 @@ int main()
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");
     auto mills_per_frame = Core::Async::Millis(1000 / TARGET_FPS);
-    auto render_timer = app->GetEventLoop().GetExecutorRef().CreateTimer({ }, mills_per_frame, false);
+    auto render_timer = Core::Async::Time::Timer(app->GetEventLoop().GetExecutor(), { }, mills_per_frame, false);
+
+    std::filesystem::path path("/Users/rwebber/dev/hobby/vixl-cpp/build/example.txt");
+    auto promise = Core::Async::FileSystem::ReadFile(app->GetEventLoop().GetExecutor(), path, 0, 64)
+        .Then<Core::Empty>([&](auto result) {
+            if (result.has_value()) {
+                std::string contents(result.template value()->GetData(), result.template value()->GetSize());
+                logger->template debug("Got data: {} (size={})", contents, result.template value()->GetSize());
+            } else {
+                logger->template debug("Got error: {}", result.error().what());
+            }
+            return Core::Empty { };
+        });
 
     // Process events every main tick
-    auto process_input_handle = render_timer.GetReceiver().On([&](auto _) {
+    auto process_input_handle = render_timer.GetReceiver().On([&](auto) {
         auto cs = app->GetInput().ProcessEvents();
         if (cs == Core::ControlState::Terminate) {
             app->Terminate();

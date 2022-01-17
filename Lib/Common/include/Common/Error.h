@@ -1,26 +1,24 @@
 #pragma once
 
-#include <exception>
+#include<exception>
 #include <string>
 #include <vector>
 
 #include <fmt/format.h>
 
-#include "Noncopyable.h"
+#include "Copyable.h"
 
 namespace Common {
 
     class Error final : public std::exception {
-    VX_MAKE_NONCOPYABLE(Error);
+        VX_DEFAULT_COPYABLE(Error);
+        VX_DEFAULT_MOVABLE(Error);
 
     private:
         std::vector<std::string> m_Context;
 
     public:
         explicit Error(const std::string_view& reason);
-
-        Error(Error &&other) noexcept;
-
         ~Error() override = default;
 
         [[nodiscard]] const char *what() const noexcept override;

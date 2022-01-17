@@ -14,32 +14,34 @@ namespace Common {
 // of the owning shared_ptr.
     template<typename T>
     class UnmanagedBuffer final {
-    VX_DEFAULT_COPYABLE(UnmanagedBuffer);
-
-    VX_DEFAULT_MOVABLE(UnmanagedBuffer);
+        VX_DEFAULT_COPYABLE(UnmanagedBuffer);
+        VX_DEFAULT_MOVABLE(UnmanagedBuffer);
 
     private:
         std::shared_ptr<void> m_Owner;
         T *m_Buffer;
-        size_t m_Length{0};
+        size_t m_Size{0};
 
     public:
         UnmanagedBuffer()
-                : m_Owner({}), m_Buffer(nullptr), m_Length(0) {};
+                : m_Owner({})
+                , m_Buffer(nullptr)
+                , m_Size(0)
+        {};
 
-        explicit UnmanagedBuffer(std::shared_ptr<void> owner, T *buffer, size_t length)
-                : m_Owner(std::move(owner)), m_Buffer(buffer), m_Length(length) {};
+        explicit UnmanagedBuffer(std::shared_ptr<void> owner, T *buffer, size_t size)
+                : m_Owner(std::move(owner))
+                , m_Buffer(buffer)
+                , m_Size(size)
+        {};
 
         ~UnmanagedBuffer() = default;
 
         T *GetData() { return m_Buffer; };
-
         const T *GetData() const { return m_Buffer; };
-
-        [[nodiscard]] size_t GetLength() const { return m_Length; };
+        [[nodiscard]] size_t GetSize() const { return m_Size; };
 
         T *operator->() { return &m_Buffer; }
-
         const T *operator->() const { return &m_Buffer; }
     };
 }
