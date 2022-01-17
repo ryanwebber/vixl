@@ -10,11 +10,12 @@
 
 #include <Common/Copyable.h>
 #include <Common/Noncopyable.h>
-#include <Common/ManagedBuffer.h>
+#include <Common/ByteBuffer.h>
 #include <Common/Expected.h>
 
 #include <Core/Assert.h>
 #include <Core/Closable.h>
+#include <Core/Types.h>
 
 // A quick and dirty A+ promise-like system for wrapping async
 // operations on the event loop. Is currently not completely memory safe and
@@ -115,7 +116,7 @@ namespace Core::Async {
 
             ~Subscriber() = default;
 
-            Closable On(std::function<void(T)> callback) {
+            Closable On(std::function<void(T&)> callback) {
                 auto connection = m_Handle->on<uvw::AsyncEvent>([cb = std::move(callback)](const uvw::AsyncEvent &e, const uvw::AsyncHandle &h) {
                     cb(*h.data<T>());
                 });
@@ -124,7 +125,7 @@ namespace Core::Async {
                 return std::move(c);
             }
 
-            Closable Once(std::function<void(T)> callback) {
+            Closable Once(std::function<void(T&)> callback) {
                 auto connection = m_Handle->once<uvw::AsyncEvent>([cb = std::move(callback)](const uvw::AsyncEvent &e, const uvw::AsyncHandle &h) {
                     cb(*h.data<T>());
                 });
@@ -243,10 +244,10 @@ namespace Core::Async {
             ~Promise() = default;
 
             template<typename TNew>
-            Promise<TNew> Then(std::function<TNew(T)> map_fn) {
+            Promise<TNew> Then(std::function<TNew(T&)> map_fn) {
                 auto new_socket = Socket<TNew>(*m_Executor);
                 auto closable = m_Socket.subscriber.Once(
-                        [publisher = new_socket.publisher, mapper = std::move(map_fn)](T value) {
+                        [publisher = new_socket.publisher, mapper = std::move(map_fn)](T& value) {
                             auto mapped_value = mapper(value);
                             publisher.Publish(mapped_value);
                         });
@@ -259,16 +260,11 @@ namespace Core::Async {
                 return Promise<TNew>(m_Executor, std::move(new_socket), std::move(chain_copy));
             }
 
-            friend class Executor;
-        };
+            Promise<Empty> Erase() {
+                return Then([](auto) -> Empty { return { }; });
+            }
 
-        template <typename T>
-        struct PromiseHandle final {
-            std::optional<Promise<T>> container;
-            PromiseHandle() = default;
-            PromiseHandle(Promise<T> &&promise)
-                : container(std::move(promise))
-            {}
+            friend class Executor;
         };
 
         // Impl functions now that everything is declared
@@ -362,18 +358,20 @@ namespace Core::Async {
         }
 
         namespace FileSystem {
-            using ReadResult = Common::Expected<std::shared_ptr<Common::ManagedBuffer<const char[]>>>;
+            using ReadResult = Common::Expected<Common::ByteBuffer>;
             Promise<ReadResult> ReadFile(std::shared_ptr<Executor> executor, const std::filesystem::path &path, size_t offset, size_t length) {
                 auto read_handle = MakeHandle<uvw::FileReq>(*executor);
                 PromiseResolver<ReadResult> resolver = [=](auto cb) {
                     read_handle->template once<uvw::FsEvent<uvw::FileReq::Type::READ>>([=](auto &read, auto&) {
-                        auto result = std::make_shared<Common::ManagedBuffer<const char[]>>(std::move(read.data), read.size);
-                        cb(std::move(result));
+                        auto raw_buffer = std::make_unique<std::byte[]>(read.size);
+                        memcpy(&raw_buffer[0], read.data.get(), read.size);
+                        Common::ByteBuffer bb(std::move(raw_buffer), read.size);
+                        cb(std::move(bb));
                         read_handle->close();
                     });
 
                     read_handle->template once<uvw::ErrorEvent>([=](const auto &error, const auto&) {
-                        auto result = Common::MakeUnexpected<std::shared_ptr<Common::ManagedBuffer<const char[]>>>(error.what());
+                        auto result = Common::MakeUnexpected<Common::ByteBuffer>(error.what());
                         cb(std::move(result));
                         read_handle->close();
                     });

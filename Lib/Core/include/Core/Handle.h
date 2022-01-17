@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <bgfx/bgfx.h>
 
 namespace Core {
     template<typename T>

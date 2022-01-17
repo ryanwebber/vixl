@@ -3,7 +3,7 @@
 #include <string>
 
 namespace Core {
-    struct PackedAsset final {
+    struct PackedAsset {
         const std::string resource_name;
         size_t offset;
         size_t size;

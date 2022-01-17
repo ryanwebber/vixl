@@ -13,7 +13,6 @@ set(SHADERS
 set(SOURCES
         src/Application.cpp
         src/Assert.cpp
-        src/Bitmap.cpp
         src/Closable.cpp
         src/DemoRenderSystem.cpp
         src/Input.cpp

@@ -46,10 +46,11 @@ int main()
 
     std::filesystem::path path("/Users/rwebber/dev/hobby/vixl-cpp/build/example.txt");
     auto promise = Core::Async::FileSystem::ReadFile(app->GetEventLoop().GetExecutor(), path, 0, 64)
-        .Then<Core::Empty>([&](auto result) {
+        .Then<Core::Empty>([&](auto& result) {
             if (result.has_value()) {
-                std::string contents(result.template value()->GetData(), result.template value()->GetSize());
-                logger->template debug("Got data: {} (size={})", contents, result.template value()->GetSize());
+                auto span = result.template value().GetView();
+                std::string contents((char*)span.data(), span.size());
+                logger->template debug("Got data: {} (size={})", contents, span.size());
             } else {
                 logger->template debug("Got error: {}", result.error().what());
             }
