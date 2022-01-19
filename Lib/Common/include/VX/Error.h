@@ -15,7 +15,7 @@ namespace VX {
         VX_DEFAULT_MOVABLE(Error);
 
     private:
-        std::vector<std::string> m_Context;
+        std::vector<std::string> m_context;
 
     public:
         explicit Error(const std::string_view& reason);
@@ -32,7 +32,7 @@ namespace VX {
     template<typename... Args>
     Error Error::with_context_format(std::string_view format, Args &&... args) noexcept {
         auto context_string = fmt::vformat(format, fmt::make_format_args(args...));
-        m_Context.push_back(std::move(context_string));
+        m_context.push_back(std::move(context_string));
         return std::move(*this);
     }
 }

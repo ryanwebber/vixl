@@ -13,24 +13,24 @@ namespace VX::Core {
         VX_DEFAULT_COPYABLE(NativeWindow);
 
     private:
-        GLFWwindow* m_Window;
+        GLFWwindow* m_window;
         explicit NativeWindow(GLFWwindow* window)
-                : m_Window(window)
+                : m_window(window)
         {}
 
     public:
 
         ~NativeWindow() = default;
 
-        [[nodiscard]] GLFWwindow* GetWindowPointer() const { return m_Window; }
+        [[nodiscard]] GLFWwindow* window_pointer() const { return m_window; }
 
-        [[nodiscard]] void* GetPlatformWindowHandle() const;
-        [[nodiscard]] void* GetPlatformDisplayType() const;
-        [[nodiscard]] SizeInt GetSize() const;
+        [[nodiscard]] void* platform_window_handle() const;
+        [[nodiscard]] void* platform_display_type() const;
+        [[nodiscard]] SizeInt size() const;
 
-        void Destroy();
-        void SwapBuffers();
+        void destroy();
+        void swap_buffers();
 
-        static VX::Expected<NativeWindow> Create(SizeInt window_size);
+        static VX::Expected<NativeWindow> create_with_size(SizeInt window_size);
     };
 }

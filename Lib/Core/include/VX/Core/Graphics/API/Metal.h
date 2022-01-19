@@ -2,6 +2,6 @@
 
 #include <string_view>
 
-namespace VX::GraphicsAPIs::Metal {
+namespace VX::Core::Graphics::API::Metal {
     static const std::string_view name = "Metal";
 }

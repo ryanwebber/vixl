@@ -2,7 +2,7 @@
 #include <VX/Core/Application.h>
 #include <VX/Core/DemoRenderSystem.h>
 #include <VX/Core/Logger.h>
-#include <VX/Core/Platform.h>
+#include <VX/Core/Platform/Platform.h>
 #include <VX/Core/SceneManager.h>
 #include <VX/Core/Scene.h>
 #include <VX/Core/SceneRenderer.h>
@@ -13,14 +13,14 @@
 
 int main()
 {
-    auto logger = VX::Logger::Create("myapp");
+    auto logger = VX::Logger::create_named("myapp");
     logger->debug("Running hello world example");
 
-    VX::Core::EventLoop::RunScoped([&](auto executor) -> std::vector<VX::Core::Closable> {
-        auto promise = VX::Core::FileSystem::ReadFile(*executor, "/Users/rwebber/dev/hobby/vixl-cpp/build/example.txt", 0, 64)
-                .Finally([&](auto& result) {
+    VX::Core::EventLoop::run_scoped([&](auto executor) -> std::vector<VX::Core::Closable> {
+        auto promise = VX::Core::FileSystem::read_file(*executor, "/Users/rwebber/dev/hobby/vixl-cpp/build/example.txt", 0, 64)
+                .finally([&](auto& result) {
                     if (result.has_value()) {
-                        auto span = result.value().GetView();
+                        auto span = result.value().view();
                         std::string contents((char*)span.data(), span.size());
                         logger->debug("Got data: {} (size={})", contents, span.size());
                     } else {
@@ -35,54 +35,54 @@ int main()
 
     VX::Core::ApplicationSettings app_settings {
         .window_size = { .width = 800, .height = 600 },
-        .resource_directory = VX::Core::Platform::GetResourceDirectory(),
+        .resource_directory = VX::Core::Platform::Current::get_resource_directory(),
     };
 
     // Create an application, which opens up a native window
-    auto app = VX::Core::Application::Create(app_settings).value();
+    auto app = VX::Core::Application::create_from_settings(app_settings).value();
 
     // Create a new scene renderer and add it to the render stack
     auto scene_renderer = std::make_shared<VX::Core::SceneRenderer>();
-    app->GetRenderer().GetRenderStack().AddLayer(scene_renderer);
+    app->renderer().render_stack().add_layer(scene_renderer);
 
     // Create a render context for our scene to render into
-    auto render_context = scene_renderer->CreateRenderContext();
+    auto render_context = scene_renderer->create_render_context();
 
     // Create a new scene manager that will manage our various scenes
     VX::Core::SceneManager scene_manager;
 
     // Create a scene and set it as the active scene
-    auto scene = VX::Core::Scene::Create("Main");
-    scene->RenderSystems().push_back(std::make_shared<VX::Core::DemoRenderSystem>());
-    scene_manager.SetActiveScene(std::move(scene));
+    auto scene = VX::Core::Scene::create_named("Main");
+    scene->render_systems().push_back(std::make_shared<VX::Core::DemoRenderSystem>());
+    scene_manager.set_active_scene(std::move(scene));
 
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");
     auto mills_per_frame = VX::Core::Millis(1000 / TARGET_FPS);
-    auto render_timer = VX::Core::Time::Timer(app->GetEventLoop().GetExecutor(), { }, mills_per_frame, false);
+    auto render_timer = VX::Core::Time::Timer(app->event_loop().executor(), { }, mills_per_frame, false);
 
     // Process events every main tick
-    auto process_input_handle = render_timer.GetReceiver().On([&](auto) {
-        auto cs = app->GetInput().ProcessEvents();
+    auto process_input_handle = render_timer.subscriber().on([&](auto) {
+        auto cs = app->input().process_events();
         if (cs == VX::Core::ControlState::Terminate) {
-            app->Terminate();
+            app->terminate();
         }
     });
 
     // Update the scene and render a frame every main tick
-    auto render_handle = render_timer.GetReceiver().On([&](auto _) {
+    auto render_handle = render_timer.subscriber().on([&](auto _) {
         // Update the scene and render it into our target
-        scene_manager.Update();
-        scene_manager.Render(*render_context);
+        scene_manager.update();
+        scene_manager.render(*render_context);
 
         // Present the rendered scene onto our window
-        app->GetRenderer().RenderFrame();
-        app->GetWindow().GetNativeWindow().SwapBuffers();
+        app->renderer().render_frame();
+        app->window().native_window().swap_buffers();
     });
 
     // Start the main loop timer
-    render_timer.Start();
+    render_timer.start();
 
     // Start the application event loop
-    app->Run();
+    app->run();
 }

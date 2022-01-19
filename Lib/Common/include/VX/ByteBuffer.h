@@ -11,25 +11,25 @@ namespace VX {
         VX_MAKE_NONCOPYABLE(ByteBuffer);
         VX_DEFAULT_MOVABLE(ByteBuffer);
     private:
-        std::unique_ptr<std::byte[]> m_Buffer;
-        size_t m_Size;
+        std::unique_ptr<std::byte[]> m_buffer;
+        size_t m_size;
 
     public:
         ByteBuffer(std::unique_ptr<std::byte[]> buffer, size_t size)
-                : m_Buffer(std::move(buffer))
-                , m_Size(size)
+                : m_buffer(std::move(buffer))
+                , m_size(size)
         {}
 
         ~ByteBuffer() = default;
 
-        [[nodiscard]] size_t GetSize() const { return m_Size; }
-        [[nodiscard]] std::span<std::byte> GetView() const { return std::span { m_Buffer.get(), m_Size }; }
-        [[nodiscard]] ByteBuffer GetOwnedSlice(size_t offset, size_t size) const {
-            if (offset + size >= m_Size) {
+        [[nodiscard]] size_t size() const { return m_size; }
+        [[nodiscard]] std::span<std::byte> view() const { return std::span { m_buffer.get(), m_size }; }
+        [[nodiscard]] ByteBuffer get_owned_slice(size_t offset, size_t size) const {
+            if (offset + size >= m_size) {
                 // Crash?
             }
             auto buffer = std::make_unique<std::byte[]>(size);
-            memcpy(buffer.get(), &m_Buffer[offset], size);
+            memcpy(buffer.get(), &m_buffer[offset], size);
             return { std::move(buffer), size };
         }
     };

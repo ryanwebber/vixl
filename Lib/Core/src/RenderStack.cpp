@@ -2,30 +2,30 @@
 
 namespace VX::Core {
 
-    void RenderStack::Update() const {
-        for (auto &&layer: m_Layers) {
-            layer->OnUpdate();
+    void RenderStack::update() const {
+        for (auto &&layer: m_layers) {
+            layer->on_update();
         }
     }
 
-    void RenderStack::Render() const {
-        for (auto &&layer: m_Layers)
-            layer->OnWillRender();
+    void RenderStack::render() const {
+        for (auto &&layer: m_layers)
+            layer->on_will_render();
 
-        for (auto &&layer: m_Layers)
-            layer->OnRender();
+        for (auto &&layer: m_layers)
+            layer->on_render();
 
-        for (auto &&layer: m_Layers)
-            layer->OnDidRender();
+        for (auto &&layer: m_layers)
+            layer->on_did_render();
     }
 
-    void RenderStack::AddLayer(std::shared_ptr <RenderLayer> layer) {
-        layer->OnInitialize();
-        m_Layers.push_back(std::move(layer));
+    void RenderStack::add_layer(std::shared_ptr<RenderLayer> layer) {
+        layer->on_initialize();
+        m_layers.push_back(std::move(layer));
     }
 
-    void RenderStack::Destroy() const {
-        for (auto &&layer: m_Layers)
-            layer->OnDestroy();
+    void RenderStack::destroy() const {
+        for (auto &&layer: m_layers)
+            layer->on_destroy();
     }
 }

@@ -51,7 +51,7 @@ namespace VX::Core {
     }
 
     namespace Colors {
-        const Color transparent{};
+        const Color transparent { };
         const Color workspace_background = {.r = 1.0, .g = 0.0, .b = 1.0, .a = 1.0};
     }
 }

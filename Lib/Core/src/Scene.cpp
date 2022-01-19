@@ -2,18 +2,18 @@
 #include <VX/Core/Scene.h>
 
 namespace VX::Core {
-    void Scene::Configure() {
-        auto weak_self = WeakSelf();
-        for (auto &&system : m_MetaSystems)
-            system->Configure(weak_self);
+    void Scene::configure() {
+        auto weak_self = weak_from_this();
+        for (auto &&system : m_meta_systems)
+            system->configure(weak_self);
     }
 
-    void Scene::Update() {
-        for (auto &&system : m_UpdateSystems)
-            system->Update(m_EntityRegistry);
+    void Scene::update() {
+        for (auto &&system : m_update_systems)
+            system->update(m_entity_registry);
     }
 
-    void Scene::Render(RenderContext &context) {
+    void Scene::render(RenderContext &context) {
 
         glm::vec3 eye(0.0f, 0.0f, -5.0f);
         glm::vec3 center(0.0f, 0.0f, 0.0f);
@@ -22,17 +22,17 @@ namespace VX::Core {
         auto proj_matrix = glm::perspective(80.0f, (800.0f / 600.0f), 0.1f, 100.0f);
         SceneCamera camera(view_matrix, proj_matrix);
 
-        context.SetViewProjection(ViewProjection {
-            .view_matrix = camera.GetViewMatrix(),
-            .projection_matrix = camera.GetProjectionMatrix(),
+        context.set_view_projection({
+            .view_matrix = camera.view_matrix(),
+            .projection_matrix = camera.projection_matrix(),
         });
 
-        for (auto &&system : m_RenderSystems)
-            system->Render(context.Buffer(), m_EntityRegistry);
+        for (auto &&system : m_render_systems)
+            system->render(context.buffer(), m_entity_registry);
     }
 
-    void Scene::Reset() {
-        m_UpdateSystems.clear();
-        m_RenderSystems.clear();
+    void Scene::reset() {
+        m_update_systems.clear();
+        m_render_systems.clear();
     }
 }

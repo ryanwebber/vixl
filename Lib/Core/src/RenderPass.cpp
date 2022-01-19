@@ -3,14 +3,14 @@
 #include <VX/Core/RenderPass.h>
 
 namespace VX::Core {
-    void RenderPass::Submit(const RenderCommand &cmd) {
-        bgfx::setVertexBuffer(0, cmd.GetVertexBuffer().Get());
-        bgfx::setIndexBuffer(cmd.GetIndexBuffer().Get());
-        bgfx::setState(cmd.GetState());
-        bgfx::setTransform(glm::value_ptr(cmd.GetModelTransform()));
+    void RenderPass::submit(const RenderCommand &cmd) {
+        bgfx::setVertexBuffer(0, *cmd.vertex_buffer());
+        bgfx::setIndexBuffer(*cmd.index_buffer());
+        bgfx::setState(cmd.state());
+        bgfx::setTransform(glm::value_ptr(cmd.transform()));
 
         // TODO: apply material properties
 
-        bgfx::submit(0, cmd.GetMaterial().GetShaderProgramHandle());
+        bgfx::submit(0, cmd.material().shader_program_handle());
     }
 }

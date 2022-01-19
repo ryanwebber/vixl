@@ -4,19 +4,19 @@
 #include <cmath>
 #include <glm/glm.hpp>
 
-namespace VX::Math {
+namespace VX::Core::Math {
     template<typename T>
-    T Lerp(T a, T b, float t) {
+    T lerp(T a, T b, float t) {
         return a * (1.f - t) + b * t;
     }
 
     template<typename T>
-    T LerpClamped(T a, T b, float t) {
+    T lerp_unclamped(T a, T b, float t) {
         return std::clamp(a, b, Lerp(a, b, t));
     }
 
     template<typename T>
-    float InverseLerp(T a, T b, T value) {
+    float inverse_lerp(T a, T b, T value) {
         if (a != b)
             return (value - a) / (b - a);
         else
@@ -24,7 +24,7 @@ namespace VX::Math {
     }
 
     template<typename T>
-    float InverseLerpClamped(T a, T b, T value) {
+    float inverse_lerped_clamped(T a, T b, T value) {
         return std::clamp(0.0f, 1.0f, InverseLerp(a, b, value));
     }
 }

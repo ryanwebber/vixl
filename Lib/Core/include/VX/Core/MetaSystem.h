@@ -8,6 +8,6 @@ namespace VX::Core {
     class MetaSystem {
     public:
         ~MetaSystem() = default;
-        virtual void Configure(std::weak_ptr<Scene>) = 0;
+        virtual void configure(std::weak_ptr<Scene>) = 0;
     };
 }

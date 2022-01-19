@@ -10,18 +10,18 @@ namespace VX::Core {
         VX_DEFAULT_MOVABLE(ResourceLocator);
         VX_DEFAULT_COPYABLE(ResourceLocator);
     private:
-        std::filesystem::path m_ResourcePath;
+        std::filesystem::path m_resource_path;
     public:
         explicit ResourceLocator(const std::filesystem::path& path)
-            : m_ResourcePath({ path })
-            {
-            }
+            : m_resource_path({ path })
+        {
+        }
 
         ~ResourceLocator() = default;
 
-        [[nodiscard]] const std::filesystem::path& GetResourcePath() const { return m_ResourcePath; }
-        std::filesystem::path GetResource(const std::filesystem::path& appending) const {
-            return m_ResourcePath / appending;
+        [[nodiscard]] const std::filesystem::path& resource_path() const { return m_resource_path; }
+        [[nodiscard]] std::filesystem::path get_named_resource(const std::filesystem::path& appending) const {
+            return m_resource_path / appending;
         }
     };
 }

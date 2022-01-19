@@ -13,6 +13,6 @@ namespace VX::Core {
         UpdateSystem() = default;
         virtual ~UpdateSystem() = default;
 
-        virtual void Update(entt::registry& entities) = 0;
+        virtual void update(entt::registry& entities) = 0;
     };
 }

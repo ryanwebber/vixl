@@ -8,15 +8,15 @@ namespace VX::Core {
 
     class Input final {
     private:
-        NativeWindow m_NativeWindow;
+        NativeWindow m_native_window;
 
     public:
         explicit Input(NativeWindow window)
-            : m_NativeWindow(window)
+            : m_native_window(window)
             {};
 
         ~Input() = default;
 
-        ControlState ProcessEvents();
+        ControlState process_events();
     };
 }

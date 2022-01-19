@@ -16,28 +16,28 @@ namespace VX::Core {
         VX_MAKE_NONCOPYABLE(RenderContext);
         VX_MAKE_NONMOVABLE(RenderContext);
     private:
-        RenderBuffer m_RenderBuffer;
-        ViewProjection m_ViewProjection;
+        RenderBuffer m_render_buffer;
+        ViewProjection m_view_projection;
 
     public:
         explicit RenderContext(RenderBuffer &buffer)
-            : m_RenderBuffer(std::move(buffer))
+            : m_render_buffer(std::move(buffer))
             {
             }
 
         explicit RenderContext(std::shared_ptr<RenderBuiltins> builtins)
-            : m_RenderBuffer(std::move(builtins))
+            : m_render_buffer(std::move(builtins))
             {
             }
 
         ~RenderContext() = default;
 
-        void Reset();
+        void reset();
 
-        [[nodiscard]] const RenderBuffer& GetBuffer() const { return m_RenderBuffer; }
-        RenderBuffer& Buffer() { return m_RenderBuffer; }
+        [[nodiscard]] const RenderBuffer& buffer() const { return m_render_buffer; }
+        RenderBuffer& buffer() { return m_render_buffer; }
 
-        [[nodiscard]] ViewProjection GetViewProjection() const { return m_ViewProjection; }
-        void SetViewProjection(const ViewProjection& view_projection) { m_ViewProjection = view_projection; }
+        [[nodiscard]] ViewProjection view_projection() const { return m_view_projection; }
+        void set_view_projection(const ViewProjection& view_projection) { m_view_projection = view_projection; }
     };
 }

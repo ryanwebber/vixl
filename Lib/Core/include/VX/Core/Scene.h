@@ -7,62 +7,52 @@
 #include <entt/entity/registry.hpp>
 
 #include <VX/Noncopyable.h>
-#include <VX/Weakable.h>
 #include <VX/Core/RenderContext.h>
 #include <VX/Core/RenderSystem.h>
 #include <VX/Core/UpdateSystem.h>
 #include <VX/Core/MetaSystem.h>
 
 namespace VX::Core {
-class Scene final : public VX::Weakable<Scene> {
+class Scene final : public std::enable_shared_from_this<Scene> {
         VX_MAKE_NONMOVABLE(Scene);
         VX_MAKE_NONCOPYABLE(Scene);
     private:
-        std::string m_Name;
+        std::string m_name;
 
-        entt::registry m_EntityRegistry;
-        std::vector<std::shared_ptr<UpdateSystem>> m_UpdateSystems;
-        std::vector<std::shared_ptr<RenderSystem>> m_RenderSystems;
-        std::vector<std::shared_ptr<MetaSystem>> m_MetaSystems;
+        entt::registry m_entity_registry;
+        std::vector<std::shared_ptr<UpdateSystem>> m_update_systems;
+        std::vector<std::shared_ptr<RenderSystem>> m_render_systems;
+        std::vector<std::shared_ptr<MetaSystem>> m_meta_systems;
 
         explicit Scene(const std::string_view &name)
-            : m_Name(name)
+            : m_name(name)
             { }
 
     public:
 
         ~Scene() = default;
 
-        void Configure();
-        void Update();
-        void Render(RenderContext &context);
+        void configure();
+        void update();
+        void render(RenderContext &context);
 
-        [[nodiscard]] const std::string &GetName() const { return m_Name; }
+        [[nodiscard]] const std::string &name() const { return m_name; }
 
-        entt::registry& Entities() { return m_EntityRegistry; }
-        [[nodiscard]] const entt::registry& GetEntities() const { return m_EntityRegistry; }
+        entt::registry& entities() { return m_entity_registry; }
+        [[nodiscard]] const entt::registry& entities() const { return m_entity_registry; }
 
-        std::vector<std::shared_ptr<UpdateSystem>>& UpdateSystems() { return m_UpdateSystems; }
-        [[nodiscard]] const std::vector<std::shared_ptr<UpdateSystem>>& GetUpdateSystems() const { return m_UpdateSystems; }
-        void SetUpdateSystems(std::vector<std::shared_ptr<UpdateSystem>> systems) {
-            m_UpdateSystems = std::move(systems);
-        }
+        std::vector<std::shared_ptr<UpdateSystem>>& update_systems() { return m_update_systems; }
+        [[nodiscard]] const std::vector<std::shared_ptr<UpdateSystem>>& update_systems() const { return m_update_systems; }
 
-        std::vector<std::shared_ptr<RenderSystem>>& RenderSystems() { return m_RenderSystems; }
-        [[nodiscard]] const std::vector<std::shared_ptr<RenderSystem>>& GetRenderSystems() const { return m_RenderSystems; }
-        void SetRenderSystems(std::vector<std::shared_ptr<RenderSystem>> systems) {
-            m_RenderSystems = std::move(systems);
-        }
+        std::vector<std::shared_ptr<RenderSystem>>& render_systems() { return m_render_systems; }
+        [[nodiscard]] const std::vector<std::shared_ptr<RenderSystem>>& render_systems() const { return m_render_systems; }
 
-        std::vector<std::shared_ptr<MetaSystem>>& MetaSystems() { return m_MetaSystems; }
-        [[nodiscard]] const std::vector<std::shared_ptr<MetaSystem>>& GetMetaSystems() const { return m_MetaSystems; }
-        void SetMetaSystems(std::vector<std::shared_ptr<MetaSystem>> systems) {
-            m_MetaSystems = std::move(systems);
-        }
+        std::vector<std::shared_ptr<MetaSystem>>& meta_systems() { return m_meta_systems; }
+        [[nodiscard]] const std::vector<std::shared_ptr<MetaSystem>>& meta_systems() const { return m_meta_systems; }
 
-        void Reset();
+        void reset();
 
-        static std::shared_ptr<Scene> Create(const std::string_view &name) {
+        static std::shared_ptr<Scene> create_named(const std::string_view &name) {
             return std::shared_ptr<Scene>(new Scene(name));
         }
     };

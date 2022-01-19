@@ -3,10 +3,10 @@
 #include <string_view>
 #include <glfw/glfw.h>
 
-namespace VX::Platforms::Generic {
+namespace VX::Core::Platform::API::Generic {
     static const std::string_view name = "Generic";
 
-    static void* GetPlatformWindowHandle(GLFWwindow* m_Window) {
+    static void* get_platform_window_handle(GLFWwindow* m_Window) {
         return nullptr;
     }
 }

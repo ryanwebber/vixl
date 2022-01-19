@@ -13,17 +13,17 @@ namespace VX::Core {
         VX_MAKE_NONCOPYABLE(SceneManager);
         VX_MAKE_NONMOVABLE(SceneManager);
     private:
-        std::shared_ptr<Scene> m_CurrentScene;
+        std::shared_ptr<Scene> m_current_scene;
 
     public:
         SceneManager();
 
-        void Update();
-        void Render(RenderContext&);
+        void update();
+        void render(RenderContext&);
 
-        void SetActiveScene(std::shared_ptr<Scene> scene) {
-            m_CurrentScene = std::move(scene);
-            m_CurrentScene->Configure();
+        void set_active_scene(std::shared_ptr<Scene> scene) {
+            m_current_scene = std::move(scene);
+            m_current_scene->configure();
         }
     };
 }

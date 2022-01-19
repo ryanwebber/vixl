@@ -7,8 +7,8 @@
 #include <VX/Error.h>
 #include <VX/Expected.h>
 
-#include <VX/Core/Graphics.h>
-#include <VX/Core/Platform.h>
+#include <VX/Core/Graphics/Graphics.h>
+#include <VX/Core/Platform/Platform.h>
 
 #include <VX/Core/Application.h>
 #include <VX/Core/Logger.h>
@@ -24,16 +24,16 @@ namespace VX::Core {
     // View identifier for the main window is always 0
     const bgfx::ViewId kClearView = 0;
 
-    void OnWindowResize(GLFWwindow* window, int width, int height) {
+    void on_window_resize(GLFWwindow* window, int width, int height) {
         // GLFW polling prevents redraws while the os window is resizing. We can
         // still do it ourselves if we perform swap buffers
         bgfx::reset((uint32_t)width, (uint32_t)height, BGFX_RESET_VSYNC);
         bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
     }
 
-    Expected<std::shared_ptr<Renderer>> InitializeGraphics(const NativeWindow &nw) {
+    Expected<std::shared_ptr<Renderer>> initialize_graphics(const NativeWindow &nw) {
 
-        SizeInt actual_window_size = nw.GetSize();
+        SizeInt actual_window_size = nw.size();
 
         // Call bgfx::renderFrame before bgfx::init to signal to bgfx not to create a render thread.
         bgfx::renderFrame();
@@ -41,14 +41,14 @@ namespace VX::Core {
         // Setup bgfx rendering
         bgfx::Init init;
         init.type = bgfx::RendererType::Metal;
-        init.platformData.nwh = nw.GetPlatformWindowHandle();
-        init.platformData.ndt = nw.GetPlatformDisplayType();
+        init.platformData.nwh = nw.platform_window_handle();
+        init.platformData.ndt = nw.platform_display_type();
         init.resolution.width = actual_window_size.width;
         init.resolution.height = actual_window_size.height;
         init.resolution.reset = BGFX_RESET_VSYNC;
 
         if (!bgfx::init(init)) {
-            return VX::MakeUnexpected<std::shared_ptr<Renderer>>("Unable to initialize graphics pipeline");
+            return VX::make_unexpected<std::shared_ptr<Renderer>>("Unable to initialize graphics pipeline");
         }
 
         // Set view 0 to the same dimensions as the window and to clear the color buffer.
@@ -60,34 +60,34 @@ namespace VX::Core {
         return std::make_shared<Renderer>();
     }
 
-    void Application::Run() {
+    void Application::run() {
 
         // Run
-        m_EventLoop->Run();
+        m_event_loop->run();
 
-        m_Renderer->Destroy();
-        m_Window->GetNativeWindow().Destroy();
+        m_renderer->destroy();
+        m_window->native_window().destroy();
 
         Logger::Core->debug("Goodbye!");
     }
 
-    void Application::Terminate() {
-        m_EventLoop->Close();
+    void Application::terminate() {
+        m_event_loop->close();
     }
 
-    VX::Expected<std::unique_ptr<Application>> Application::Create(const ApplicationSettings &settings) {
+    VX::Expected<std::unique_ptr<Application>> Application::create_from_settings(const ApplicationSettings &settings) {
 
         Logger::Core->debug("Vixl v{}\n"
                             "  Platform: {}\n"
                             "  Graphics: {}\n"
                             "  Resource Directory: {}\n",
                             VX_VERSION,
-                            Platform::name,
-                            GraphicsAPI::name,
+                            Platform::Current::name,
+                            Graphics::Current::name,
                             settings.resource_directory.string());
 
-        return NativeWindow::Create(settings.window_size).and_then([&settings](NativeWindow nw) {
-            return InitializeGraphics(nw).map([&](std::shared_ptr<Renderer> renderer) {
+        return NativeWindow::create_with_size(settings.window_size).and_then([&settings](NativeWindow nw) {
+            return initialize_graphics(nw).map([&](std::shared_ptr<Renderer> renderer) {
 
                 ResourceLocator resource_locator(settings.resource_directory);
 
@@ -112,17 +112,17 @@ namespace VX::Core {
             std::shared_ptr<Input> input,
             std::shared_ptr<Renderer> renderer,
             std::shared_ptr<EventLoop> event_loop)
-        : m_ResourceManager(resource_locator, event_loop)
-        , m_Window(std::move(window))
-        , m_Input(std::move(input))
-        , m_Renderer(std::move(renderer))
-        , m_EventLoop(std::move(event_loop))
+        : m_resource_manager(resource_locator, event_loop->executor())
+        , m_window(std::move(window))
+        , m_input(std::move(input))
+        , m_renderer(std::move(renderer))
+        , m_event_loop(std::move(event_loop))
     {
         // Hook into GLFW to get involved in events. First, we set this application to
         // be the userdata pointer, so this instance can handle the events
-        glfwSetWindowUserPointer(m_Window->GetNativeWindow().GetWindowPointer(), static_cast<void*>(this));
+        glfwSetWindowUserPointer(m_window->native_window().window_pointer(), static_cast<void*>(this));
 
         // Setup window callbacks
-        glfwSetWindowSizeCallback(m_Window->GetNativeWindow().GetWindowPointer(), OnWindowResize);
+        glfwSetWindowSizeCallback(m_window->native_window().window_pointer(), on_window_resize);
     }
 }

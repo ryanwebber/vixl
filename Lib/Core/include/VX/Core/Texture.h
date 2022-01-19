@@ -4,41 +4,29 @@
 #include <bgfx/bgfx.h>
 
 #include <VX/Expected.h>
+#include <VX/Copyable.h>
 #include <VX/Core/Types.h>
 
 namespace VX::Core {
     class Texture final {
+        VX_DEFAULT_MOVABLE(Texture);
+        VX_DEFAULT_COPYABLE(Texture);
     private:
-        std::shared_ptr<TextureHandle> m_Handle;
-        bgfx::TextureInfo m_TextureInfo;
+        std::shared_ptr<TextureHandle> m_handle;
+        bgfx::TextureInfo m_texture_info;
 
     public:
         Texture(std::shared_ptr<TextureHandle> handle, bgfx::TextureInfo info)
-            : m_Handle(std::move(handle))
-            , m_TextureInfo(info)
+            : m_handle(std::move(handle))
+            , m_texture_info(info)
             {
             }
 
         ~Texture() = default;
 
-        // Copy
-        Texture(const Texture&) noexcept = default;
-        Texture& operator=(const Texture&) noexcept = default;
+        [[nodiscard]] const bgfx::TextureInfo& texture_info() const { return m_texture_info; }
+        std::shared_ptr<TextureHandle> texture_handle() { return m_handle; }
 
-        // Move
-        Texture(Texture&& other) noexcept
-            : m_Handle(std::move(other.m_Handle))
-            , m_TextureInfo(other.m_TextureInfo)
-            {
-            }
-
-        Texture& operator=(Texture&&) = default;
-
-        [[nodiscard]] const bgfx::TextureInfo& GetInfo() const { return m_TextureInfo; }
-
-        std::shared_ptr<TextureHandle> GetHandleRef() { return m_Handle; }
-        [[nodiscard]] const TextureHandle& GetHandle() const { return *m_Handle; }
-
-        static VX::Expected<Texture> Create(std::span<const uint8_t>, uint64_t flags);
+        static VX::Expected<Texture> create(std::span<const uint8_t>, uint64_t flags);
     };
 }

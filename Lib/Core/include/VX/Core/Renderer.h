@@ -10,15 +10,15 @@ namespace VX::Core {
         VX_MAKE_NONMOVABLE(Renderer);
 
     private:
-        RenderStack m_RenderStack;
+        RenderStack m_render_stack;
 
     public:
         Renderer() = default;
         ~Renderer() = default;
 
-        void RenderFrame();
-        void Destroy();
+        void render_frame();
+        void destroy();
 
-        RenderStack& GetRenderStack() { return m_RenderStack; }
+        RenderStack& render_stack() { return m_render_stack; }
     };
 }

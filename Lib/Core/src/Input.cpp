@@ -3,10 +3,10 @@
 #include <VX/Core/Input.h>
 
 namespace VX::Core {
-    ControlState Input::ProcessEvents() {
+    ControlState Input::process_events() {
         glfwPollEvents();
 
-        if (glfwWindowShouldClose(m_NativeWindow.GetWindowPointer())) {
+        if (glfwWindowShouldClose(m_native_window.window_pointer())) {
             return ControlState::Terminate;
         }
 

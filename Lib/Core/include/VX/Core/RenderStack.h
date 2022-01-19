@@ -7,22 +7,21 @@
 #include <vector>
 
 namespace VX::Core {
-
     class RenderStack final {
         VX_MAKE_NONCOPYABLE(RenderStack);
         VX_MAKE_NONMOVABLE(RenderStack);
 
     private:
-        std::vector<std::shared_ptr<RenderLayer>> m_Layers;
+        std::vector<std::shared_ptr<RenderLayer>> m_layers;
 
     public:
         RenderStack() = default;
         ~RenderStack() = default;
 
-        void Update() const;
-        void Render() const;
+        void update() const;
+        void render() const;
 
-        void AddLayer(std::shared_ptr<RenderLayer> layer);
-        void Destroy() const;
+        void add_layer(std::shared_ptr<RenderLayer> layer);
+        void destroy() const;
     };
 }

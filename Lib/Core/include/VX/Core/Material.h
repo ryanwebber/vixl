@@ -15,18 +15,18 @@
 namespace VX::Core {
     class Material final {
     private:
-        std::string m_Name;
-        std::shared_ptr<ProgramHandle> m_ShaderProgram;
-        std::shared_ptr<ShaderHandle> m_VertexShader;
-        std::shared_ptr<ShaderHandle> m_FragmentShader;
+        std::string m_name;
+        std::shared_ptr<ProgramHandle> m_shader_program;
+        std::shared_ptr<ShaderHandle> m_vertex_shader;
+        std::shared_ptr<ShaderHandle> m_fragment_shader;
 
     public:
         Material(const std::string_view& name, std::shared_ptr<ShaderHandle> vertex_shader, std::shared_ptr<ShaderHandle> fragment_shader);
         Material(const std::string_view &name, const uint8_t* vertex_data, size_t vertex_data_len, const uint8_t* fragment_data, size_t fragment_data_len);
         ~Material() = default;
 
-        [[nodiscard]] bgfx::ShaderHandle GetVertexShaderHandle() const { return **m_VertexShader; }
-        [[nodiscard]] bgfx::ShaderHandle GetFragmentShaderHandle() const { return **m_FragmentShader; }
-        [[nodiscard]] bgfx::ProgramHandle GetShaderProgramHandle() const { return **m_ShaderProgram; }
+        [[nodiscard]] bgfx::ShaderHandle vertex_shader_handle() const { return **m_vertex_shader; }
+        [[nodiscard]] bgfx::ShaderHandle fragment_shader_handle() const { return **m_fragment_shader; }
+        [[nodiscard]] bgfx::ProgramHandle shader_program_handle() const { return **m_shader_program; }
     };
 }

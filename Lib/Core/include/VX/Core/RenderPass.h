@@ -5,6 +5,6 @@
 namespace VX::Core {
     class RenderPass final {
     public:
-        void Submit(const RenderCommand&);
+        void submit(const RenderCommand&);
     };
 }

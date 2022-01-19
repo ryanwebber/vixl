@@ -16,6 +16,6 @@ namespace VX::Core {
         RenderSystem() = default;
         virtual ~RenderSystem() = default;
 
-        virtual void Render(RenderBuffer&, entt::registry&) = 0;
+        virtual void render(RenderBuffer&, entt::registry&) = 0;
     };
 }

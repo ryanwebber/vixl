@@ -1,16 +1,16 @@
 #include <GLFW/glfw3.h>
 
 #include <VX/Core/NativeWindow.h>
-#include <VX/Core/Platform.h>
+#include <VX/Core/Platform/Platform.h>
 
 namespace VX::Core {
 
-    void *NativeWindow::GetPlatformWindowHandle() const {
-        return Platform::GetPlatformWindowHandle(m_Window);
+    void *NativeWindow::platform_window_handle() const {
+        return Platform::Current::get_platform_window_handle(m_window);
     }
 
-    void *NativeWindow::GetPlatformDisplayType() const {
-        (void) m_Window;
+    void *NativeWindow::platform_display_type() const {
+        (void) m_window;
 #if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
         return glfwGetX11Display();
 #else
@@ -18,22 +18,22 @@ namespace VX::Core {
 #endif
     }
 
-    SizeInt NativeWindow::GetSize() const {
+    SizeInt NativeWindow::size() const {
         SizeInt actual_window_size;
-        glfwGetWindowSize(m_Window, &actual_window_size.width, &actual_window_size.height);
+        glfwGetWindowSize(m_window, &actual_window_size.width, &actual_window_size.height);
         return actual_window_size;
     }
 
-    void NativeWindow::Destroy() {
-        glfwDestroyWindow(m_Window);
+    void NativeWindow::destroy() {
+        glfwDestroyWindow(m_window);
         glfwTerminate();
     }
 
-    void NativeWindow::SwapBuffers() {
-        glfwSwapBuffers(m_Window);
+    void NativeWindow::swap_buffers() {
+        glfwSwapBuffers(m_window);
     }
 
-    VX::Expected<NativeWindow> NativeWindow::Create(SizeInt window_size) {
+    VX::Expected<NativeWindow> NativeWindow::create_with_size(SizeInt window_size) {
 
         // Init GLFW
         glfwInit();
@@ -53,7 +53,7 @@ namespace VX::Core {
 
         if (window == nullptr) {
             glfwTerminate();
-            return VX::MakeUnexpected<NativeWindow>("Failed to create GLFW window");
+            return VX::make_unexpected<NativeWindow>("Failed to create GLFW window");
         }
 
         return NativeWindow(window);

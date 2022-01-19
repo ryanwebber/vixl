@@ -29,12 +29,12 @@ namespace VX::Core {
 
     private:
 
-        ResourceManager m_ResourceManager;
+        ResourceManager m_resource_manager;
 
-        std::shared_ptr<EventLoop> m_EventLoop;
-        std::shared_ptr<Window> m_Window;
-        std::shared_ptr<Renderer> m_Renderer;
-        std::shared_ptr<Input> m_Input;
+        std::shared_ptr<EventLoop> m_event_loop;
+        std::shared_ptr<Window> m_window;
+        std::shared_ptr<Renderer> m_renderer;
+        std::shared_ptr<Input> m_input;
 
         explicit Application(
                 const ResourceLocator&,
@@ -47,18 +47,18 @@ namespace VX::Core {
 
         ~Application() = default;
 
-        void Run();
+        void run();
 
         // Terminate the application
-        void Terminate();
+        void terminate();
 
-        EventLoop &GetEventLoop() { return *m_EventLoop; }
-        Window &GetWindow() { return *m_Window; }
-        Renderer &GetRenderer() { return *m_Renderer; }
-        Input &GetInput() { return *m_Input; }
+        EventLoop &event_loop() { return *m_event_loop; }
+        Window &window() { return *m_window; }
+        Renderer &renderer() { return *m_renderer; }
+        Input &input() { return *m_input; }
 
-        [[nodiscard]] const ResourceManager& GetResourceManager() const { return m_ResourceManager; }
+        [[nodiscard]] const ResourceManager& resource_manager() const { return m_resource_manager; }
 
-        static VX::Expected<std::unique_ptr<Application>> Create(const ApplicationSettings&);
+        static VX::Expected<std::unique_ptr<Application>> create_from_settings(const ApplicationSettings&);
     };
 }

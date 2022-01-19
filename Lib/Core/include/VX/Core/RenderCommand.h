@@ -13,17 +13,17 @@ namespace VX::Core {
     class RenderCommand final {
     private:
         RenderState m_state { BGFX_STATE_DEFAULT };
-        glm::mat4x4 m_Transform { glm::mat4x4(1) };
-        std::shared_ptr<VertexBufferHandle> m_VertexBuffer;
-        std::shared_ptr<IndexBufferHandle> m_IndexBuffer;
-        std::shared_ptr<Material> m_Material;
+        glm::mat4x4 m_transform { glm::mat4x4(1) };
+        std::shared_ptr<VertexBufferHandle> m_vertex_buffer;
+        std::shared_ptr<IndexBufferHandle> m_index_buffer;
+        std::shared_ptr<Material> m_material;
 
     public:
         RenderCommand(glm::mat4x4 transform, std::shared_ptr<VertexBufferHandle> vb, std::shared_ptr<IndexBufferHandle> ib, std::shared_ptr<Material> mat)
-            : m_Transform(transform)
-            , m_VertexBuffer(std::move(vb))
-            , m_IndexBuffer(std::move(ib))
-            , m_Material(std::move(mat))
+            : m_transform(transform)
+            , m_vertex_buffer(std::move(vb))
+            , m_index_buffer(std::move(ib))
+            , m_material(std::move(mat))
         {}
 
         // Move
@@ -34,10 +34,10 @@ namespace VX::Core {
         RenderCommand(const RenderCommand&) noexcept = default;
         RenderCommand& operator=(const RenderCommand&) noexcept = default;
 
-        [[nodiscard]] const RenderState& GetState() const { return m_state; }
-        [[nodiscard]] const glm::mat4x4& GetModelTransform() const { return m_Transform; }
-        [[nodiscard]] const VertexBufferHandle& GetVertexBuffer() const { return *m_VertexBuffer; }
-        [[nodiscard]] const IndexBufferHandle& GetIndexBuffer() const { return *m_IndexBuffer; }
-        [[nodiscard]] const Material& GetMaterial() const { return *m_Material; }
+        [[nodiscard]] const RenderState& state() const { return m_state; }
+        [[nodiscard]] const glm::mat4x4& transform() const { return m_transform; }
+        [[nodiscard]] const VertexBufferHandle& vertex_buffer() const { return *m_vertex_buffer; }
+        [[nodiscard]] const IndexBufferHandle& index_buffer() const { return *m_index_buffer; }
+        [[nodiscard]] const Material& material() const { return *m_material; }
     };
 }

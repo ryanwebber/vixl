@@ -8,15 +8,15 @@ namespace VX::Core {
         VX_MAKE_NONMOVABLE(Window);
         VX_MAKE_NONCOPYABLE(Window);
     private:
-        NativeWindow m_NativeWindow;
+        NativeWindow m_native_window;
 
     public:
         explicit Window(NativeWindow window)
-            : m_NativeWindow(window)
-            {};
-
-        [[nodiscard]] NativeWindow GetNativeWindow() const { return m_NativeWindow; }
+            : m_native_window(window)
+        {};
 
         ~Window() = default;
+
+        [[nodiscard]] NativeWindow native_window() const { return m_native_window; }
     };
 }

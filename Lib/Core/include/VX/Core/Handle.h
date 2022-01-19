@@ -7,12 +7,12 @@ namespace VX::Core {
     template<typename T>
     class Handle final {
     private:
-        T m_Handle;
+        T m_handle;
     public:
         explicit Handle(T handle)
-            : m_Handle(handle)
-            {
-            }
+            : m_handle(handle)
+        {
+        }
 
         // Move
         Handle(Handle&&) noexcept = default;
@@ -23,11 +23,11 @@ namespace VX::Core {
         Handle& operator=(const Handle&) noexcept = default;
 
         ~Handle() {
-            bgfx::destroy(m_Handle);
+            bgfx::destroy(m_handle);
         }
 
-        T Get() const { return m_Handle; };
+        T get() const { return m_handle; };
 
-        T operator*() const { return m_Handle; }
+        T operator*() const { return m_handle; }
     };
 }

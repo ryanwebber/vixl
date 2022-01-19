@@ -2,21 +2,21 @@
 
 namespace VX::Core {
     SceneManager::SceneManager()
-        : m_CurrentScene(nullptr)
+        : m_current_scene(nullptr)
     {
     }
 
-    void SceneManager::Update() {
-        if (m_CurrentScene == nullptr)
+    void SceneManager::update() {
+        if (m_current_scene == nullptr)
             return;
 
-        m_CurrentScene->Update();
+        m_current_scene->update();
     }
 
-    void SceneManager::Render(RenderContext &context) {
-        if (m_CurrentScene == nullptr)
+    void SceneManager::render(RenderContext &context) {
+        if (m_current_scene == nullptr)
             return;
 
-        m_CurrentScene->Render(context);
+        m_current_scene->render(context);
     }
 }

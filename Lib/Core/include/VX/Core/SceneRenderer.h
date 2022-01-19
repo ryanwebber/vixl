@@ -15,19 +15,18 @@ namespace VX::Core {
         VX_MAKE_NONMOVABLE(SceneRenderer);
         VX_MAKE_NONCOPYABLE(SceneRenderer);
     private:
-        std::shared_ptr<RenderBuiltins> m_Bultins;
-        std::vector<std::weak_ptr<RenderContext>> m_Contexts;
+        std::shared_ptr<RenderBuiltins> m_builtins;
+        std::vector<std::weak_ptr<RenderContext>> m_contexts;
 
     public:
         explicit SceneRenderer() = default; // TODO: figure out how to load builtins
-
         ~SceneRenderer() override = default;
 
-        void OnInitialize() override;
-        void OnDestroy() override;
-        void OnUpdate() override;
-        void OnRender() override;
+        void on_initialize() override;
+        void on_destroy() override;
+        void on_update() override;
+        void on_render() override;
 
-        std::shared_ptr<RenderContext> CreateRenderContext();
+        std::shared_ptr<RenderContext> create_render_context();
     };
 }

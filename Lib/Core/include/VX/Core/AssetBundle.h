@@ -14,19 +14,19 @@ namespace VX::Core {
         VX_MAKE_NONCOPYABLE(AssetBundle);
         VX_DEFAULT_MOVABLE(AssetBundle);
     private:
-        VX::ByteBuffer m_Buffer;
+        VX::ByteBuffer m_buffer;
 
     public:
         AssetBundle(VX::ByteBuffer buffer)
-            : m_Buffer(std::move(buffer))
+            : m_buffer(std::move(buffer))
         {}
 
         ~AssetBundle() = default;
 
-        const VX::ByteBuffer& GetBuffer() const { return m_Buffer; }
+        const VX::ByteBuffer& buffer() const { return m_buffer; }
 
-        VX::ByteBuffer GetOwnedAsset(const PackedAsset& definition) const {
-            return m_Buffer.GetOwnedSlice(definition.offset, definition.size);
+        VX::ByteBuffer get_owned_asset(const PackedAsset& definition) const {
+            return m_buffer.get_owned_slice(definition.offset, definition.size);
         }
     };
 }

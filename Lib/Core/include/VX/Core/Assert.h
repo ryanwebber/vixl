@@ -4,11 +4,11 @@
 #include <VX/Core/Logger.h>
 
 #ifndef NDEBUG
-    #define VX_ASSERT(Expr, Msg) VX::Core::RuntimeAssert(#Expr, Expr, __FILE__, __LINE__, Msg, *VX::Logger::Core)
+    #define VX_ASSERT(Expr, Msg) VX::Core::runtime_assert(#Expr, Expr, __FILE__, __LINE__, Msg, *VX::Logger::Core)
 #else
     #define VX_ASSERT(Expr, Msg) ;
 #endif
 
 namespace VX::Core {
-    void RuntimeAssert(const char *expr_str, bool expr, const char *file, int line, const char *msg, spdlog::logger &logger);
+    void runtime_assert(const char *expr_str, bool expr, const char *file, int line, const char *msg, spdlog::logger &logger);
 }

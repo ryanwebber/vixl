@@ -9,14 +9,20 @@ namespace VX::Core {
         std::shared_ptr<IndexBufferHandle> index_buffer;
     };
 
+    enum class Shapes:size_t {
+        Quad = 0
+    };
+
     class RenderBuiltins final {
     private:
-        Shape m_TextureQuad;
+        std::vector<Shape> m_shapes;
 
     public:
         RenderBuiltins();
         ~RenderBuiltins() = default;
 
-        [[nodiscard]] const Shape& GetTextureQuad() const { return m_TextureQuad; }
+        [[nodiscard]] const Shape& get_shape(Shapes shape) const {
+            return m_shapes[static_cast<size_t>(shape)];
+        }
     };
 }

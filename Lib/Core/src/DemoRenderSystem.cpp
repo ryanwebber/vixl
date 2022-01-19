@@ -44,25 +44,25 @@ namespace VX::Core {
         auto vb = bgfx::createVertexBuffer(bgfx::makeRef(vertexes, sizeof(vertexes)), vertex_layout);
         auto ib =  bgfx::createIndexBuffer(bgfx::makeRef(indexes, sizeof(indexes)));
 
-        m_TriangleVertexBuffer = std::make_shared<VertexBufferHandle>(vb);
-        m_TriangleIndexBuffer = std::make_shared<IndexBufferHandle>(ib);
-        m_TriangleMaterial = VX_CREATE_MATERIAL("Simple Colored", colored);
+        m_triangle_vertex_buffer = std::make_shared<VertexBufferHandle>(vb);
+        m_triangle_index_buffer = std::make_shared<IndexBufferHandle>(ib);
+        m_triangle_material = VX_CREATE_MATERIAL("Simple Colored", colored);
 
         // Load the material for our primative quad
-        m_QuadMaterial = VX_CREATE_MATERIAL("UV Map", uvmap);
+        m_quad_material = VX_CREATE_MATERIAL("UV Map", uvmap);
     }
 
     static int counter = 0;
-    void DemoRenderSystem::Render(RenderBuffer &buffer, entt::registry&) {
+    void DemoRenderSystem::render(RenderBuffer &buffer, entt::registry&) {
         counter++;
 
         float x = cos((float)counter * 0.025f);
         float y = sin((float)counter * 0.025f);
 
         auto triangle_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x + 2, y, 0.0f));
-        buffer.DrawIndexed(triangle_transform, m_TriangleVertexBuffer, m_TriangleIndexBuffer, m_TriangleMaterial);
+        buffer.draw_indexed(triangle_transform, m_triangle_vertex_buffer, m_triangle_index_buffer, m_triangle_material);
 
         auto quad_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x - 2, -y, 0.0f));
-        buffer.DrawTextureQuad(quad_transform, m_QuadMaterial);
+        buffer.draw_texture_quad(quad_transform, m_quad_material);
     }
 }

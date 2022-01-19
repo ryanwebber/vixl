@@ -32,54 +32,54 @@ struct OptionParser {
     std::function<void(const char* argp[])> callback;
 };
 
-static std::string s_PathPrefix = std::filesystem::current_path().string();
-static std::string s_InputManifest;
-static std::string s_OutputPackage;
-static std::string s_OutputHeader;
-static std::string s_Namespace("Assets");
-static std::filesystem::path s_Cwd(std::filesystem::current_path());
-static bool s_PrintHelp = false;
+static std::string s_path_prefix = std::filesystem::current_path().string();
+static std::string s_input_manifest;
+static std::string s_output_package;
+static std::string s_output_header;
+static std::string s_namespace("Assets");
+static std::filesystem::path s_cwd(std::filesystem::current_path());
+static bool s_print_help = false;
 
-static OptionParser s_OptionParsers[] = {
+static OptionParser s_option_parsers[] = {
         {
             "-i",
             "--input",
             2,
-            [](const char* argp[]) { s_InputManifest = argp[1]; }
+            [](const char* argp[]) { s_input_manifest = argp[1]; }
         },
         {
             "-o",
             "--output",
             2,
-            [](const char* argp[]) { s_OutputPackage = argp[1]; }
+            [](const char* argp[]) { s_output_package = argp[1]; }
         },
         {
             "-l",
             "--listing",
             2,
-            [](const char* argp[]) { s_OutputHeader = argp[1]; }
+            [](const char* argp[]) { s_output_header = argp[1]; }
         },
         {
             "-n",
             "--namespace",
             2,
-            [](const char* argp[]) { s_Namespace = argp[1]; }
+            [](const char* argp[]) { s_namespace = argp[1]; }
         },
         {
             "-c",
             "--cwd",
             2,
-            [](const char* argp[]) { s_Cwd = argp[1]; }
+            [](const char* argp[]) { s_cwd = argp[1]; }
         },
         {
             "-h",
             "--help",
             1,
-            [](const char* argp[]) { s_PrintHelp = true; }
+            [](const char* argp[]) { s_print_help = true; }
         },
 };
 
-static void PrintHelp() {
+static void print_help() {
     auto usage_string = ""
                         "Usage:\n"
                         "    asset-pack --input <FILE> --output <FILE> --listing <FILE> \n"
@@ -99,7 +99,7 @@ static void PrintHelp() {
     std::cout << usage_string << std::endl;
 }
 
-static bool ParseArgs(int argc, const char *argv[]) {
+static bool parse_args(int argc, const char *argv[]) {
     size_t i = 1;
     while (i < argc) {
         const char *arg = argv[i];
@@ -109,7 +109,7 @@ static bool ParseArgs(int argc, const char *argv[]) {
         }
 
         OptionParser *found_parser = nullptr;
-        for (auto &&parser: s_OptionParsers) {
+        for (auto &&parser: s_option_parsers) {
             if (parser.short_form == arg || parser.long_form == arg) {
                 found_parser = &parser;
                 break;
@@ -136,19 +136,19 @@ static bool ParseArgs(int argc, const char *argv[]) {
 }
 
 int main (int argc, const char *argv[]) {
-    bool parse_success = ParseArgs(argc, argv);
-    if (!parse_success || s_PrintHelp) {
-        PrintHelp();
+    bool parse_success = parse_args(argc, argv);
+    if (!parse_success || s_print_help) {
+        print_help();
         return !parse_success;
     }
 
-    if (s_InputManifest.empty() || s_OutputPackage.empty() || s_OutputHeader.empty()) {
-        PrintHelp();
+    if (s_input_manifest.empty() || s_output_package.empty() || s_output_header.empty()) {
+        print_help();
         return 1;
     }
 
     // Read the input manifest
-    std::ifstream input_manifest(s_InputManifest);
+    std::ifstream input_manifest(s_input_manifest);
     if (input_manifest.fail() || !input_manifest.is_open()) {
         std::cerr << "Unable to open asset manifest" << std::endl;
         return 2;
@@ -190,7 +190,7 @@ int main (int argc, const char *argv[]) {
     }
 
     // Write the packed output file
-    std::ofstream output_bundle(s_OutputPackage);
+    std::ofstream output_bundle(s_output_package);
     if (output_bundle.fail() || !output_bundle.is_open()) {
         std::cerr << "Unable to write to packed output file" << std::endl;
         return 2;
@@ -199,9 +199,9 @@ int main (int argc, const char *argv[]) {
     size_t total_bytes_written = 0;
     for (auto& asset : assets) {
         auto packed_offset = total_bytes_written;
-        auto filepath = s_Cwd / asset.source;
+        auto filepath = s_cwd / asset.source;
 
-        std::cout << "Writing '" << filepath << "' >> '" << s_OutputPackage << "'..." << std::endl;
+        std::cout << "Writing '" << filepath << "' >> '" << s_output_package << "'..." << std::endl;
 
         std::ifstream asset_source(filepath);
         if (asset_source.fail() || !asset_source.is_open()) {
@@ -217,7 +217,7 @@ int main (int argc, const char *argv[]) {
     }
 
     // Write the header listing
-    std::ofstream output_header(s_OutputHeader);
+    std::ofstream output_header(s_output_header);
     if (output_header.fail() || !output_header.is_open()) {
         std::cerr << "Unable to write to header listing file" << std::endl;
         return 2;
@@ -225,7 +225,7 @@ int main (int argc, const char *argv[]) {
 
     output_header << "#include <string>" << std::endl;
     output_header << "#include <VX/Core/PackedAsset.h>" << std::endl;
-    output_header << "namespace " << s_Namespace << " {" << std::endl;
+    output_header << "namespace " << s_namespace << " {" << std::endl;
     for (auto& asset : assets) {
         std::cout << "Asset '" << asset.name << "': " << asset.packed_offset << "+" << asset.packed_length << std::endl;
         output_header << "namespace " << asset.name << " {" << std::endl;

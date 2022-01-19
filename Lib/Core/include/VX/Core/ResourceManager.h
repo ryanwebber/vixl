@@ -17,24 +17,24 @@ namespace VX::Core {
         VX_MAKE_NONMOVABLE(ResourceManager);
         VX_MAKE_NONCOPYABLE(ResourceManager);
     private:
-        ResourceLocator m_Locator;
-        std::shared_ptr<EventLoop> m_EventLoop;
+        ResourceLocator m_locator;
+        std::shared_ptr<Executor> m_executor;
 
     public:
-        ResourceManager(const std::filesystem::path& resource_path, std::shared_ptr<EventLoop> event_loop)
-            : m_Locator(resource_path)
-            , m_EventLoop(std::move(event_loop))
+        ResourceManager(const std::filesystem::path& resource_path, std::shared_ptr<Executor> executor)
+            : m_locator(resource_path)
+            , m_executor(std::move(executor))
             {
             }
 
-        ResourceManager(const ResourceLocator &resource_locator, std::shared_ptr<EventLoop> event_loop)
-                : m_Locator({ resource_locator })
-                , m_EventLoop(std::move(event_loop))
+        ResourceManager(const ResourceLocator &resource_locator, std::shared_ptr<Executor> executor)
+                : m_locator({ resource_locator })
+                , m_executor(std::move(executor))
         {
         }
 
         ~ResourceManager() = default;
 
-        [[nodiscard]] const ResourceLocator& GetLocator() const { return m_Locator; }
+        [[nodiscard]] const ResourceLocator& locator() const { return m_locator; }
     };
 }

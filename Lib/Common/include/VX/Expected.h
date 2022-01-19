@@ -10,7 +10,7 @@ namespace VX {
     using Unexpected = tl::unexpected<Error>;
 
     template <class T, typename ...Args>
-    Expected<T> MakeUnexpected(Args&& ...args) {
+    Expected<T> make_unexpected(Args&& ...args) {
         Error err(args...);
         return tl::make_unexpected(std::move(err));
     }

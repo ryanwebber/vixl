@@ -1,3 +1,4 @@
+#include <vector>
 #include <bgfx/bgfx.h>
 #include <VX/Core/RenderBuiltins.h>
 
@@ -17,7 +18,7 @@ namespace VX::Core {
         UV uv;
     };
 
-    Shape CreateTextureQuad() {
+    Shape create_texture_quad() {
         static UVCoordinate coordinates[] =
             {
                 {{ 0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f }},
@@ -49,7 +50,8 @@ namespace VX::Core {
     }
 
     RenderBuiltins::RenderBuiltins()
-        : m_TextureQuad(CreateTextureQuad())
+        : m_shapes()
         {
+            m_shapes.push_back(create_texture_quad());
         }
 }
