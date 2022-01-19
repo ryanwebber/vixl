@@ -1,9 +1,9 @@
 #include <GLFW/glfw3.h>
 
-#include <Core/Input.h>
+#include <VX/Core/Input.h>
 
-namespace Core {
-    ControlState Core::Input::ProcessEvents() {
+namespace VX::Core {
+    ControlState Input::ProcessEvents() {
         glfwPollEvents();
 
         if (glfwWindowShouldClose(m_NativeWindow.GetWindowPointer())) {

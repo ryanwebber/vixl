@@ -1,7 +1,7 @@
-#include <Core/Closable.h>
-#include <Core/Logger.h>
+#include <VX/Core/Closable.h>
+#include <VX/Core/Logger.h>
 
-namespace Core {
+namespace VX::Core {
     Closable::Closable(std::function<void(void)> close_fn)
         : m_CloseFn(std::move(close_fn))
     {

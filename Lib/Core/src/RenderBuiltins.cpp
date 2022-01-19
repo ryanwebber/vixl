@@ -1,9 +1,9 @@
 #include <bgfx/bgfx.h>
-#include <Core/RenderBuiltins.h>
+#include <VX/Core/RenderBuiltins.h>
 
-#include <Core/Generated/Assets/builtins.h>
+//#include <VX/Core/Generated/Assets/builtins.h>
 
-namespace Core {
+namespace VX::Core {
     struct Vec3 {
         float x, y, z;
     };

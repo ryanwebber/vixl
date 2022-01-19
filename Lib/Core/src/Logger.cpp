@@ -1,9 +1,9 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-#include <Core/Logger.h>
+#include <VX/Core/Logger.h>
 
-namespace Core::Logger {
+namespace VX::Logger {
     std::shared_ptr<spdlog::logger> Core = Create("core");
 
     std::shared_ptr<spdlog::logger> Create(const std::string& name) {

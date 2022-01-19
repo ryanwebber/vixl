@@ -1,4 +1,4 @@
-#include <Core/RenderSystem.h>
+#include <VX/Core/RenderSystem.h>
 
-namespace Core {
+namespace VX::Core {
 }

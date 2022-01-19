@@ -1,7 +1,7 @@
 #include <corefoundation/CFBundle.h>
 #include <limits.h>
 
-namespace Core::Platforms::OSX {
+namespace VX::Platforms::OSX {
     static std::filesystem::path GetResourceDirectory() {
         CFBundleRef mainBundle = CFBundleGetMainBundle();
         CFURLRef resourceURL = CFBundleCopyResourcesDirectoryURL(mainBundle);

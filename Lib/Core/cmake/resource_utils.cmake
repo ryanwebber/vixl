@@ -1,5 +1,5 @@
 function(add_builtins_asset_pack_dependency target manifest_file cwd)
-    set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/include/Core/Generated/Assets)
+    set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Assets)
     set(listing_file ${out_dir}/builtins.h)
     set(output_file  ${out_dir}/builtins.asset)
 
@@ -13,7 +13,7 @@ function(add_builtins_asset_pack_dependency target manifest_file cwd)
             -o ${output_file}
             -l ${listing_file}
             -c ${cwd}
-            -n "Core::Generated::Assets"
+            -n "VX::Generated::Assets"
         DEPENDS asset-pack ${manifest_file}
     )
 

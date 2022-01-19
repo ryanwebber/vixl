@@ -1,6 +1,6 @@
-#include <Core/SceneManager.h>
+#include <VX/Core/SceneManager.h>
 
-namespace Core {
+namespace VX::Core {
     SceneManager::SceneManager()
         : m_CurrentScene(nullptr)
     {

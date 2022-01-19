@@ -81,6 +81,7 @@ target_include_directories(${TARGET}
 target_compile_definitions(${TARGET}
         PRIVATE
             VX_DEBUG_MEMORY=1
+            VX_DEBUG_GRAPHICS=0
             VX_GRAPHICS_${GRAPHICS_API}=1
             GLM_FORCE_LEFT_HANDED=1 # TODO: This is graphics API dependent
         PUBLIC

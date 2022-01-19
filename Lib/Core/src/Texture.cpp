@@ -3,7 +3,7 @@
 #include <bimg/bimg.h>
 #include <bx/error.h>
 
-#include <Core/Texture.h>
+#include <VX/Core/Texture.h>
 
 static void imageReleaseCb(void*, void* _userData)
 {
@@ -11,14 +11,14 @@ static void imageReleaseCb(void*, void* _userData)
     bimg::imageFree(imageContainer);
 }
 
-namespace Core {
-    Common::Expected<Texture> Texture::Create(std::span<const uint8_t> data, uint64_t flags) {
+namespace VX::Core {
+    VX::Expected<Texture> Texture::Create(std::span<const uint8_t> data, uint64_t flags) {
         bx::Error err;
         auto imageContainer = new bimg::ImageContainer();
         if (!bimg::imageParse(*imageContainer, data.data(), data.size(), &err)) {
             std::string err_msg(err.getMessage().getPtr(), err.getMessage().getLength());
-            auto our_err = Common::Error(err_msg).with_context_format("Unable to create texture");
-            return Common::Unexpected(std::move(our_err));
+            auto our_err = VX::Error(err_msg).with_context_format("Unable to create texture");
+            return VX::Unexpected(std::move(our_err));
         }
 
         const bgfx::Memory* mem = bgfx::makeRef(imageContainer->m_data,
@@ -28,7 +28,7 @@ namespace Core {
 
         if (!bgfx::isTextureValid(0, false, imageContainer->m_numLayers, bgfx::TextureFormat::Enum(imageContainer->m_format), flags)) {
             imageReleaseCb(nullptr, imageContainer);
-            return Common::MakeUnexpected<Texture>("Invalid texture data");
+            return VX::MakeUnexpected<Texture>("Invalid texture data");
         }
 
         auto handle = bgfx::createTexture2D(uint16_t(imageContainer->m_width),

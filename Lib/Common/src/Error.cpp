@@ -1,9 +1,9 @@
-#include <Common/Error.h>
+#include <VX/Error.h>
 
 #include <sstream>
 #include <string>
 
-namespace Common {
+namespace VX {
 
     Error::Error(const std::string_view& reason) {
         std::string reason_str(reason);

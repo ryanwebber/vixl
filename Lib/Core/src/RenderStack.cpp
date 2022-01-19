@@ -1,6 +1,6 @@
-#include <Core/RenderStack.h>
+#include <VX/Core/RenderStack.h>
 
-namespace Core {
+namespace VX::Core {
 
     void RenderStack::Update() const {
         for (auto &&layer: m_Layers) {

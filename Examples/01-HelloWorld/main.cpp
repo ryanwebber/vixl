@@ -1,11 +1,11 @@
-#include <Core/Async.h>
-#include <Core/Application.h>
-#include <Core/DemoRenderSystem.h>
-#include <Core/Logger.h>
-#include <Core/Platform.h>
-#include <Core/SceneManager.h>
-#include <Core/Scene.h>
-#include <Core/SceneRenderer.h>
+#include <VX/Core/Async.h>
+#include <VX/Core/Application.h>
+#include <VX/Core/DemoRenderSystem.h>
+#include <VX/Core/Logger.h>
+#include <VX/Core/Platform.h>
+#include <VX/Core/SceneManager.h>
+#include <VX/Core/Scene.h>
+#include <VX/Core/SceneRenderer.h>
 
 #ifndef TARGET_FPS
     #define TARGET_FPS 60
@@ -13,54 +13,58 @@
 
 int main()
 {
-    auto logger = Core::Logger::Create("myapp");
+    auto logger = VX::Logger::Create("myapp");
     logger->debug("Running hello world example");
 
-    Core::ApplicationSettings app_settings {
+    VX::Core::EventLoop::RunScoped([&](auto executor) -> std::vector<VX::Core::Closable> {
+        auto promise = VX::Core::FileSystem::ReadFile(*executor, "/Users/rwebber/dev/hobby/vixl-cpp/build/example.txt", 0, 64)
+                .Finally([&](auto& result) {
+                    if (result.has_value()) {
+                        auto span = result.value().GetView();
+                        std::string contents((char*)span.data(), span.size());
+                        logger->debug("Got data: {} (size={})", contents, span.size());
+                    } else {
+                        logger->debug("Got error: {}", result.error().what());
+                    }
+                });
+
+        std::vector<VX::Core::Closable> handles;
+        handles.push_back(std::move(promise));
+        return handles;
+    });
+
+    VX::Core::ApplicationSettings app_settings {
         .window_size = { .width = 800, .height = 600 },
-        .resource_directory = Core::Platform::GetResourceDirectory(),
+        .resource_directory = VX::Core::Platform::GetResourceDirectory(),
     };
 
     // Create an application, which opens up a native window
-    auto app = Core::Application::Create(app_settings).value();
+    auto app = VX::Core::Application::Create(app_settings).value();
 
     // Create a new scene renderer and add it to the render stack
-    auto scene_renderer = std::make_shared<Core::SceneRenderer>();
+    auto scene_renderer = std::make_shared<VX::Core::SceneRenderer>();
     app->GetRenderer().GetRenderStack().AddLayer(scene_renderer);
 
     // Create a render context for our scene to render into
     auto render_context = scene_renderer->CreateRenderContext();
 
     // Create a new scene manager that will manage our various scenes
-    Core::SceneManager scene_manager;
+    VX::Core::SceneManager scene_manager;
 
     // Create a scene and set it as the active scene
-    auto scene = Core::Scene::Create("Main");
-    scene->RenderSystems().push_back(std::make_shared<Core::DemoRenderSystem>());
+    auto scene = VX::Core::Scene::Create("Main");
+    scene->RenderSystems().push_back(std::make_shared<VX::Core::DemoRenderSystem>());
     scene_manager.SetActiveScene(std::move(scene));
 
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");
-    auto mills_per_frame = Core::Async::Millis(1000 / TARGET_FPS);
-    auto render_timer = Core::Async::Time::Timer(app->GetEventLoop().GetExecutor(), { }, mills_per_frame, false);
-
-    std::filesystem::path path("/Users/rwebber/dev/hobby/vixl-cpp/build/example.txt");
-    auto promise = Core::Async::FileSystem::ReadFile(app->GetEventLoop().GetExecutor(), path, 0, 64)
-        .Then<Core::Empty>([&](auto& result) {
-            if (result.has_value()) {
-                auto span = result.template value().GetView();
-                std::string contents((char*)span.data(), span.size());
-                logger->template debug("Got data: {} (size={})", contents, span.size());
-            } else {
-                logger->template debug("Got error: {}", result.error().what());
-            }
-            return Core::Empty { };
-        });
+    auto mills_per_frame = VX::Core::Millis(1000 / TARGET_FPS);
+    auto render_timer = VX::Core::Time::Timer(app->GetEventLoop().GetExecutor(), { }, mills_per_frame, false);
 
     // Process events every main tick
     auto process_input_handle = render_timer.GetReceiver().On([&](auto) {
         auto cs = app->GetInput().ProcessEvents();
-        if (cs == Core::ControlState::Terminate) {
+        if (cs == VX::Core::ControlState::Terminate) {
             app->Terminate();
         }
     });

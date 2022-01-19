@@ -1,6 +1,6 @@
-#include <Core/RenderContext.h>
+#include <VX/Core/RenderContext.h>
 
-namespace Core {
+namespace VX::Core {
     void RenderContext::Reset() {
         m_RenderBuffer.Clear();
     }

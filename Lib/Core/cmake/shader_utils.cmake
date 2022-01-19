@@ -4,14 +4,14 @@ function(add_compiled_shader_dependency target shader_dirs)
         foreach (type IN LISTS shader_types)
             get_filename_component(shader_basename ${dir} NAME)
             set(shader_target shader_${shader_basename}_${type})
-            set(shader_output ${CMAKE_CURRENT_BINARY_DIR}/include/Core/Generated/Shader/${shader_basename}/${type}.h)
+            set(shader_output ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Shader/${shader_basename}/${type}.h)
             set(shader_source ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/${type}.sc)
             set(shader_def_source ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/varying.def.sc)
             message(STATUS "Shader dependency:\n\ttype: ${type}\n\tname: ${shader_target}\n\ttarget: ${target}\n\tsource: ${shader_source}\n\tdest: ${shader_output}\n")
 
             add_custom_command(
                     OUTPUT ${shader_output}
-                    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/Core/Generated/Shader/${shader_basename}
+                    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Shader/${shader_basename}
                     COMMAND shaderc
                     -f ${shader_source}
                     -o ${shader_output}

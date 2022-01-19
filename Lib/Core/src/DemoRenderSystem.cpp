@@ -1,13 +1,13 @@
 #include <bgfx/bgfx.h>
 #include <glm/glm.hpp>
 
-#include <Core/DemoRenderSystem.h>
-#include <Core/Shader.h>
+#include <VX/Core/DemoRenderSystem.h>
+#include <VX/Core/Shader.h>
 
-#include <Core/Generated/Shader/colored/fragment.h>
-#include <Core/Generated/Shader/colored/vertex.h>
-#include <Core/Generated/Shader/uvmap/fragment.h>
-#include <Core/Generated/Shader/uvmap/vertex.h>
+#include <VX/Core/Generated/Shader/colored/fragment.h>
+#include <VX/Core/Generated/Shader/colored/vertex.h>
+#include <VX/Core/Generated/Shader/uvmap/fragment.h>
+#include <VX/Core/Generated/Shader/uvmap/vertex.h>
 
 struct PosColorVertex
 {
@@ -30,7 +30,7 @@ static const uint16_t indexes[] =
         2,1,0
 };
 
-namespace Core {
+namespace VX::Core {
     DemoRenderSystem::DemoRenderSystem() {
 
         // Load a vertex and index buffer for our simple triangle

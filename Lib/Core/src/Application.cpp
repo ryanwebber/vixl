@@ -4,22 +4,22 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 
-#include <Common/Error.h>
-#include <Common/Expected.h>
+#include <VX/Error.h>
+#include <VX/Expected.h>
 
-#include <Core/Graphics.h>
-#include <Core/Platform.h>
+#include <VX/Core/Graphics.h>
+#include <VX/Core/Platform.h>
 
-#include <Core/Application.h>
-#include <Core/Logger.h>
-#include <Core/Renderer.h>
-#include <Core/NativeWindow.h>
-#include <Core/Window.h>
+#include <VX/Core/Application.h>
+#include <VX/Core/Logger.h>
+#include <VX/Core/Renderer.h>
+#include <VX/Core/NativeWindow.h>
+#include <VX/Core/Window.h>
 
-namespace Core {
+namespace VX::Core {
 
-    using Common::Error;
-    using Common::Expected;
+    using VX::Error;
+    using VX::Expected;
 
     // View identifier for the main window is always 0
     const bgfx::ViewId kClearView = 0;
@@ -48,7 +48,7 @@ namespace Core {
         init.resolution.reset = BGFX_RESET_VSYNC;
 
         if (!bgfx::init(init)) {
-            return Common::MakeUnexpected<std::shared_ptr<Renderer>>("Unable to initialize graphics pipeline");
+            return VX::MakeUnexpected<std::shared_ptr<Renderer>>("Unable to initialize graphics pipeline");
         }
 
         // Set view 0 to the same dimensions as the window and to clear the color buffer.
@@ -75,7 +75,7 @@ namespace Core {
         m_EventLoop->Close();
     }
 
-    Common::Expected<std::unique_ptr<Application>> Application::Create(const ApplicationSettings &settings) {
+    VX::Expected<std::unique_ptr<Application>> Application::Create(const ApplicationSettings &settings) {
 
         Logger::Core->debug("Vixl v{}\n"
                             "  Platform: {}\n"

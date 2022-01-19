@@ -1,6 +1,6 @@
-#include <Core/RenderBuffer.h>
+#include <VX/Core/RenderBuffer.h>
 
-namespace Core {
+namespace VX::Core {
     void RenderBuffer::Clear() {
         m_Commands.clear();
     }

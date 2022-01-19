@@ -1,6 +1,6 @@
-#include <Core/Assert.h>
+#include <VX/Core/Assert.h>
 
-namespace Core {
+namespace VX::Core {
     void RuntimeAssert(const char *expr_str, bool expr, const char *file, int line, const char *msg,
                        spdlog::logger &logger) {
         if (!expr) {

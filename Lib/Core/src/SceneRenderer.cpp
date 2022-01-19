@@ -1,15 +1,15 @@
 #include <bx/math.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <Core/RenderPass.h>
-#include <Core/SceneRenderer.h>
-#include <Core/Logger.h>
+#include <VX/Core/RenderPass.h>
+#include <VX/Core/SceneRenderer.h>
+#include <VX/Core/Logger.h>
 
-namespace Core {
+namespace VX::Core {
 
     void SceneRenderer::OnInitialize() {
-        if (m_Primitives == nullptr)
-            m_Primitives = std::make_shared<RenderBuiltins>();
+        if (m_Bultins == nullptr)
+            m_Bultins = std::make_shared<RenderBuiltins>();
     }
 
     void SceneRenderer::OnDestroy() {
@@ -44,8 +44,8 @@ namespace Core {
     }
 
     std::shared_ptr<RenderContext> SceneRenderer::CreateRenderContext() {
-        auto target = std::make_shared<RenderContext>(m_Primitives);
+        auto target = std::make_shared<RenderContext>(m_Bultins);
         m_Contexts.push_back(target);
-        return std::move(target);
+        return target;
     }
 }

@@ -1,8 +1,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <Core/RenderPass.h>
+#include <VX/Core/RenderPass.h>
 
-namespace Core {
+namespace VX::Core {
     void RenderPass::Submit(const RenderCommand &cmd) {
         bgfx::setVertexBuffer(0, cmd.GetVertexBuffer().Get());
         bgfx::setIndexBuffer(cmd.GetIndexBuffer().Get());

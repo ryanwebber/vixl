@@ -1,7 +1,7 @@
 #include <glm/glm.hpp>
-#include <Core/Scene.h>
+#include <VX/Core/Scene.h>
 
-namespace Core {
+namespace VX::Core {
     void Scene::Configure() {
         auto weak_self = WeakSelf();
         for (auto &&system : m_MetaSystems)

@@ -1,4 +1,4 @@
-#include <Core/ResourceManager.h>
+#include <VX/Core/ResourceManager.h>
 
-namespace Core {
+namespace VX::Core {
 }

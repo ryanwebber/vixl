@@ -1,8 +1,8 @@
 #include <memory>
-#include <Core/Material.h>
-#include <Core/Logger.h>
+#include <VX/Core/Material.h>
+#include <VX/Core/Logger.h>
 
-namespace Core {
+namespace VX::Core {
 
     std::shared_ptr<ProgramHandle> Compile(const ShaderHandle &vs, const ShaderHandle &fs) {
         auto handle = bgfx::createProgram(*vs, *fs, false);
