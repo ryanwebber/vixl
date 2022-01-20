@@ -52,10 +52,17 @@ namespace VX::Core {
     RenderBuiltins::RenderBuiltins(AssetBundle &bundle)
         : m_asset_bundle(std::move(bundle))
     {
+        VX_ASSERT(m_asset_bundle.buffer().size() == VX::Core::Generated::Assets::Builtins::file_size, "Asset bundle provided to render builtins is the wrong size");
     }
 
     void RenderBuiltins::ensure_initialized() {
+        // Load shapes
         m_shapes.push_back(create_texture_quad());
+
+        // Load textures
+        auto uvmap_texture_offset = VX::Core::Generated::Assets::Builtins::uvcoordinates::asset.offset;
+        auto uvmap_texture_size = VX::Core::Generated::Assets::Builtins::uvcoordinates::asset.size;
+        m_textures.push_back(Texture::create(m_asset_bundle.buffer().get_slice(uvmap_texture_offset, uvmap_texture_size), 0).value());
     }
 
     Promise<std::shared_ptr<RenderBuiltins>> RenderBuiltins::load(ResourceManager &resource_manager, const std::filesystem::path &path) {
@@ -82,6 +89,8 @@ namespace VX::Core {
             handles.push_back(std::move(load_builtins));
             return handles;
         });
+
+        VX_ASSERT(builtins != nullptr, "Something messy is happening with promise resolving in the event loop");
 
         return builtins;
     }

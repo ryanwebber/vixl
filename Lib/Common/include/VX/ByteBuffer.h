@@ -23,7 +23,8 @@ namespace VX {
         ~ByteBuffer() = default;
 
         [[nodiscard]] size_t size() const { return m_size; }
-        [[nodiscard]] std::span<std::byte> view() const { return std::span { m_buffer.get(), m_size }; }
+        [[nodiscard]] std::span<std::byte> get_slice() const { return std::span { m_buffer.get(), m_size }; }
+        [[nodiscard]] std::span<std::byte> get_slice(size_t offset, size_t length) const { return std::span { m_buffer.get() + offset, length }; }
         [[nodiscard]] ByteBuffer get_owned_slice(size_t offset, size_t size) const {
             if (offset + size >= m_size) {
                 // Crash?

@@ -27,6 +27,6 @@ namespace VX::Core {
         [[nodiscard]] const bgfx::TextureInfo& texture_info() const { return m_texture_info; }
         std::shared_ptr<TextureHandle> texture_handle() { return m_handle; }
 
-        static VX::Expected<Texture> create(std::span<const uint8_t>, uint64_t flags);
+        static VX::Expected<Texture> create(std::span<const std::byte> data, uint64_t flags);
     };
 }

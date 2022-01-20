@@ -1,8 +1,11 @@
 #include <string>
 
 #include <bimg/bimg.h>
+#include <bimg/decode.h>
+#include <bx/allocator.h>
 #include <bx/error.h>
 
+#include <VX/Core/Logger.h>
 #include <VX/Core/Texture.h>
 
 static void image_release_cb(void*, void* _userData)
@@ -12,10 +15,14 @@ static void image_release_cb(void*, void* _userData)
 }
 
 namespace VX::Core {
-    VX::Expected<Texture> Texture::create(std::span<const uint8_t> data, uint64_t flags) {
+
+    static bx::DefaultAllocator s_texture_allocator;
+
+    VX::Expected<Texture> Texture::create(std::span<const std::byte> data, uint64_t flags) {
         bx::Error err;
-        auto imageContainer = new bimg::ImageContainer();
-        if (!bimg::imageParse(*imageContainer, data.data(), data.size(), &err)) {
+        auto imageContainer = bimg::imageParse(&s_texture_allocator, data.data(), data.size(), bimg::TextureFormat::Count, &err);
+
+        if (!err.isOk()) {
             std::string err_msg(err.getMessage().getPtr(), err.getMessage().getLength());
             auto our_err = VX::Error(err_msg).with_context_format("Unable to create texture");
             return VX::Unexpected(std::move(our_err));
@@ -48,6 +55,8 @@ namespace VX::Core {
                               1 < imageContainer->m_numMips,
                               imageContainer->m_numLayers,
                               bgfx::TextureFormat::Enum(imageContainer->m_format));
+
+        Logger::Core->debug("Loaded texture: size={}x{} format={}", texture_info.width, texture_info.height, texture_info.format);
 
         return Texture(std::move(std::make_shared<TextureHandle>(handle)), texture_info);
     }
