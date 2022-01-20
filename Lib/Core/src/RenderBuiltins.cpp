@@ -67,4 +67,22 @@ namespace VX::Core {
 
         return std::move(promise);
     }
+
+    std::shared_ptr<RenderBuiltins> RenderBuiltins::load_sync(const ResourceLocator &resource_locator, const std::filesystem::path &path) {
+        std::shared_ptr<VX::Core::RenderBuiltins> builtins = nullptr;
+        VX::Core::EventLoop::run_scoped([&](auto executor) -> std::vector<VX::Core::Closable> {
+            VX::Core::ResourceManager resource_manager(executor, resource_locator);
+            std::vector<VX::Core::Closable> handles;
+
+            auto load_builtins = VX::Core::RenderBuiltins::load(resource_manager, path)
+                    .finally([&](auto &loaded_builtins) {
+                        builtins = std::move(loaded_builtins);
+                    });
+
+            handles.push_back(std::move(load_builtins));
+            return handles;
+        });
+
+        return builtins;
+    }
 }

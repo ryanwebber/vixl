@@ -33,6 +33,7 @@ namespace VX::Core {
             return m_shapes[static_cast<size_t>(shape)];
         }
 
-         static Promise<std::shared_ptr<RenderBuiltins>> load(ResourceManager& resource_manager, const std::filesystem::path &path);
+        static Promise<std::shared_ptr<RenderBuiltins>> load(ResourceManager& resource_manager, const std::filesystem::path &path);
+        static std::shared_ptr<RenderBuiltins> load_sync(const ResourceLocator &resource_locator, const std::filesystem::path &path);
     };
 }

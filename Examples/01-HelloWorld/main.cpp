@@ -17,19 +17,8 @@ int main()
     auto logger = VX::Logger::create_named("myapp");
     logger->debug("Running hello world example");
 
-    std::shared_ptr<VX::Core::RenderBuiltins> builtins = nullptr;
-    VX::Core::EventLoop::run_scoped([&](auto executor) -> std::vector<VX::Core::Closable> {
-        VX::Core::ResourceManager resource_manager(executor, VX::Core::Platform::Current::get_resource_directory());
-        std::vector<VX::Core::Closable> handles;
-
-        auto load_builtins = VX::Core::RenderBuiltins::load(resource_manager, "builtins.asset")
-                .finally([&](auto &loaded_builtins) {
-                   builtins = std::move(loaded_builtins);
-                });
-
-        handles.push_back(std::move(load_builtins));
-        return handles;
-    });
+    VX::Core::ResourceLocator resource_locator(VX::Core::Platform::Current::get_resource_directory());
+    std::shared_ptr<VX::Core::RenderBuiltins> builtins = VX::Core::RenderBuiltins::load_sync(resource_locator, "builtins.asset");
 
     VX::Core::ApplicationSettings app_settings {
         .window_size = { .width = 800, .height = 600 },
