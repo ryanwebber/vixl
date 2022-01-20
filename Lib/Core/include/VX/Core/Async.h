@@ -17,358 +17,438 @@
 #include <VX/Core/Closable.h>
 #include <VX/Core/Types.h>
 
-// A quick and dirty A+ promise-like system for wrapping async
+// A quick and dirty promise-like system for wrapping async
 // operations on the event loop. Is currently not completely memory safe and
 // not optimal in performance.
 
 namespace VX::Core {
-    namespace {
+    class Executor;
 
-        class Executor;
-        class EventLoop;
-        template<typename T> class EventEmitter;
-        template<typename T> class Promise;
-        template<typename T> class Publisher;
-        template<typename T> class Socket;
-        template<typename T> class Subscriber;
+    class EventLoop;
 
-        using Millis = std::chrono::duration<uint64_t, std::milli>;
+    template<typename T>
+    class EventEmitter;
 
-        class Executor final {
-            VX_DEFAULT_MOVABLE(Executor);
-            VX_DEFAULT_COPYABLE(Executor);
+    template<typename T>
+    class Promise;
 
-        private:
-            std::shared_ptr<uvw::Loop> m_event_loop;
+    template<typename T>
+    class Publisher;
 
-            explicit Executor(std::shared_ptr<uvw::Loop> event_loop)
-                    : m_event_loop(std::move(event_loop)) {}
+    template<typename T>
+    class Socket;
 
-        public:
-            ~Executor() = default;
+    template<typename T>
+    class Subscriber;
 
-            friend class EventLoop;
+    using Millis = std::chrono::duration<uint64_t, std::milli>;
 
-            template <typename T>
-            friend std::shared_ptr<T> make_handle(Executor&);
-        };
+    class Executor final {
+        VX_DEFAULT_MOVABLE(Executor);
+        VX_DEFAULT_COPYABLE(Executor);
 
-        template<typename T>
-        std::shared_ptr<T> make_handle(Executor &e) {
-            VX_ASSERT(e.m_event_loop != nullptr, "The underlying event loop is gone");
-            return e.m_event_loop->resource<T>();
+    private:
+        std::shared_ptr<uvw::Loop> m_event_loop;
+
+        explicit Executor(std::shared_ptr<uvw::Loop> event_loop)
+                : m_event_loop(std::move(event_loop))
+        {
         }
 
-        template<typename T>
-        class Subscriber final {
-            VX_DEFAULT_MOVABLE(Subscriber);
-            VX_DEFAULT_COPYABLE(Subscriber);
+    public:
+        ~Executor() = default;
 
-        private:
-            std::shared_ptr<uvw::AsyncHandle> m_handle;
-
-        public:
-            explicit Subscriber(std::shared_ptr<uvw::AsyncHandle> handle)
-                    : m_handle(std::move(handle))
-            {
-            }
-
-            ~Subscriber() = default;
-
-            Closable on(std::function<void(T&)> callback) {
-                auto connection = m_handle->on<uvw::AsyncEvent>([cb = std::move(callback)](const uvw::AsyncEvent &e, const uvw::AsyncHandle &h) {
-                    cb(*h.data<T>());
-                });
-
-                Closable c([=]() {
-                    if (m_handle && m_handle->active())
-                        m_handle->erase(connection);
-                });
-
-                return c;
-            }
-
-            Closable once(std::function<void(T&)> callback) {
-                auto connection = m_handle->once<uvw::AsyncEvent>([cb = std::move(callback)](const uvw::AsyncEvent &e, const uvw::AsyncHandle &h) {
-                    cb(*h.data<T>());
-                });
-
-                Closable c([=]() {
-                    if (m_handle && m_handle->active())
-                        m_handle->erase(connection);
-                });
-
-                return c;
-            }
-
-            friend class Executor;
-        };
+        friend class EventLoop;
 
         template<typename T>
-        class Publisher final {
-            VX_DEFAULT_MOVABLE(Publisher);
-            VX_DEFAULT_COPYABLE(Publisher);
+        friend std::shared_ptr<T> make_handle(Executor &);
+    };
 
-        private:
-            std::shared_ptr<uvw::AsyncHandle> m_handle;
+    template<typename T>
+    inline std::shared_ptr<T> make_handle(Executor &e)
+    {
+        VX_ASSERT(e.m_event_loop != nullptr, "The underlying event loop is gone");
+        return e.m_event_loop->resource<T>();
+    }
 
-        public:
-            explicit Publisher(std::shared_ptr<uvw::AsyncHandle> handle)
+    template<typename T>
+    class Subscriber final {
+    VX_DEFAULT_MOVABLE(Subscriber);
+
+    VX_DEFAULT_COPYABLE(Subscriber);
+
+    private:
+        std::shared_ptr<uvw::AsyncHandle> m_handle;
+
+    public:
+        explicit Subscriber(std::shared_ptr<uvw::AsyncHandle> handle)
                 : m_handle(std::move(handle))
-            {}
+        {
+        }
 
-            ~Publisher() = default;
+        ~Subscriber() = default;
 
-            void publish(T message) const {
-                auto message_data = std::make_shared<T>(std::move(message));
-                m_handle->data(std::move(message_data));
-                m_handle->send();
-            }
-        };
+        Closable on(std::function<void(T &)> callback)
+        {
+            auto connection = m_handle->on<uvw::AsyncEvent>(
+                    [cb = std::move(callback)](const uvw::AsyncEvent &e, const uvw::AsyncHandle &h) {
+                        cb(*h.data<T>());
+                    });
 
-        template<typename T>
-        struct Socket {
-            VX_DEFAULT_COPYABLE(Socket);
-            VX_DEFAULT_MOVABLE(Socket);
+            Closable c([=]() {
+                if (m_handle && m_handle->active())
+                    m_handle->erase(connection);
+            });
 
-            Publisher<T> publisher;
-            Subscriber<T> subscriber;
+            return c;
+        }
 
-            Socket(Publisher<T> &publisher, Subscriber<T> &subscriber)
-                    : publisher(std::move(publisher))
-                    , subscriber(std::move(subscriber))
-            {}
+        void on_detached(std::function<void(T &)> callback)
+        {
+            m_handle->on<uvw::AsyncEvent>(
+                    [cb = std::move(callback)](const uvw::AsyncEvent &e, const uvw::AsyncHandle &h) {
+                        cb(*h.data<T>());
+                    });
+        }
 
-            Socket(const Publisher<T> &publisher, const Subscriber<T> &subscriber)
-                    : publisher(publisher)
-                    , subscriber(subscriber)
-            {}
+        Closable once(std::function<void(T &)> callback)
+        {
+            auto connection = m_handle->once<uvw::AsyncEvent>(
+                    [cb = std::move(callback)](const uvw::AsyncEvent &e, const uvw::AsyncHandle &h) {
+                        cb(*h.data<T>());
+                    });
 
-            explicit Socket(Executor &e);
-            explicit Socket(std::shared_ptr<uvw::AsyncHandle>);
-        };
+            Closable c([=]() {
+                if (m_handle && m_handle->active())
+                    m_handle->erase(connection);
+            });
 
-        template<typename T>
-        class EventEmitter final {
-            VX_DEFAULT_MOVABLE(EventEmitter);
-            VX_DEFAULT_COPYABLE(EventEmitter);
-        private:
-            std::shared_ptr<uvw::AsyncHandle> m_handle;
-            Socket<T> m_socket;
+            return c;
+        }
 
-        public:
-            explicit EventEmitter(Executor &executor)
-                    : m_handle(std::move(make_handle<uvw::AsyncHandle>(executor)))
-                    , m_socket(m_handle) {
-            }
+        void once_detached(std::function<void(T &)> callback)
+        {
+            m_handle->once<uvw::AsyncEvent>(
+                    [cb = std::move(callback)](const uvw::AsyncEvent &e, const uvw::AsyncHandle &h) {
+                        cb(*h.data<T>());
+                    });
+        }
 
-            Publisher<T> &publisher() { return m_socket.publisher; }
-            Subscriber<T> &subscriber() { return m_socket.subscriber; }
+        friend class Executor;
+    };
 
-            void reset() { m_handle->clear(); }
+    template<typename T>
+    class Publisher final {
+        VX_DEFAULT_MOVABLE(Publisher);
+        VX_DEFAULT_COPYABLE(Publisher);
 
-            ~EventEmitter() = default;
-        };
+    private:
+        std::shared_ptr<uvw::AsyncHandle> m_handle;
 
-        template<typename T>
-        using PromiseResolver = std::function<void(std::function<void(T)>)>;
+    public:
+        explicit Publisher(std::shared_ptr<uvw::AsyncHandle> handle)
+                : m_handle(std::move(handle))
+        {
+        }
 
-        template<typename T>
-        class Promise final {
-            VX_DEFAULT_MOVABLE(Promise);
-            VX_MAKE_NONCOPYABLE(Promise);
+        ~Publisher() = default;
 
-        private:
-            std::shared_ptr<uvw::AsyncHandle> m_handle;
-            Socket<T> m_socket;
+        void publish(T message) const
+        {
+            auto message_data = std::make_shared<T>(std::move(message));
+            m_handle->data(std::move(message_data));
+            m_handle->send();
+        }
+    };
 
-        public:
-            Promise(Executor &executor, PromiseResolver<T> resolver)
-                    : m_handle(std::move(make_handle<uvw::AsyncHandle>(executor)))
-                    , m_socket(m_handle)
-            {
-                auto cb = [publisher_clone = m_socket.publisher](T value) {
-                    publisher_clone.publish(std::move(value));
-                };
+    template<typename T>
+    struct Socket {
+        VX_DEFAULT_COPYABLE(Socket);
+        VX_DEFAULT_MOVABLE(Socket);
 
-                resolver(std::move(cb));
-            }
+        Publisher<T> publisher;
+        Subscriber<T> subscriber;
 
-            ~Promise() = default;
+        Socket(Publisher<T> &publisher, Subscriber<T> &subscriber)
+                : publisher(std::move(publisher))
+                , subscriber(std::move(subscriber))
+        {
+        }
 
-            Closable finally(std::function<void(T&)> fn) {
-                auto closable = m_socket.subscriber.once([=](T& value) {
-                    fn(value);
-                    if (m_handle && m_handle->active())
-                        m_handle->close();
-                });
+        Socket(const Publisher<T> &publisher, const Subscriber<T> &subscriber)
+                : publisher(publisher)
+                , subscriber(subscriber)
+        {
+        }
 
-                return std::move(closable);
-            }
+        explicit Socket(Executor &e);
 
-            friend class Executor;
-        };
+        explicit Socket(std::shared_ptr<uvw::AsyncHandle>);
+    };
 
-        class EventLoop final {
-        private:
-            std::shared_ptr<uvw::Loop> m_loop;
-            std::shared_ptr<Executor> m_executor;
+    template<typename T>
+    class EventEmitter final {
+        VX_DEFAULT_MOVABLE(EventEmitter);
+        VX_DEFAULT_COPYABLE(EventEmitter);
 
-            explicit EventLoop(std::shared_ptr<uvw::Loop> internal)
-                    : m_loop(std::move(internal))
-                    , m_executor(new Executor(m_loop))
-            {
-            }
+    private:
+        std::shared_ptr<uvw::AsyncHandle> m_handle;
+        Socket<T> m_socket;
 
-        public:
-            EventLoop()
-                    : EventLoop(uvw::Loop::create())
-            {}
+    public:
+        explicit EventEmitter(Executor &executor)
+                : m_handle(std::move(make_handle<uvw::AsyncHandle>(executor)))
+                , m_socket(m_handle)
+        {
+        }
 
-            ~EventLoop() = default;
+        Publisher<T> &publisher() { return m_socket.publisher; }
 
-            void run() {
-                m_loop->run();
-            }
+        Subscriber<T> &subscriber() { return m_socket.subscriber; }
 
-            void close() {
-                m_loop->walk(uvw::Overloaded {
-                        [](uvw::TimerHandle &h) { h.close(); }, // Kill timers
-                        [](uvw::AsyncHandle &h) { h.close(); }, // Kill event listeners
-                        [](auto &&) {
-                            // TODO: Is this assert correct? We should probably let file system handles complete
-                            VX_ASSERT(false, "Event loop not able to close all resources. Program will probably hand...");
-                        },
-                });
+        void reset() { m_handle->clear(); }
 
-                m_loop->close();
-            }
+        ~EventEmitter() = default;
+    };
 
-            static void run_scoped(const std::function<std::vector<Closable>(std::shared_ptr<Executor>)>& block) {
-                EventLoop e;
-                auto promises = block(e.executor());
-                e.run();
-            }
+    template<typename T>
+    using PromiseResolver = std::function<void(std::function<void(T)>)>;
 
-            std::shared_ptr<Executor> executor() { return m_executor; }
-        };
+    template<typename T>
+    class Promise final {
+        VX_DEFAULT_MOVABLE(Promise);
+        VX_MAKE_NONCOPYABLE(Promise);
 
-        // Impl functions now that everything is declared
+    private:
+        std::shared_ptr<Executor> m_executor;
+        std::shared_ptr<uvw::AsyncHandle> m_handle;
+        Socket<T> m_socket;
 
-        template<typename T>
-        Socket<T>::Socket(Executor &e)
+    public:
+        Promise(std::shared_ptr<Executor> executor, std::shared_ptr<uvw::AsyncHandle> handle, const Socket<T> &socket)
+                : m_executor(std::move(executor))
+                , m_handle(std::move(handle))
+                , m_socket(socket)
+        {
+        }
+
+        Promise(std::shared_ptr<Executor> executor, PromiseResolver<T> resolver)
+                : m_executor(std::move(executor))
+                , m_handle(std::move(make_handle<uvw::AsyncHandle>(*m_executor)))
+                , m_socket(m_handle)
+        {
+            auto cb = [publisher_clone = m_socket.publisher](T value) {
+                publisher_clone.publish(std::move(value));
+            };
+
+            resolver(std::move(cb));
+        }
+
+        ~Promise() = default;
+
+        template<typename TNew>
+        Promise<TNew> map(std::function<TNew(T &)> fn)
+        {
+            auto handle = make_handle<uvw::AsyncHandle>(*m_executor);
+            auto socket = Socket<TNew>(handle);
+            auto closable = finally([=](T &value) {
+                auto mapped_value = fn(value);
+                socket.publisher.publish(std::move(mapped_value));
+
+                // Hold onto the handle from this promise so it doesn't get
+                // closed if we get destructed (which would happen if you
+                // chained .map calls together_
+                (void) m_handle;
+            });
+
+            // TODO: this probably isn't the right way to do this
+            closable.erase();
+
+            return Promise<TNew>(m_executor, std::move(handle), socket);
+        }
+
+        Closable finally(std::function<void(T &)> fn)
+        {
+            auto closable = m_socket.subscriber.once([=, handle = m_handle](T &value) {
+                fn(value);
+                if (handle && handle->active())
+                    handle->close();
+            });
+
+            return std::move(closable);
+        }
+
+        friend class Executor;
+    };
+
+    class EventLoop final {
+    private:
+        std::shared_ptr<uvw::Loop> m_loop;
+        std::shared_ptr<Executor> m_executor;
+
+        explicit EventLoop(std::shared_ptr<uvw::Loop> internal)
+                : m_loop(std::move(internal))
+                , m_executor(new Executor(m_loop))
+        {
+        }
+
+    public:
+        EventLoop()
+                : EventLoop(uvw::Loop::create())
+        {
+        }
+
+        ~EventLoop() = default;
+
+        void run() { m_loop->run(); }
+
+        void close()
+        {
+            m_loop->walk(uvw::Overloaded{
+                    [](uvw::TimerHandle &h) { h.close(); }, // Kill timers
+                    [](uvw::AsyncHandle &h) { h.close(); }, // Kill event listeners
+                    [](auto &&) {
+                        // TODO: Is this assert correct? We should probably let file system handles complete
+                        VX_ASSERT(false, "Event loop not able to close all resources. Program will probably hand...");
+                    },
+            });
+
+            m_loop->close();
+        }
+
+        static void run_scoped(const std::function<std::vector<Closable>(std::shared_ptr<Executor>)> &block)
+        {
+            EventLoop e;
+            auto promises = block(e.executor());
+            e.run();
+        }
+
+        std::shared_ptr<Executor> executor() { return m_executor; }
+    };
+
+    // Impl functions now that everything is declared
+
+    template<typename T>
+    Socket<T>::Socket(Executor &e)
             : Socket<T>(std::move(make_handle<uvw::AsyncHandle>(e)))
-        {
-        }
+    {
+    }
 
-        template<typename T>
-        Socket<T>::Socket(std::shared_ptr<uvw::AsyncHandle> handle)
+    template<typename T>
+    Socket<T>::Socket(std::shared_ptr<uvw::AsyncHandle> handle)
             : Socket<T>(std::move(Socket<T>(Publisher<T>(handle), Subscriber<T>(handle))))
-        {
-        }
+    {
+    }
 
-        namespace Time {
-            class Timer final {
+    namespace Time {
+        class Timer final {
             VX_DEFAULT_MOVABLE(Timer);
             VX_MAKE_NONCOPYABLE(Timer);
 
-            public:
-                using EventType = bool;
+        public:
+            using EventType = bool;
 
-            private:
-                bool m_running;
-                Millis m_timeout;
-                Millis m_repeat;
-                EventEmitter<EventType> m_emitter;
-                std::shared_ptr<Executor> m_executor;
-                std::shared_ptr<uvw::TimerHandle> m_timer_handle;
+        private:
+            bool m_running;
+            Millis m_timeout;
+            Millis m_repeat;
+            EventEmitter<EventType> m_emitter;
+            std::shared_ptr<Executor> m_executor;
+            std::shared_ptr<uvw::TimerHandle> m_timer_handle;
 
-            public:
+        public:
 
-                Timer(std::shared_ptr<Executor> executor, Millis timeout, Millis repeat, bool autostart)
-                        : m_emitter(*executor)
-                        , m_timeout(timeout)
-                        , m_repeat(repeat)
-                        , m_running(autostart)
-                        , m_executor(std::move(executor))
-                {
-                    if (m_running)
-                        start();
-                };
-
-                void start() {
-                    if (!m_running || m_timer_handle == nullptr) {
-                        m_timer_handle = std::move(make_handle<uvw::TimerHandle>(*m_executor));
-
-                        // Can take a reference capture to 'this' because if we get deleted we'll
-                        // end up cancelling the timer
-                        m_timer_handle->on<uvw::TimerEvent>([&](const uvw::TimerEvent &, const uvw::TimerHandle &) {
-                            m_running = false;
-                            m_emitter.publisher().publish({});
-                        });
-
-                        m_timer_handle->start(m_timeout, m_repeat);
-                    }
-                }
-
-                void stop() {
-                    if (m_timer_handle != nullptr) {
-                        m_timer_handle->stop();
-                    }
-                }
-
-                void reset() {
-                    if (m_running && m_timer_handle != nullptr) {
-                        m_timer_handle->clear();
-                        m_timer_handle->close();
-                        m_timer_handle.reset();
-                        m_running = false;
-                    }
-                }
-
-                Subscriber<EventType> &subscriber() { return m_emitter.subscriber(); }
-
-                [[nodiscard]] bool running() const { return m_running; }
-
-                ~Timer() {
-                    if (m_timer_handle->active())
-                        m_timer_handle->stop();
-                }
+            Timer(std::shared_ptr<Executor> executor, Millis timeout, Millis repeat, bool autostart)
+                    : m_emitter(*executor)
+                    , m_timeout(timeout)
+                    , m_repeat(repeat)
+                    , m_running(autostart)
+                    , m_executor(std::move(executor))
+            {
+                if (m_running)
+                    start();
             };
 
-            Timer start_timeout(std::shared_ptr<Executor> executor, Millis timeout);
-            Timer start_interval(std::shared_ptr<Executor> executor, Millis interval);
-        }
+            void start()
+            {
+                if (!m_running || m_timer_handle == nullptr)
+                {
+                    m_timer_handle = std::move(make_handle<uvw::TimerHandle>(*m_executor));
 
-        namespace FileSystem {
-            using ReadResult = VX::Expected<VX::ByteBuffer>;
-            Promise<ReadResult> read_file(Executor &executor, const std::filesystem::path &path, size_t offset, size_t length) {
-                auto read_handle = make_handle<uvw::FileReq>(executor);
-                PromiseResolver<ReadResult> resolver = [=](auto cb) {
-                    read_handle->template once<uvw::FsEvent<uvw::FileReq::Type::READ>>([=](auto &read, auto&) {
-                        auto raw_buffer = std::make_unique<std::byte[]>(read.size);
-                        memcpy(&raw_buffer[0], read.data.get(), read.size);
-                        VX::ByteBuffer bb(std::move(raw_buffer), read.size);
-                        cb(std::move(bb));
-                        read_handle->close();
+                    // Can take a reference capture to 'this' because if we get deleted we'll
+                    // end up cancelling the timer
+                    m_timer_handle->on<uvw::TimerEvent>([&](const uvw::TimerEvent &, const uvw::TimerHandle &) {
+                        m_running = false;
+                        m_emitter.publisher().publish({});
                     });
 
-                    read_handle->template once<uvw::ErrorEvent>([=](const auto &error, const auto&) {
-                        auto result = VX::make_unexpected<VX::ByteBuffer>(error.what());
-                        cb(std::move(result));
-                        read_handle->close();
-                    });
-                };
+                    m_timer_handle->start(m_timeout, m_repeat);
+                }
+            }
 
-                // Trigger the read after a successful open
-                read_handle->once<uvw::FsEvent<uvw::FileReq::Type::OPEN>>([=](const auto&, auto& handle_ref){
-                    handle_ref.read(offset, length);
+            void stop()
+            {
+                if (m_timer_handle != nullptr) {
+                    m_timer_handle->stop();
+                }
+            }
+
+            void reset()
+            {
+                if (m_running && m_timer_handle != nullptr) {
+                    m_timer_handle->clear();
+                    m_timer_handle->close();
+                    m_timer_handle.reset();
+                    m_running = false;
+                }
+            }
+
+            Subscriber<EventType> &subscriber() { return m_emitter.subscriber(); }
+
+            [[nodiscard]] bool running() const { return m_running; }
+
+            ~Timer()
+            {
+                if (m_timer_handle->active())
+                    m_timer_handle->stop();
+            }
+        };
+
+        inline Timer start_timeout(std::shared_ptr<Executor> executor, Millis timeout);
+        inline Timer start_interval(std::shared_ptr<Executor> executor, Millis interval);
+    }
+
+    namespace FileSystem {
+        using ReadResult = VX::Expected<VX::ByteBuffer>;
+
+        inline Promise<ReadResult> read_file(std::shared_ptr<Executor> executor, const std::filesystem::path &path, size_t offset, size_t length)
+        {
+            auto read_handle = make_handle<uvw::FileReq>(*executor);
+            PromiseResolver<ReadResult> resolver = [=](auto cb) {
+                read_handle->template once<uvw::FsEvent<uvw::FileReq::Type::READ>>([=](auto &read, auto &) {
+                    auto raw_buffer = std::make_unique<std::byte[]>(read.size);
+                    memcpy(&raw_buffer[0], read.data.get(), read.size);
+                    VX::ByteBuffer bb(std::move(raw_buffer), read.size);
+                    cb(std::move(bb));
+                    read_handle->close();
                 });
 
-                read_handle->open(path, 0, 0);
+                read_handle->template once<uvw::ErrorEvent>([=](const auto &error, const auto &) {
+                    auto result = VX::make_unexpected<VX::ByteBuffer>(error.what());
+                    cb(std::move(result));
+                    read_handle->close();
+                });
+            };
 
-                return { executor, std::move(resolver) };
-            }
+            // Trigger the read after a successful open
+            read_handle->once<uvw::FsEvent<uvw::FileReq::Type::OPEN>>([=](const auto &, auto &handle_ref) {
+                handle_ref.read(offset, length);
+            });
+
+            Logger::Core->debug("Attempting to read file: {} (offset={} size={})", path.string(), offset, length);
+            read_handle->open(path, 0, 0);
+
+            return {std::move(executor), std::move(resolver)};
         }
     }
 }

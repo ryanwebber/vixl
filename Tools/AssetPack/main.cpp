@@ -226,10 +226,11 @@ int main (int argc, const char *argv[]) {
     output_header << "#include <string>" << std::endl;
     output_header << "#include <VX/Core/PackedAsset.h>" << std::endl;
     output_header << "namespace " << s_namespace << " {" << std::endl;
+    output_header << "static const size_t file_size = " << total_bytes_written << ";" << std::endl;
     for (auto& asset : assets) {
         std::cout << "Asset '" << asset.name << "': " << asset.packed_offset << "+" << asset.packed_length << std::endl;
         output_header << "namespace " << asset.name << " {" << std::endl;
-        output_header << "  static const VX::PackedAsset asset = {" << std::endl;
+        output_header << "  static const VX::Core::PackedAsset asset = {" << std::endl;
         output_header << "    .resource_name = \"" << asset.name << "\"," << std::endl;
         output_header << "    .offset = " << asset.packed_offset << "," << std::endl;
         output_header << "    .size = " << asset.packed_length << "," << std::endl;

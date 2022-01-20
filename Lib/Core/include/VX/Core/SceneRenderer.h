@@ -19,7 +19,10 @@ namespace VX::Core {
         std::vector<std::weak_ptr<RenderContext>> m_contexts;
 
     public:
-        explicit SceneRenderer() = default; // TODO: figure out how to load builtins
+        explicit SceneRenderer(std::shared_ptr<RenderBuiltins> builtins)
+            : m_builtins(std::move(builtins))
+        {}
+
         ~SceneRenderer() override = default;
 
         void on_initialize() override;

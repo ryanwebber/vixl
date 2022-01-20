@@ -10,5 +10,5 @@
 #endif
 
 namespace VX::Core {
-    void runtime_assert(const char *expr_str, bool expr, const char *file, int line, const char *msg, spdlog::logger &logger);
+    void runtime_assert(const char *expr_str, bool expr, const char *file, int line, const std::string &message, spdlog::logger &logger);
 }

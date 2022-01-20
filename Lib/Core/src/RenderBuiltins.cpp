@@ -1,8 +1,8 @@
 #include <vector>
 #include <bgfx/bgfx.h>
-#include <VX/Core/RenderBuiltins.h>
 
-//#include <VX/Core/Generated/Assets/builtins.h>
+#include <VX/Core/RenderBuiltins.h>
+#include <VX/Core/Generated/Assets/builtins.h>
 
 namespace VX::Core {
     struct Vec3 {
@@ -49,9 +49,22 @@ namespace VX::Core {
         };
     }
 
-    RenderBuiltins::RenderBuiltins()
-        : m_shapes()
-        {
-            m_shapes.push_back(create_texture_quad());
-        }
+    RenderBuiltins::RenderBuiltins(AssetBundle &bundle)
+        : m_asset_bundle(std::move(bundle))
+    {
+    }
+
+    void RenderBuiltins::ensure_initialized() {
+        m_shapes.push_back(create_texture_quad());
+    }
+
+    Promise<std::shared_ptr<RenderBuiltins>> RenderBuiltins::load(ResourceManager &resource_manager, const std::filesystem::path &path) {
+        auto file_size = VX::Core::Generated::Assets::Builtins::file_size;
+        auto promise = resource_manager.load_asset_bundle(path, 0 , file_size)
+                .map<std::shared_ptr<RenderBuiltins>>([](auto& bundle) {
+                    return std::shared_ptr<RenderBuiltins>(new RenderBuiltins(bundle));
+                });
+
+        return std::move(promise);
+    }
 }

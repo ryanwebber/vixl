@@ -1,7 +1,11 @@
 #pragma once
 
 #include <memory>
+#include <filesystem>
+
+#include <VX/Core/Async.h>
 #include <VX/Core/Types.h>
+#include <VX/Core/ResourceManager.h>
 
 namespace VX::Core {
     struct Shape {
@@ -15,14 +19,20 @@ namespace VX::Core {
 
     class RenderBuiltins final {
     private:
+        AssetBundle m_asset_bundle;
         std::vector<Shape> m_shapes;
 
+        explicit RenderBuiltins(AssetBundle&);
+
     public:
-        RenderBuiltins();
         ~RenderBuiltins() = default;
+
+        void ensure_initialized();
 
         [[nodiscard]] const Shape& get_shape(Shapes shape) const {
             return m_shapes[static_cast<size_t>(shape)];
         }
+
+         static Promise<std::shared_ptr<RenderBuiltins>> load(ResourceManager& resource_manager, const std::filesystem::path &path);
     };
 }

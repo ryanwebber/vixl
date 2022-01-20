@@ -27,7 +27,7 @@ set(EXTRA_DEPENDENCIES
 
 if (APPLE)
 
-    add_executable(${TARGET} MACOSX_BUNDLE ${SOURCES})
+    add_executable(${TARGET} MACOSX_BUNDLE ${SOURCES} ${RESOURCES})
 
     find_library(COCOA_LIBRARY Cocoa)
     find_library(OPENGL_LIBRARY OpenGL)
@@ -45,10 +45,10 @@ if (APPLE)
             XCODE_ATTRIBUTE_EXECUTABLE_NAME "${TARGET}"
             )
 
+    # Copy resources into macOS app resource bundle
     foreach(RESOURCE ${RESOURCES})
         get_filename_component(basename ${RESOURCE} NAME)
         set_property(SOURCE ${RESOURCE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${basename}")
-
     endforeach()
 else()
     message(FATAL "Unsupported platform")

@@ -112,7 +112,7 @@ namespace VX::Core {
             std::shared_ptr<Input> input,
             std::shared_ptr<Renderer> renderer,
             std::shared_ptr<EventLoop> event_loop)
-        : m_resource_manager(resource_locator, event_loop->executor())
+        : m_resource_manager(event_loop->executor(), resource_locator)
         , m_window(std::move(window))
         , m_input(std::move(input))
         , m_renderer(std::move(renderer))

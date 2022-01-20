@@ -13,7 +13,7 @@ function(add_builtins_asset_pack_dependency target manifest_file cwd)
             -o ${output_file}
             -l ${listing_file}
             -c ${cwd}
-            -n "VX::Generated::Assets"
+            -n "VX::Core::Generated::Assets::Builtins"
         DEPENDS asset-pack ${manifest_file}
     )
 

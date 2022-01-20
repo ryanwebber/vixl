@@ -6,6 +6,7 @@
 #include <VX/Core/SceneManager.h>
 #include <VX/Core/Scene.h>
 #include <VX/Core/SceneRenderer.h>
+#include <VX/Core/ResourceManager.h>
 
 #ifndef TARGET_FPS
     #define TARGET_FPS 60
@@ -16,20 +17,17 @@ int main()
     auto logger = VX::Logger::create_named("myapp");
     logger->debug("Running hello world example");
 
+    std::shared_ptr<VX::Core::RenderBuiltins> builtins = nullptr;
     VX::Core::EventLoop::run_scoped([&](auto executor) -> std::vector<VX::Core::Closable> {
-        auto promise = VX::Core::FileSystem::read_file(*executor, "/Users/rwebber/dev/hobby/vixl-cpp/build/example.txt", 0, 64)
-                .finally([&](auto& result) {
-                    if (result.has_value()) {
-                        auto span = result.value().view();
-                        std::string contents((char*)span.data(), span.size());
-                        logger->debug("Got data: {} (size={})", contents, span.size());
-                    } else {
-                        logger->debug("Got error: {}", result.error().what());
-                    }
+        VX::Core::ResourceManager resource_manager(executor, VX::Core::Platform::Current::get_resource_directory());
+        std::vector<VX::Core::Closable> handles;
+
+        auto load_builtins = VX::Core::RenderBuiltins::load(resource_manager, "builtins.asset")
+                .finally([&](auto &loaded_builtins) {
+                   builtins = std::move(loaded_builtins);
                 });
 
-        std::vector<VX::Core::Closable> handles;
-        handles.push_back(std::move(promise));
+        handles.push_back(std::move(load_builtins));
         return handles;
     });
 
@@ -42,7 +40,7 @@ int main()
     auto app = VX::Core::Application::create_from_settings(app_settings).value();
 
     // Create a new scene renderer and add it to the render stack
-    auto scene_renderer = std::make_shared<VX::Core::SceneRenderer>();
+    auto scene_renderer = std::make_shared<VX::Core::SceneRenderer>(std::move(builtins));
     app->renderer().render_stack().add_layer(scene_renderer);
 
     // Create a render context for our scene to render into

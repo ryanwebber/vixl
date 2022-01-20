@@ -14,5 +14,7 @@ namespace VX::Core {
         Closable(Closable &&) noexcept;
         Closable &operator=(Closable &&) noexcept;
         ~Closable();
+
+        void erase() { m_close_fn = nullptr; }
     };
 }

@@ -17,15 +17,14 @@ namespace VX::Core {
         VX::ByteBuffer m_buffer;
 
     public:
-        AssetBundle(VX::ByteBuffer buffer)
+        explicit AssetBundle(VX::ByteBuffer buffer)
             : m_buffer(std::move(buffer))
         {}
 
         ~AssetBundle() = default;
 
-        const VX::ByteBuffer& buffer() const { return m_buffer; }
-
-        VX::ByteBuffer get_owned_asset(const PackedAsset& definition) const {
+        [[nodiscard]] const VX::ByteBuffer& buffer() const { return m_buffer; }
+        [[nodiscard]] VX::ByteBuffer get_owned_asset(const PackedAsset& definition) const {
             return m_buffer.get_owned_slice(definition.offset, definition.size);
         }
     };

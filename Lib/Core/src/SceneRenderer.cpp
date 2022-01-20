@@ -8,8 +8,7 @@
 namespace VX::Core {
 
     void SceneRenderer::on_initialize() {
-        if (m_builtins == nullptr)
-            m_builtins = std::make_shared<RenderBuiltins>();
+        m_builtins->ensure_initialized();
     }
 
     void SceneRenderer::on_destroy() {
