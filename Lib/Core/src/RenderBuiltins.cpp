@@ -27,10 +27,10 @@ namespace VX::Core {
     Shape create_texture_quad() {
         static UVCoordinate coordinates[] =
             {
-                {{ 0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f }},
-                {{ 0.5f,  -0.5f, 0.0f }, { 1.0f, 0.0f }},
-                {{ -0.5f,  -0.5f, 0.0f }, { 0.0f, 0.0f }},
-                {{ -0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f }},
+                {{ 0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f }},
+                {{ 0.5f,  -0.5f, 0.0f }, { 1.0f, 1.0f }},
+                {{ -0.5f,  -0.5f, 0.0f }, { 0.0f, 1.0f }},
+                {{ -0.5f,  0.5f, 0.0f }, { 0.0f, 0.0f }},
             };
 
         static const uint16_t indexes[] =

@@ -68,7 +68,6 @@ namespace VX::Core {
 
         float x = cos((float)counter * 0.025f);
         float y = sin((float)counter * 0.025f);
-        float y2 = sin((float)counter * 0.025f + (float)M_PI_2);
 
         auto triangle_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x + 4, y, 0.0f));
         buffer.draw_indexed(triangle_transform, m_triangle_vertex_buffer, m_triangle_index_buffer, m_triangle_material);
@@ -76,7 +75,7 @@ namespace VX::Core {
         auto quad_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x - 4, -y, 0.0f));
         buffer.draw_texture_quad(quad_transform, m_quad_material);
 
-        auto quad_transform2 = glm::translate(glm::scale(glm::mat4x4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f)), glm::vec3(0.0f, y2, 0.0f));
+        auto quad_transform2 = glm::scale(glm::mat4x4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
         buffer.draw_texture_quad(quad_transform2, m_sprite_material);
     }
 }

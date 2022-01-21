@@ -15,9 +15,10 @@ namespace VX::Core {
 
     void Scene::render(RenderContext &context) {
 
+        auto up_is_down = bgfx::getCaps()->originBottomLeft ? 1.0f : -1.0f;
         glm::vec3 eye(0.0f, 0.0f, -5.0f);
         glm::vec3 center(0.0f, 0.0f, 0.0f);
-        glm::vec3 up(0.0f, -1.0f, 0.0f); // TODO: Graphics dependent up/down not working, setting for metal for now
+        glm::vec3 up(0.0f, up_is_down, 0.0f);
         auto view_matrix = glm::lookAt(eye, center, up);
         auto proj_matrix = glm::perspective(80.0f, (800.0f / 600.0f), 0.1f, 100.0f);
         SceneCamera camera(view_matrix, proj_matrix);
