@@ -25,7 +25,7 @@ namespace VX::Core {
         ~Texture() = default;
 
         [[nodiscard]] const bgfx::TextureInfo& texture_info() const { return m_texture_info; }
-        std::shared_ptr<TextureHandle> texture_handle() { return m_handle; }
+        [[nodiscard]] const std::shared_ptr<TextureHandle>& texture_handle() const { return m_handle; }
 
         static VX::Expected<Texture> create(std::span<const std::byte> data, uint64_t flags);
     };

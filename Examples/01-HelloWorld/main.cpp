@@ -29,7 +29,7 @@ int main()
     auto app = VX::Core::Application::create_from_settings(app_settings).value();
 
     // Create a new scene renderer and add it to the render stack
-    auto scene_renderer = std::make_shared<VX::Core::SceneRenderer>(std::move(builtins));
+    auto scene_renderer = std::make_shared<VX::Core::SceneRenderer>(builtins);
     app->renderer().render_stack().add_layer(scene_renderer);
 
     // Create a render context for our scene to render into
@@ -40,7 +40,7 @@ int main()
 
     // Create a scene and set it as the active scene
     auto scene = VX::Core::Scene::create_named("Main");
-    scene->render_systems().push_back(std::make_shared<VX::Core::DemoRenderSystem>());
+    scene->render_systems().push_back(std::make_shared<VX::Core::DemoRenderSystem>(*builtins));
     scene_manager.set_active_scene(std::move(scene));
 
     // Configure a main loop that runs at a target FPS

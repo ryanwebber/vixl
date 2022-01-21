@@ -7,6 +7,7 @@ set(GRAPHICS_API METAL)
 
 set(SHADERS
         res/shaders/colored
+        res/shaders/sprite
         res/shaders/uvmap
         )
 

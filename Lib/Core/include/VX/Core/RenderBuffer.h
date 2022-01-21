@@ -25,6 +25,8 @@ namespace VX::Core {
         ~RenderBuffer() = default;
 
         void clear();
+
+        [[nodiscard]] const RenderBuiltins &builtins() const { return *m_builtins; }
         [[nodiscard]] const std::vector<RenderCommand>& commands() const { return m_commands; }
 
         void draw_indexed(

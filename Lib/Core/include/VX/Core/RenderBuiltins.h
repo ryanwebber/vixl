@@ -7,11 +7,16 @@
 #include <VX/Core/Types.h>
 #include <VX/Core/ResourceManager.h>
 #include <VX/Core/Texture.h>
+#include "Material.h"
 
 namespace VX::Core {
     struct Shape {
         std::shared_ptr<VertexBufferHandle> vertex_buffer;
         std::shared_ptr<IndexBufferHandle> index_buffer;
+    };
+
+    enum class Materials : size_t {
+        Sprite = 0
     };
 
     enum class Textures : size_t {
@@ -27,6 +32,7 @@ namespace VX::Core {
         AssetBundle m_asset_bundle;
         std::vector<Shape> m_shapes;
         std::vector<Texture> m_textures;
+        std::vector<Material> m_materials;
 
     public:
         explicit RenderBuiltins(AssetBundle&);
@@ -35,11 +41,21 @@ namespace VX::Core {
         void ensure_initialized();
 
         [[nodiscard]] const Shape& get_shape(Shapes shape) const {
-            return m_shapes[static_cast<size_t>(shape)];
+            auto idx = static_cast<size_t>(shape);
+            VX_ASSERT(idx < m_shapes.size(), "Invalid shape. Shapes might not have been loaded yet");
+            return m_shapes[idx];
         }
 
         [[nodiscard]] const Texture& get_texture(Textures texture) const {
-            return m_textures[static_cast<size_t>(texture)];
+            auto idx = static_cast<size_t>(texture);
+            VX_ASSERT(idx < m_textures.size(), "Invalid texture. Textures might not have been loaded yet");
+            return m_textures[idx];
+        }
+
+        [[nodiscard]] const Material& get_material(Materials material) const {
+            auto idx = static_cast<size_t>(material);
+            VX_ASSERT(idx < m_materials.size(), "Invalid material. Materials might not have been loaded yet");
+            return m_materials[idx];
         }
 
         static Promise<std::shared_ptr<RenderBuiltins>> load(ResourceManager& resource_manager, const std::filesystem::path &path);

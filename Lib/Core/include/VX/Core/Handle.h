@@ -29,5 +29,7 @@ namespace VX::Core {
         T get() const { return m_handle; };
 
         T operator*() const { return m_handle; }
+
+        [[nodiscard]] bool is_valid() const { return m_handle.idx > 0; }
     };
 }

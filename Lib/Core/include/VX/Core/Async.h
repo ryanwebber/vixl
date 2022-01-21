@@ -95,9 +95,9 @@ namespace VX::Core {
                         cb(*h.data<T>());
                     });
 
-            Closable c([=]() {
-                if (m_handle && m_handle->active())
-                    m_handle->erase(connection);
+            Closable c([handle = m_handle, conn = std::move(connection)]() {
+                if (handle && handle->active())
+                    handle->erase(conn);
             });
 
             return c;
@@ -118,9 +118,9 @@ namespace VX::Core {
                         cb(*h.data<T>());
                     });
 
-            Closable c([=]() {
-                if (m_handle && m_handle->active())
-                    m_handle->erase(connection);
+            Closable c([handle = m_handle, conn = std::move(connection)]() {
+                if (handle && handle->active())
+                    handle->erase(conn);
             });
 
             return c;
@@ -251,20 +251,20 @@ namespace VX::Core {
         {
             auto handle = make_handle<uvw::AsyncHandle>(*m_executor);
             auto socket = Socket<TNew>(handle);
-            auto closable = finally([=](T &value) {
+            auto closable = finally([=, handle_clone = m_handle](T &value) {
                 auto mapped_value = fn(value);
                 socket.publisher.publish(std::move(mapped_value));
 
                 // Hold onto the handle from this promise so it doesn't get
                 // closed if we get destructed (which would happen if you
                 // chained .map calls together_
-                (void) m_handle;
+                (void) handle_clone;
             });
 
             // TODO: this probably isn't the right way to do this
             closable.erase();
 
-            return Promise<TNew>(m_executor, std::move(handle), socket);
+            return Promise<TNew>(m_executor, handle, socket);
         }
 
         Closable finally(std::function<void(T &)> fn)
@@ -323,7 +323,7 @@ namespace VX::Core {
             e.run();
         }
 
-        std::shared_ptr<Executor> executor() { return m_executor; }
+        const std::shared_ptr<Executor> &executor() { return m_executor; }
     };
 
     // Impl functions now that everything is declared

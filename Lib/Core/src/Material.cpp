@@ -1,6 +1,8 @@
 #include <memory>
-#include <VX/Core/Material.h>
+
 #include <VX/Core/Logger.h>
+#include <VX/Core/Material.h>
+#include <VX/Core/Shader.h>
 
 namespace VX::Core {
 
@@ -28,8 +30,8 @@ namespace VX::Core {
             , m_vertex_shader(nullptr)
             , m_fragment_shader(nullptr)
         {
-            auto vs = create_shader({ vertex_data, vertex_data_len });
-            auto fs = create_shader({ fragment_data, fragment_data_len });
+            auto vs = make_shader({ vertex_data, vertex_data_len });
+            auto fs = make_shader({ fragment_data, fragment_data_len });
             m_shader_program = compile(*vs, *fs);
             m_vertex_shader = std::move(vs);
             m_fragment_shader = std::move(fs);
@@ -39,4 +41,8 @@ namespace VX::Core {
                                 m_fragment_shader->get().idx,
                                 m_shader_program->get().idx);
         }
+
+    Material Material::clone() const {
+        return { *this };
+    }
 }

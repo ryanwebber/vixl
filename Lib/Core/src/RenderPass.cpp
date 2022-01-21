@@ -9,7 +9,9 @@ namespace VX::Core {
         bgfx::setState(cmd.state());
         bgfx::setTransform(glm::value_ptr(cmd.transform()));
 
-        // TODO: apply material properties
+        for (const auto& [slot, sample_texture] : cmd.material().texture_slots()) {
+            bgfx::setTexture(slot, **sample_texture.sampler_handle, **sample_texture.texture_handle);
+        }
 
         bgfx::submit(0, cmd.material().shader_program_handle());
     }

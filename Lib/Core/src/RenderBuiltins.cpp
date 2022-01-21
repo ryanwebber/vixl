@@ -1,8 +1,14 @@
 #include <vector>
 #include <bgfx/bgfx.h>
 
+#include <VX/Core/Material.h>
 #include <VX/Core/RenderBuiltins.h>
+#include <VX/Core/Shader.h>
+
 #include <VX/Core/Generated/Assets/builtins.h>
+
+#include <VX/Core/Generated/Shader/sprite/fragment.h>
+#include <VX/Core/Generated/Shader/sprite/vertex.h>
 
 namespace VX::Core {
     struct Vec3 {
@@ -63,6 +69,11 @@ namespace VX::Core {
         auto uvmap_texture_offset = VX::Core::Generated::Assets::Builtins::uvcoordinates::asset.offset;
         auto uvmap_texture_size = VX::Core::Generated::Assets::Builtins::uvcoordinates::asset.size;
         m_textures.push_back(Texture::create(m_asset_bundle.buffer().get_slice(uvmap_texture_offset, uvmap_texture_size), 0).value());
+
+        // Load materials
+        auto sprite_vs_handle = make_shader({ sprite_vertex_shader, sizeof(sprite_vertex_shader) });
+        auto sprite_fs_handle = make_shader({ sprite_fragment_shader, sizeof(sprite_fragment_shader) });
+        m_materials.emplace_back("Sprite", std::move(sprite_vs_handle), std::move(sprite_fs_handle));
     }
 
     Promise<std::shared_ptr<RenderBuiltins>> RenderBuiltins::load(ResourceManager &resource_manager, const std::filesystem::path &path) {

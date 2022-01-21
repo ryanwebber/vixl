@@ -31,7 +31,7 @@ static const uint16_t indexes[] =
 };
 
 namespace VX::Core {
-    DemoRenderSystem::DemoRenderSystem() {
+    DemoRenderSystem::DemoRenderSystem(const RenderBuiltins& builtins) {
 
         // Load a vertex and index buffer for our simple triangle
         bgfx::VertexLayout vertex_layout;
@@ -46,10 +46,20 @@ namespace VX::Core {
 
         m_triangle_vertex_buffer = std::make_shared<VertexBufferHandle>(vb);
         m_triangle_index_buffer = std::make_shared<IndexBufferHandle>(ib);
-        m_triangle_material = VX_CREATE_MATERIAL("Simple Colored", colored);
 
-        // Load the material for our primative quad
-        m_quad_material = VX_CREATE_MATERIAL("UV Map", uvmap);
+        auto colored_vs_handle = make_shader({ colored_vertex_shader, sizeof(colored_vertex_shader) });
+        auto colored_fs_handle = make_shader({ colored_fragment_shader, sizeof(colored_fragment_shader) });
+        m_triangle_material = std::make_shared<Material>("Colored", std::move(colored_vs_handle), std::move(colored_fs_handle));
+
+        // Load the material for our primitive quad
+        auto uvs_vs_handle = make_shader({ uvmap_vertex_shader, sizeof(uvmap_vertex_shader) });
+        auto uvs_fs_handle = make_shader({ uvmap_fragment_shader, sizeof(uvmap_fragment_shader) });
+        m_quad_material = std::make_shared<Material>("UVMap", std::move(uvs_vs_handle), std::move(uvs_fs_handle));
+
+        auto texture_handle = builtins.get_texture(Textures::UVMap).texture_handle();
+        auto uniform_handle = std::make_shared<UniformHandle>(bgfx::createUniform("s_texColor",  bgfx::UniformType::Sampler));
+        m_sprite_material = std::make_shared<Material>(builtins.get_material(Materials::Sprite).clone());
+        m_sprite_material->set_texture<0>({ uniform_handle, texture_handle });
     }
 
     static int counter = 0;
@@ -58,11 +68,15 @@ namespace VX::Core {
 
         float x = cos((float)counter * 0.025f);
         float y = sin((float)counter * 0.025f);
+        float y2 = sin((float)counter * 0.025f + (float)M_PI_2);
 
-        auto triangle_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x + 2, y, 0.0f));
+        auto triangle_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x + 4, y, 0.0f));
         buffer.draw_indexed(triangle_transform, m_triangle_vertex_buffer, m_triangle_index_buffer, m_triangle_material);
 
-        auto quad_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x - 2, -y, 0.0f));
+        auto quad_transform = glm::translate(glm::mat4x4(1.0f), glm::vec3(x - 4, -y, 0.0f));
         buffer.draw_texture_quad(quad_transform, m_quad_material);
+
+        auto quad_transform2 = glm::translate(glm::scale(glm::mat4x4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f)), glm::vec3(0.0f, y2, 0.0f));
+        buffer.draw_texture_quad(quad_transform2, m_sprite_material);
     }
 }

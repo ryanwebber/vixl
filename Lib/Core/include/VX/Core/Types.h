@@ -9,4 +9,5 @@ namespace VX::Core {
     typedef Handle<bgfx::TextureHandle> TextureHandle;
     typedef Handle<bgfx::VertexBufferHandle> VertexBufferHandle;
     typedef Handle<bgfx::IndexBufferHandle> IndexBufferHandle;
+    typedef Handle<bgfx::UniformHandle> UniformHandle;
 }
