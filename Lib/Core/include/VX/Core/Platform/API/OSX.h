@@ -1,8 +1,9 @@
 #pragma once
 
-#define GLFW_EXPOSE_NATIVE_COCOA 1
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
+#include "SDL.h"
+#include "SDL_syswm.h"
+
+#include <bgfx/bgfx.h>
 
 #include <corefoundation/CFBundle.h>
 #include <climits>
@@ -13,8 +14,9 @@
 namespace VX::Core::Platform::API::OSX {
     static const std::string_view name = "OSX";
 
-    static void* get_platform_window_handle(GLFWwindow* m_Window) {
-        return glfwGetCocoaWindow(m_Window);
+    static void initialize_platform_data(const SDL_SysWMinfo &wmi, bgfx::PlatformData &pd) {
+        pd.ndt = nullptr;
+        pd.nwh = wmi.info.cocoa.window;
     }
 
     static std::filesystem::path get_resource_directory() {

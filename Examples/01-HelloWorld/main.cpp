@@ -81,7 +81,6 @@ int main()
 
         // Present the rendered scene onto our window
         app->renderer().render_frame();
-        app->window().native_window().swap_buffers();
     });
 
     // Start the main loop timer

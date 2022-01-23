@@ -1,6 +1,5 @@
 #include <memory>
 
-#include <GLFW/glfw3.h>
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 
@@ -24,13 +23,6 @@ namespace VX::Core {
     // View identifier for the main window is always 0
     const bgfx::ViewId kClearView = 0;
 
-    void on_window_resize(GLFWwindow* window, int width, int height) {
-        // GLFW polling prevents redraws while the os window is resizing. We can
-        // still do it ourselves if we perform swap buffers
-        bgfx::reset((uint32_t)width, (uint32_t)height, BGFX_RESET_VSYNC);
-        bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
-    }
-
     Expected<std::shared_ptr<Renderer>> initialize_graphics(const NativeWindow &nw) {
 
         SizeInt actual_window_size = nw.size();
@@ -41,8 +33,7 @@ namespace VX::Core {
         // Setup bgfx rendering
         bgfx::Init init;
         init.type = bgfx::RendererType::Metal;
-        init.platformData.nwh = nw.platform_window_handle();
-        init.platformData.ndt = nw.platform_display_type();
+        init.platformData = nw.platform_data();
         init.resolution.width = actual_window_size.width;
         init.resolution.height = actual_window_size.height;
         init.resolution.reset = BGFX_RESET_VSYNC;
@@ -57,7 +48,7 @@ namespace VX::Core {
 
         Logger::Core->debug("Initial window size: {}x{}", actual_window_size.width, actual_window_size.height);
 
-        return std::make_shared<Renderer>();
+        return std::make_shared<Renderer>(nw);
     }
 
     void Application::run() {
@@ -118,11 +109,6 @@ namespace VX::Core {
         , m_renderer(std::move(renderer))
         , m_event_loop(std::move(event_loop))
     {
-        // Hook into GLFW to get involved in events. First, we set this application to
-        // be the userdata pointer, so this instance can handle the events
-        glfwSetWindowUserPointer(m_window->native_window().window_pointer(), static_cast<void*>(this));
-
-        // Setup window callbacks
-        glfwSetWindowSizeCallback(m_window->native_window().window_pointer(), on_window_resize);
+        // TODO: setup application input events like window resize events
     }
 }

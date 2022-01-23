@@ -1,12 +1,17 @@
 #pragma once
 
+#include "SDL.h"
+#include "SDL_syswm.h"
+
+#include <bgfx/bgfx.h>
+
 #include <string_view>
-#include <glfw/glfw.h>
 
 namespace VX::Core::Platform::API::Generic {
     static const std::string_view name = "Generic";
 
-    static void* get_platform_window_handle(GLFWwindow* m_Window) {
-        return nullptr;
+    static void initialize_platform_data(const SDL_SysWMinfo &wmi, bgfx::PlatformData &pd) {
+        pd.ndt = nullptr;
+        pd.nwh = nullptr;
     }
 }

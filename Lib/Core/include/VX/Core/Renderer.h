@@ -1,7 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include <VX/Noncopyable.h>
 
+#include <VX/Core/NativeWindow.h>
 #include <VX/Core/RenderStack.h>
 
 namespace VX::Core {
@@ -11,9 +14,13 @@ namespace VX::Core {
 
     private:
         RenderStack m_render_stack;
+        NativeWindow m_native_window;
 
     public:
-        Renderer() = default;
+        explicit Renderer(NativeWindow nw)
+            : m_native_window(nw)
+        {};
+
         ~Renderer() = default;
 
         void render_frame();

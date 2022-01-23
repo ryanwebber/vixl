@@ -1,11 +1,14 @@
 #pragma once
 
+#include <bgfx/bgfx.h>
+
 #include <VX/Copyable.h>
 #include <VX/Expected.h>
 
 #include <VX/Core/Size.h>
 
-struct GLFWwindow;
+class SDL_Window;
+class SDL_Renderer;
 
 namespace VX::Core {
     class NativeWindow final {
@@ -13,22 +16,25 @@ namespace VX::Core {
         VX_DEFAULT_COPYABLE(NativeWindow);
 
     private:
-        GLFWwindow* m_window;
-        explicit NativeWindow(GLFWwindow* window)
+        SDL_Window* m_window;
+        SDL_Renderer* m_renderer;
+        bgfx::PlatformData m_platform_data;
+
+        explicit NativeWindow(SDL_Window* window,  SDL_Renderer* renderer, const bgfx::PlatformData &platform_data)
                 : m_window(window)
+                , m_renderer(renderer)
+                , m_platform_data(platform_data)
         {}
 
     public:
 
         ~NativeWindow() = default;
 
-        [[nodiscard]] GLFWwindow* window_pointer() const { return m_window; }
-
-        [[nodiscard]] void* platform_window_handle() const;
-        [[nodiscard]] void* platform_display_type() const;
         [[nodiscard]] SizeInt size() const;
+        [[nodiscard]] const bgfx::PlatformData& platform_data() const { return m_platform_data; }
 
         void destroy();
+        void clear();
         void swap_buffers();
 
         static VX::Expected<NativeWindow> create_with_size(SizeInt window_size);

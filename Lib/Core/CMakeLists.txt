@@ -53,30 +53,30 @@ target_link_libraries(${TARGET}
         PUBLIC
             stdc++
             glm
-            glfw
             spdlog
             uvw
             EnTT::EnTT
             bx
             bgfx
+            SDL2-static
         )
 
 target_include_directories(${TARGET}
         PRIVATE
             "../../3rdParty/fmt/include"
-            "../../3rdParty/glfw/include"
             "../../3rdParty/imgui-wrapper"
             "../../3rdParty/pixman-wrapper/pixman"
             "${CMAKE_CURRENT_SOURCE_DIR}/../Common/include"
             "${CMAKE_CURRENT_BINARY_DIR}/include" # Generated code
             "${CMAKE_BINARY_DIR}" # Generated headers for pixman
         PUBLIC
-            "../../3rdParty/glm"
-            "../../3rdParty/spdlog/include"
-            "../../3rdParty/expected/include"
-            "../../3rdParty/entt/src"
-            "../../3rdParty/uvw/src"
             "../../3rdParty/bgfx/bgfx/include"
+            "../../3rdParty/entt/src"
+            "../../3rdParty/expected/include"
+            "../../3rdParty/glm"
+            "../../3rdParty/sdl2/include"
+            "../../3rdParty/spdlog/include"
+            "../../3rdParty/uvw/src"
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
         )
 
