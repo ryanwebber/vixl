@@ -10,8 +10,6 @@
 #include <VX/Core/SceneRenderer.h>
 #include <VX/Core/System/SpriteRenderingSystem.h>
 
-#include <entt/entity/registry.hpp>
-
 #ifndef TARGET_FPS
     #define TARGET_FPS 60
 #endif
@@ -21,12 +19,13 @@ int main()
     auto logger = VX::Logger::create_named("myapp");
     logger->debug("Running hello world example");
 
+    // Create a resource loader using the default resource directory for the current platform and load the builtin assets
     VX::Core::ResourceLocator resource_locator(VX::Core::Platform::Current::get_resource_directory());
     std::shared_ptr<VX::Core::RenderBuiltins> builtins = VX::Core::RenderBuiltins::load_sync(resource_locator, "builtins.asset");
 
     VX::Core::ApplicationSettings app_settings {
         .window_size = { .width = 800, .height = 600 },
-        .resource_directory = VX::Core::Platform::Current::get_resource_directory(),
+        .resource_locator = resource_locator,
     };
 
     // Create an application, which opens up a native window
@@ -49,14 +48,15 @@ int main()
     // Add some systems to the scene
     scene->render_systems().push_back(std::make_shared<VX::Core::System::SpriteRenderingSystem>(*builtins));
 
-    // Create an etity in the scene
+    // Create an entity in the scene
     auto entity = scene->entities().create();
 
-    // Create a sprite component and transform component for the entity
-    auto texture_handle = builtins->get_texture(VX::Core::Textures::UVMap).texture_handle();
-    auto uniform_handle = std::make_shared<VX::Core::UniformHandle>(bgfx::createUniform("s_texColor",  bgfx::UniformType::Sampler));
+    // Create a sprite material for our entity and assign a texture
+    auto texture = builtins->get_texture(VX::Core::Textures::UVMap);
     auto sprite_material = std::make_shared<VX::Core::Material>(builtins->get_material(VX::Core::Materials::Sprite).clone());
-    sprite_material->set_texture<0>({ uniform_handle, texture_handle });
+    sprite_material->set_texture<0>("s_texColor", texture);
+
+    // Add a transform component and sprite component that the sprite rendering system will use to paint the entity
     scene->entities().emplace<VX::Core::Component::SpriteComponent>(entity, std::move(sprite_material));
     scene->entities().emplace<VX::Core::Component::TransformComponent>(entity);
 

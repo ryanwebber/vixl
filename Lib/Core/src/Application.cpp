@@ -84,12 +84,12 @@ namespace VX::Core {
                             VX_VERSION,
                             Platform::Current::name,
                             Graphics::Current::name,
-                            settings.resource_directory.string());
+                            settings.resource_locator.resource_path().string());
 
         return NativeWindow::create_with_size(settings.window_size).and_then([&settings](NativeWindow nw) {
             return initialize_graphics(nw).map([&](std::shared_ptr<Renderer> renderer) {
 
-                ResourceLocator resource_locator(settings.resource_directory);
+                auto resource_locator = settings.resource_locator;
 
                 auto window = std::make_shared<Window>(nw);
                 auto input = std::make_shared<Input>(nw);

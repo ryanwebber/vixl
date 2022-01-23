@@ -10,6 +10,7 @@
 
 #include <VX/Core/Handle.h>
 #include <VX/Core/Shader.h>
+#include <VX/Core/Texture.h>
 #include <VX/Core/Types.h>
 
 namespace VX::Core {
@@ -53,6 +54,13 @@ namespace VX::Core {
         template <uint8_t SLOT>
         void set_texture(const SampleTexture &sample_texture) {
             m_texture_slots[SLOT] = sample_texture;
+        }
+
+        template <uint8_t SLOT>
+        void set_texture(const std::string sampler_name, const Texture &texture) {
+            auto uniform_handle = std::make_shared<VX::Core::UniformHandle>(bgfx::createUniform(sampler_name.c_str(),  bgfx::UniformType::Sampler));
+            auto texture_handle = texture.texture_handle();
+            set_texture<SLOT>({ std::move(uniform_handle), std::move(texture_handle) });
         }
     };
 }

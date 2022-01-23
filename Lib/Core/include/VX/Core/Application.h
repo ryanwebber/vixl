@@ -13,6 +13,7 @@
 #include <VX/Core/Input.h>
 #include <VX/Core/Renderer.h>
 #include <VX/Core/RenderStack.h>
+#include <VX/Core/ResourceLocator.h>
 #include <VX/Core/ResourceManager.h>
 #include <VX/Core/Size.h>
 
@@ -20,7 +21,7 @@ namespace VX::Core {
 
     struct ApplicationSettings {
         SizeInt window_size { .width = 800, .height = 600 };
-        std::filesystem::path resource_directory;
+        ResourceLocator resource_locator;
     };
 
     class Application final {
