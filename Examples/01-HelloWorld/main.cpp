@@ -1,12 +1,16 @@
-#include <VX/Core/Async.h>
 #include <VX/Core/Application.h>
-#include <VX/Core/DemoRenderSystem.h>
+#include <VX/Core/Async.h>
+#include <VX/Core/Component/SpriteComponent.h>
+#include <VX/Core/Component/TransformComponent.h>
 #include <VX/Core/Logger.h>
 #include <VX/Core/Platform/Platform.h>
-#include <VX/Core/SceneManager.h>
-#include <VX/Core/Scene.h>
-#include <VX/Core/SceneRenderer.h>
 #include <VX/Core/ResourceManager.h>
+#include <VX/Core/Scene.h>
+#include <VX/Core/SceneManager.h>
+#include <VX/Core/SceneRenderer.h>
+#include <VX/Core/System/SpriteRenderingSystem.h>
+
+#include <entt/entity/registry.hpp>
 
 #ifndef TARGET_FPS
     #define TARGET_FPS 60
@@ -40,8 +44,21 @@ int main()
 
     // Create a scene and set it as the active scene
     auto scene = VX::Core::Scene::create_named("Main");
-    scene->render_systems().push_back(std::make_shared<VX::Core::DemoRenderSystem>(*builtins));
-    scene_manager.set_active_scene(std::move(scene));
+    scene_manager.set_active_scene(scene);
+
+    // Add some systems to the scene
+    scene->render_systems().push_back(std::make_shared<VX::Core::System::SpriteRenderingSystem>(*builtins));
+
+    // Create an etity in the scene
+    auto entity = scene->entities().create();
+
+    // Create a sprite component and transform component for the entity
+    auto texture_handle = builtins->get_texture(VX::Core::Textures::UVMap).texture_handle();
+    auto uniform_handle = std::make_shared<VX::Core::UniformHandle>(bgfx::createUniform("s_texColor",  bgfx::UniformType::Sampler));
+    auto sprite_material = std::make_shared<VX::Core::Material>(builtins->get_material(VX::Core::Materials::Sprite).clone());
+    sprite_material->set_texture<0>({ uniform_handle, texture_handle });
+    scene->entities().emplace<VX::Core::Component::SpriteComponent>(entity, std::move(sprite_material));
+    scene->entities().emplace<VX::Core::Component::TransformComponent>(entity);
 
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");

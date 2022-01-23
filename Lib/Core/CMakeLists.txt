@@ -15,7 +15,6 @@ set(SOURCES
         src/Application.cpp
         src/Assert.cpp
         src/Closable.cpp
-        src/DemoRenderSystem.cpp
         src/Input.cpp
         src/Logger.cpp
         src/Material.cpp
@@ -34,6 +33,8 @@ set(SOURCES
         src/Shader.cpp
         src/Texture.cpp
         src/Window.cpp
+        src/System/DemoRenderingSystem.cpp
+        src/System/SpriteRenderingSystem.cpp
         )
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
@@ -84,7 +85,9 @@ target_compile_definitions(${TARGET}
             VX_DEBUG_MEMORY=1
             VX_DEBUG_GRAPHICS=0
             VX_GRAPHICS_${GRAPHICS_API}=1
+
             GLM_FORCE_LEFT_HANDED=1 # TODO: This is graphics API dependent
+            BGFX_CONFIG_MULTITHREADED=0
         PUBLIC
             VX_VERSION="${CMAKE_PROJECT_VERSION}"
         )

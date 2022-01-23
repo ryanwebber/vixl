@@ -1,7 +1,7 @@
 #include <bgfx/bgfx.h>
 #include <glm/glm.hpp>
 
-#include <VX/Core/DemoRenderSystem.h>
+#include <VX/Core/System/DemoRenderingSystem.h>
 #include <VX/Core/Shader.h>
 
 #include <VX/Core/Generated/Shader/colored/fragment.h>
@@ -30,8 +30,8 @@ static const uint16_t indexes[] =
         2,1,0
 };
 
-namespace VX::Core {
-    DemoRenderSystem::DemoRenderSystem(const RenderBuiltins& builtins) {
+namespace VX::Core::System {
+    DemoRenderingSystem::DemoRenderingSystem(const RenderBuiltins& builtins) {
 
         // Load a vertex and index buffer for our simple triangle
         bgfx::VertexLayout vertex_layout;
@@ -63,7 +63,7 @@ namespace VX::Core {
     }
 
     static int counter = 0;
-    void DemoRenderSystem::render(RenderBuffer &buffer, entt::registry&) {
+    void DemoRenderingSystem::render(RenderBuffer &buffer, entt::registry&) {
         counter++;
 
         float x = cos((float)counter * 0.025f);
