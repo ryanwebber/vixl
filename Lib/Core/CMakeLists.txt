@@ -5,12 +5,6 @@ set(TARGET vixl-core)
 
 set(GRAPHICS_API METAL)
 
-set(SHADERS
-        res/shaders/colored
-        res/shaders/sprite
-        res/shaders/uvmap
-        )
-
 set(SOURCES
         src/Application.cpp
         src/Assert.cpp
@@ -33,13 +27,11 @@ set(SOURCES
         src/Shader.cpp
         src/Texture.cpp
         src/Window.cpp
-        src/System/DemoRenderingSystem.cpp
         src/System/SpriteRenderingSystem.cpp
         )
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
 
-add_compiled_shader_dependency(${TARGET} "${SHADERS}")
 add_builtins_asset_pack_dependency(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/res/manifest.json ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
@@ -91,3 +83,35 @@ target_compile_definitions(${TARGET}
         PUBLIC
             VX_VERSION="${CMAKE_PROJECT_VERSION}"
         )
+
+# Shaders
+
+add_compiled_shader(
+        TARGET      vx_sprite_fragment_shader
+        TYPE        fragment
+        PLATFORM    osx
+        PROFILE     metal
+        SRC         ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/sprite/fragment.sc
+        DEFINITION  ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/sprite/varying.def.sc
+        OUTPUT      ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Shader/Sprite/fragment.h
+        NAME        vx_sprite_fragment_shader
+        INCLUDES
+            ${PROJECT_SOURCE_DIR}/3rdParty/bgfx/bgfx/src
+        DEPS
+            ${TARGET}
+)
+
+add_compiled_shader(
+        TARGET      vx_sprite_vertex_shader
+        TYPE        vertex
+        PLATFORM    osx
+        PROFILE     metal
+        SRC         ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/sprite/vertex.sc
+        DEFINITION  ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/sprite/varying.def.sc
+        OUTPUT      ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Shader/Sprite/vertex.h
+        NAME        vx_sprite_vertex_shader
+        INCLUDES
+            ${PROJECT_SOURCE_DIR}/3rdParty/bgfx/bgfx/src
+        DEPS
+            ${TARGET}
+)

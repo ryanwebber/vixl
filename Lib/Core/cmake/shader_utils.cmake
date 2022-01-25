@@ -1,31 +1,50 @@
-function(add_compiled_shader_dependency target shader_dirs)
-    set(shader_types "fragment" "vertex")
-    foreach (dir IN LISTS shader_dirs)
-        foreach (type IN LISTS shader_types)
-            get_filename_component(shader_basename ${dir} NAME)
-            set(shader_target shader_${shader_basename}_${type})
-            set(shader_output ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Shader/${shader_basename}/${type}.h)
-            set(shader_source ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/${type}.sc)
-            set(shader_def_source ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/varying.def.sc)
-            message(STATUS "Shader dependency:\n\ttype: ${type}\n\tname: ${shader_target}\n\ttarget: ${target}\n\tsource: ${shader_source}\n\tdest: ${shader_output}\n")
+# Compiles a shader into a platform-compatible binary shader
+# and writes it to a generated c header file.
+#
+# See the documentation for `shaderc` for details on the
+# arguments this function takes
+function(add_compiled_shader)
+    cmake_parse_arguments(
+            ARG
+            ""
+            "TARGET;TYPE;PLATFORM;PROFILE;DEFINITION;SRC;OUTPUT;NAME"
+            "INCLUDES;DEPS"
+            ${ARGN}
+    )
 
-            add_custom_command(
-                    OUTPUT ${shader_output}
-                    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Shader/${shader_basename}
-                    COMMAND shaderc
-                    -f ${shader_source}
-                    -o ${shader_output}
-                    --type ${type}
-                    --bin2c ${shader_basename}_${type}_shader
-                    --varyingdef ${shader_def_source}
-                    -i ${PROJECT_SOURCE_DIR}/3rdParty/bgfx/bgfx/src
-                    --platform osx
-                    -p metal
-                    DEPENDS shaderc ${shader_source} ${shader_def_source}
-            )
+    get_filename_component(SHADER_DIR ${ARG_OUTPUT} DIRECTORY)
+    list(TRANSFORM ARG_INCLUDES PREPEND "-i;")
 
-            add_custom_target(${shader_target} DEPENDS ${shader_output})
-            add_dependencies(${target} ${shader_target})
-        endforeach()
+    set(hello shaderc
+            -f ${ARG_SRC}
+            -o ${ARG_OUTPUT}
+            --type ${ARG_TYPE}
+            --bin2c ${ARG_NAME}
+            --varyingdef ${ARG_DEFINITION}
+            ${ARG_INCLUDES}
+            --platform ${ARG_PLATFORM}
+            --profile ${ARG_PROFILE})
+
+    add_custom_command(
+            OUTPUT ${ARG_OUTPUT}
+            COMMAND mkdir -p ${SHADER_DIR}
+            COMMAND shaderc
+                -f ${ARG_SRC}
+                -o ${ARG_OUTPUT}
+                --type ${ARG_TYPE}
+                --bin2c ${ARG_NAME}
+                --varyingdef ${ARG_DEFINITION}
+                ${ARG_INCLUDES}
+                --platform ${ARG_PLATFORM}
+                --profile ${ARG_PROFILE}
+            DEPENDS shaderc ${ARG_SRC} ${ARG_DEFINITION}
+    )
+
+    # Create a target for the newly generated thing
+    add_custom_target(${ARG_TARGET} DEPENDS ${ARG_OUTPUT})
+
+    # Add a dependencies on this new target
+    foreach (DEP IN LISTS ARG_DEPS)
+        add_dependencies(${DEP} ${ARG_TARGET})
     endforeach()
 endfunction()

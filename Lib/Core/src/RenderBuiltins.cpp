@@ -7,8 +7,8 @@
 
 #include <VX/Core/Generated/Assets/builtins.h>
 
-#include <VX/Core/Generated/Shader/sprite/fragment.h>
-#include <VX/Core/Generated/Shader/sprite/vertex.h>
+#include <VX/Core/Generated/Shader/Sprite/fragment.h>
+#include <VX/Core/Generated/Shader/Sprite/vertex.h>
 
 namespace VX::Core {
     struct Vec3 {
@@ -71,8 +71,8 @@ namespace VX::Core {
         m_textures.push_back(Texture::create(m_asset_bundle.buffer().get_slice(uvmap_texture_offset, uvmap_texture_size), 0).value());
 
         // Load materials
-        auto sprite_vs_handle = make_shader({ sprite_vertex_shader, sizeof(sprite_vertex_shader) });
-        auto sprite_fs_handle = make_shader({ sprite_fragment_shader, sizeof(sprite_fragment_shader) });
+        auto sprite_vs_handle = make_shader({ vx_sprite_vertex_shader, sizeof(vx_sprite_vertex_shader) });
+        auto sprite_fs_handle = make_shader({ vx_sprite_fragment_shader, sizeof(vx_sprite_fragment_shader) });
         m_materials.emplace_back("Sprite", std::move(sprite_vs_handle), std::move(sprite_fs_handle));
     }
 

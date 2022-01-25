@@ -64,7 +64,7 @@ int main()
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");
     auto mills_per_frame = VX::Core::Millis(1000 / TARGET_FPS);
-    auto render_timer = VX::Core::Time::Timer(app->event_loop().executor(), { }, mills_per_frame, false);
+    auto render_timer = VX::Core::Time::Timer(app->event_loop().executor(), { }, mills_per_frame, true);
 
     // Process events every main tick
     auto process_input_handle = render_timer.subscriber().on([&](auto) {
@@ -83,9 +83,6 @@ int main()
         // Present the rendered scene onto our window
         app->renderer().render_frame();
     });
-
-    // Start the main loop timer
-    render_timer.start();
 
     // Start the application event loop
     app->run();
