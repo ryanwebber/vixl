@@ -4,6 +4,7 @@
 #include <VX/Core/Component/TransformComponent.h>
 #include <VX/Core/Logger.h>
 #include <VX/Core/Platform/Platform.h>
+#include <VX/Core/RenderTarget.h>
 #include <VX/Core/ResourceManager.h>
 #include <VX/Core/Scene.h>
 #include <VX/Core/SceneManager.h>
@@ -77,7 +78,7 @@ int main()
     auto render_handle = render_timer.subscriber().on([&](auto _) {
         // Update the scene and render it into our target
         scene_manager.update();
-        scene_manager.render(*render_context);
+        scene_manager.render(*render_context, VX::Core::RenderTarget::to_window(app->window()));
 
         // Present the rendered scene onto our window
         app->renderer().render_frame();

@@ -5,6 +5,7 @@
 #include <VX/Noncopyable.h>
 
 #include <VX/Core/RenderContext.h>
+#include <VX/Core/RenderTarget.h>
 #include <VX/Core/Scene.h>
 #include <VX/Core/SceneRenderer.h>
 
@@ -19,7 +20,7 @@ namespace VX::Core {
         SceneManager();
 
         void update();
-        void render(RenderContext&);
+        void render(RenderContext&, const RenderTarget &target);
 
         void set_active_scene(std::shared_ptr<Scene> scene) {
             m_current_scene = std::move(scene);

@@ -80,11 +80,11 @@ namespace VX::Core {
         return NativeWindow::create_with_size(settings.window_size).and_then([&settings](NativeWindow nw) {
             return initialize_graphics(nw).map([&](std::shared_ptr<Renderer> renderer) {
 
-                auto resource_locator = settings.resource_locator;
-
-                auto window = std::make_shared<Window>(nw);
-                auto input = std::make_shared<Input>(nw);
                 auto event_loop = std::make_shared<EventLoop>();
+
+                auto resource_locator = settings.resource_locator;
+                auto window = std::make_shared<Window>(nw);
+                auto input = std::make_shared<Input>(nw, *event_loop->executor());
 
                 auto application = new Application(resource_locator,
                                                    std::move(window),
@@ -109,6 +109,13 @@ namespace VX::Core {
         , m_renderer(std::move(renderer))
         , m_event_loop(std::move(event_loop))
     {
-        // TODO: setup application input events like window resize events
+#define VX_ADD_EVENT_HANDLE(handle) m_event_handles.push_back(std::move(handle));
+
+        VX_ADD_EVENT_HANDLE(m_input->on_window_resize().on([&](auto &ev) {
+            Logger::Core->debug("Window resized: {}x{}", ev.window_size.width, ev.window_size.height);
+            bgfx::setViewRect(kClearView, 0, 0, ev.window_size.width, ev.window_size.height);
+        }));
+
+#undef VX_ADD_EVENT_HANDLE
     }
 }

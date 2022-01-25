@@ -13,10 +13,10 @@ namespace VX::Core {
         m_current_scene->update();
     }
 
-    void SceneManager::render(RenderContext &context) {
+    void SceneManager::render(RenderContext &context, const RenderTarget &target) {
         if (m_current_scene == nullptr)
             return;
 
-        m_current_scene->render(context);
+        m_current_scene->render(context, target);
     }
 }

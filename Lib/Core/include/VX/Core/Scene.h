@@ -9,6 +9,7 @@
 #include <VX/Noncopyable.h>
 #include <VX/Core/RenderContext.h>
 #include <VX/Core/RenderSystem.h>
+#include <VX/Core/RenderTarget.h>
 #include <VX/Core/UpdateSystem.h>
 #include <VX/Core/MetaSystem.h>
 
@@ -34,7 +35,7 @@ class Scene final : public std::enable_shared_from_this<Scene> {
 
         void configure();
         void update();
-        void render(RenderContext &context);
+        void render(RenderContext &context, const RenderTarget &target);
 
         [[nodiscard]] const std::string &name() const { return m_name; }
 

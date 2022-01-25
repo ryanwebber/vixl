@@ -13,14 +13,17 @@ namespace VX::Core {
             system->update(m_entity_registry);
     }
 
-    void Scene::render(RenderContext &context) {
+    void Scene::render(RenderContext &context, const RenderTarget &target) {
 
         auto up_is_down = bgfx::getCaps()->originBottomLeft ? 1.0f : -1.0f;
         glm::vec3 eye(0.0f, 0.0f, -5.0f);
         glm::vec3 center(0.0f, 0.0f, 0.0f);
         glm::vec3 up(0.0f, up_is_down, 0.0f);
         auto view_matrix = glm::lookAt(eye, center, up);
-        auto proj_matrix = glm::perspective(80.0f, (800.0f / 600.0f), 0.1f, 100.0f);
+
+        auto viewport_size = target.viewport_size().cast<float>();
+        auto aspect_ratio = viewport_size.width / viewport_size.height;
+        auto proj_matrix = glm::perspective(80.0f, aspect_ratio, 0.1f, 100.0f);
         SceneCamera camera(view_matrix, proj_matrix);
 
         context.set_view_projection({

@@ -14,6 +14,7 @@
     <mapping directory="$PROJECT_DIR$/3rdParty/imgui-wrapper/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/json" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/pixman-wrapper/pixman" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdParty/sdl2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/spdlog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/uvw" vcs="Git" />
   </component>
