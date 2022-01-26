@@ -27,7 +27,7 @@ function(add_compiled_shader)
 
     add_custom_command(
             OUTPUT ${ARG_OUTPUT}
-            COMMAND mkdir -p ${SHADER_DIR}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${SHADER_DIR}
             COMMAND shaderc
                 -f ${ARG_SRC}
                 -o ${ARG_OUTPUT}

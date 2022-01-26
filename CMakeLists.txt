@@ -1,6 +1,14 @@
 cmake_minimum_required (VERSION 3.6)
 project(Vixl VERSION 0.1.0)
 
+# https://cmake.org/cmake/help/latest/policy/CMP0118.html#policy:CMP0118
+# This ensures that generated sources propagate the GENERATED source
+# property when used out of the originating cmake directory. This means
+# that vixl-core can generate sources that are used in example executables,
+# and cmake will know to add the right dependencies on the code generator.
+# I'm not sure why this is explicitly needed and not the default behavior.
+cmake_policy(SET CMP0118 NEW)
+
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(FATAL_ERROR "Preventing an in-tree built.")
 endif()
@@ -15,14 +23,6 @@ if (APPLE)
     set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++20")
 endif()
-
-# Set public variables to be consumed by API users
-DEFINE_PROPERTY(GLOBAL PROPERTY VIXL_BUILTINS_ASSET_PACK
-        BRIEF_DOCS "The builtins asset pack to be installed somewhere on the target system."
-        FULL_DOCS  "The builtins asset pack to be installed somewhere on the target system.")
-DEFINE_PROPERTY(GLOBAL PROPERTY VIXL_BUILTINS_ASSET_PACK_TARGET
-        BRIEF_DOCS "Target name for generating the asset pack."
-        FULL_DOCS  "Target name for generating the asset pack. Add a dependency on this.")
 
 add_subdirectory(3rdParty)
 add_subdirectory(Tools)

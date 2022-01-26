@@ -323,6 +323,13 @@ namespace VX::Core {
             e.run();
         }
 
+        static void run_scoped(const std::function<Closable(std::shared_ptr<Executor>)> &block)
+        {
+            EventLoop e;
+            auto promise = block(e.executor());
+            e.run();
+        }
+
         const std::shared_ptr<Executor> &executor() { return m_executor; }
     };
 

@@ -1,7 +1,8 @@
 set(TARGET example-hello-world)
 
-GET_PROPERTY(builtins_asset_pack GLOBAL PROPERTY VIXL_BUILTINS_ASSET_PACK)
-GET_PROPERTY(builtins_asset_pack_target GLOBAL PROPERTY VIXL_BUILTINS_ASSET_PACK_TARGET)
+set(BUILTINS_TARGET vixl-builtins)
+
+get_target_property(BUILTINS_ASSET_BUNDLE ${BUILTINS_TARGET} ASSET_BUNDLE)
 
 set(LIBS
         vixl-common
@@ -18,11 +19,11 @@ set(SOURCES
         )
 
 set(RESOURCES
-        ${builtins_asset_pack}
+        ${BUILTINS_ASSET_BUNDLE}
         )
 
 set(EXTRA_DEPENDENCIES
-        ${builtins_asset_pack_target}
+        ${BUILTINS_TARGET}
         )
 
 if (APPLE)

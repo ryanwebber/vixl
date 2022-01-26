@@ -32,8 +32,6 @@ set(SOURCES
 
 ADD_LIBRARY(${TARGET} ${SOURCES})
 
-add_builtins_asset_pack_dependency(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/res/manifest.json ${CMAKE_CURRENT_SOURCE_DIR})
-
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 
 target_link_libraries(${TARGET}
@@ -87,7 +85,7 @@ target_compile_definitions(${TARGET}
 # Shaders
 
 add_compiled_shader(
-        TARGET      vx_sprite_fragment_shader
+        TARGET      vixl-shader-sprite_fragment
         TYPE        fragment
         PLATFORM    osx
         PROFILE     metal
@@ -102,7 +100,7 @@ add_compiled_shader(
 )
 
 add_compiled_shader(
-        TARGET      vx_sprite_vertex_shader
+        TARGET      vixl-shader-sprite_vertex
         TYPE        vertex
         PLATFORM    osx
         PROFILE     metal
@@ -112,6 +110,18 @@ add_compiled_shader(
         NAME        vx_sprite_vertex_shader
         INCLUDES
             ${PROJECT_SOURCE_DIR}/3rdParty/bgfx/bgfx/src
+        DEPS
+            ${TARGET}
+)
+
+# Packed assets
+
+add_packed_asset(
+        TARGET      vixl-builtins
+        MANIFEST    ${CMAKE_CURRENT_SOURCE_DIR}/res/manifest.json
+        OUTPUT      ${CMAKE_CURRENT_BINARY_DIR}/Generated/Assets/builtins.asset
+        LISTING     ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Assets/builtins.h
+        NAMESPACE   "VX::Core::Generated::Assets::Builtins"
         DEPS
             ${TARGET}
 )

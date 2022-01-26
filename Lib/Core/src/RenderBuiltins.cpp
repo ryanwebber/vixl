@@ -88,20 +88,17 @@ namespace VX::Core {
 
     std::shared_ptr<RenderBuiltins> RenderBuiltins::load_sync(const ResourceLocator &resource_locator, const std::filesystem::path &path) {
         std::shared_ptr<VX::Core::RenderBuiltins> builtins = nullptr;
-        VX::Core::EventLoop::run_scoped([&](auto executor) -> std::vector<VX::Core::Closable> {
+        VX::Core::EventLoop::run_scoped([&](auto executor) -> VX::Core::Closable {
             VX::Core::ResourceManager resource_manager(executor, resource_locator);
-            std::vector<VX::Core::Closable> handles;
-
             auto load_builtins = VX::Core::RenderBuiltins::load(resource_manager, path)
                     .finally([&](auto &loaded_builtins) {
                         builtins = std::move(loaded_builtins);
                     });
 
-            handles.push_back(std::move(load_builtins));
-            return handles;
+            return std::move(load_builtins);
         });
 
-        VX_ASSERT(builtins != nullptr, "Something messy is happening with promise resolving in the event loop");
+        VX_ASSERT(builtins != nullptr, "RenderBuiltins not loaded but temporary event loop has exited. Possible async bug.");
 
         return builtins;
     }
