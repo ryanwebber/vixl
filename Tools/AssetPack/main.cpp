@@ -2,11 +2,12 @@
 #include <functional>
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <vector>
 
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
+
+#include <VX/ArgParse/ArgParse.h>
 
 struct Asset {
     struct MetadataEntry {
@@ -25,13 +26,6 @@ struct Asset {
     std::size_t packed_length { 0 };
 };
 
-struct OptionParser {
-    const std::string short_form;
-    const std::string long_form;
-    size_t argc;
-    std::function<void(const char* argp[])> callback;
-};
-
 static std::string s_path_prefix = std::filesystem::current_path().string();
 static std::string s_input_manifest;
 static std::string s_output_package;
@@ -40,7 +34,7 @@ static std::string s_namespace("Assets");
 static std::filesystem::path s_cwd(std::filesystem::current_path());
 static bool s_print_help = false;
 
-static OptionParser s_option_parsers[] = {
+static const std::vector<VX::ArgParse::OptionParser> s_option_parsers = {
         {
             "-i",
             "--input",
@@ -99,44 +93,8 @@ static void print_help() {
     std::cout << usage_string << std::endl;
 }
 
-static bool parse_args(int argc, const char *argv[]) {
-    size_t i = 1;
-    while (i < argc) {
-        const char *arg = argv[i];
-        if (arg[0] != '-') {
-            std::cerr << "Unexpected argument: '" << arg << "'" << std::endl;
-            return false;
-        }
-
-        OptionParser *found_parser = nullptr;
-        for (auto &&parser: s_option_parsers) {
-            if (parser.short_form == arg || parser.long_form == arg) {
-                found_parser = &parser;
-                break;
-            }
-        }
-
-        if (found_parser == nullptr) {
-            std::cerr << "Unknown option: '" << arg << "'" << std::endl;
-            return false;
-        }
-
-        for (int a = 1; a < found_parser->argc; a++) {
-            if (i + a >= argc || argv[i + a][0] == '-') {
-                std::cerr << "Option '" << arg << "' expects " << (found_parser->argc - 1) << " args but got " << (a - 1) << std::endl;
-                return false;
-            }
-        }
-
-        found_parser->callback(&argv[i]);
-        i += found_parser->argc;
-    }
-
-    return true;
-}
-
 int main (int argc, const char *argv[]) {
-    bool parse_success = parse_args(argc, argv);
+    bool parse_success = VX::ArgParse::parse(argc, argv, s_option_parsers);
     if (!parse_success || s_print_help) {
         print_help();
         return !parse_success;
