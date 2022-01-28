@@ -20,7 +20,7 @@ namespace VX::Core {
     };
 
     enum class Textures : size_t {
-        UVMap = 0
+        LogoDefault = 0
     };
 
     enum class Shapes : size_t {

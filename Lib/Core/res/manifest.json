@@ -1,13 +1,9 @@
 {
   "resources": [
     {
-      "name": "uvcoordinates",
-      "src": "textures/uvcoordinates.png",
-      "metadata": {
-        "abc": "def",
-        "hello": 123,
-        "world": true
-      }
+      "name": "logo_default",
+      "src": "textures/vixl-logo-default.png",
+      "metadata": {}
     }
   ]
 }

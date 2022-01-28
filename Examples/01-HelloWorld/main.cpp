@@ -53,7 +53,7 @@ int main()
     auto entity = scene->entities().create();
 
     // Create a sprite material for our entity and assign a texture
-    auto texture = builtins->get_texture(VX::Core::Textures::UVMap);
+    auto texture = builtins->get_texture(VX::Core::Textures::LogoDefault);
     auto sprite_material = std::make_shared<VX::Core::Material>(builtins->get_material(VX::Core::Materials::Sprite).clone());
     sprite_material->set_texture<0>("s_texColor", texture);
 

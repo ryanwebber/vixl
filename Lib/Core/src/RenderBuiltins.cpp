@@ -66,9 +66,11 @@ namespace VX::Core {
         m_shapes.push_back(create_texture_quad());
 
         // Load textures
-        auto uvmap_texture_offset = VX::Core::Generated::Assets::Builtins::uvcoordinates::asset.offset;
-        auto uvmap_texture_size = VX::Core::Generated::Assets::Builtins::uvcoordinates::asset.size;
-        m_textures.push_back(Texture::create(m_asset_bundle.buffer().get_slice(uvmap_texture_offset, uvmap_texture_size), 0).value());
+        auto logo_default_texture_offset = VX::Core::Generated::Assets::Builtins::logo_default::asset.offset;
+        auto logo_default_texture_size = VX::Core::Generated::Assets::Builtins::logo_default::asset.size;
+        auto logo_default_texture_data = m_asset_bundle.buffer().get_slice(logo_default_texture_offset, logo_default_texture_size);
+        auto logo_default_texture = Texture::create(logo_default_texture_data, BGFX_SAMPLER_POINT);
+        m_textures.push_back(logo_default_texture.value());
 
         // Load materials
         auto sprite_vs_handle = make_shader({ vx_sprite_vertex_shader, sizeof(vx_sprite_vertex_shader) });
