@@ -9,7 +9,6 @@
     <mapping directory="$PROJECT_DIR$/3rdParty/entt" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/expected" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/fmt" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/3rdParty/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/imgui-wrapper/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/json" vcs="Git" />
@@ -17,6 +16,5 @@
     <mapping directory="$PROJECT_DIR$/3rdParty/sdl2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/spdlog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/uvw" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/libuv-src" vcs="Git" />
   </component>
 </project>

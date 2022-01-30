@@ -77,7 +77,7 @@ static void print_help() {
     auto usage_string = ""
                         "Usage:\n"
                         "    asset-pack --input <FILE> --output <FILE> --listing <FILE> \n"
-                        "    asset-pack -h | --help\n"
+                        "    asset-pack --help\n"
                         "\n"
                         "Generates asset manifest files.\n"
                         "\n"

@@ -1,1 +1,3 @@
 add_subdirectory(AssetPack)
+add_subdirectory(ShaderCompiler)
+add_subdirectory(VulkanTest)
