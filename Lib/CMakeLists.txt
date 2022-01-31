@@ -1,4 +1,5 @@
 add_subdirectory(ArgParse)
 add_subdirectory(Common)
 add_subdirectory(Core)
+add_subdirectory(Entry)
 add_subdirectory(Graphics)

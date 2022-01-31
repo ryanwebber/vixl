@@ -25,8 +25,8 @@ if (APPLE)
 endif()
 
 add_subdirectory(3rdParty)
-add_subdirectory(Tools)
 add_subdirectory(Lib)
+add_subdirectory(Tools)
 add_subdirectory(Examples)
 
 message(STATUS "CXX Flags: ${CMAKE_CXX_FLAGS}")

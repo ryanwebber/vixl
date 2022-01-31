@@ -3,7 +3,7 @@
 #include <VX/ArgParse/ArgParse.h>
 
 namespace VX::ArgParse {
-    static bool parse(int argc, const char *argv[], const std::vector<OptionParser> &opts) {
+    bool parse(int argc, const char *argv[], const std::vector<OptionParser> &opts) {
         size_t i = 1;
         while (i < argc) {
             const char *arg = argv[i];

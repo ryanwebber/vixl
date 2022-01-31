@@ -12,5 +12,5 @@ namespace VX::ArgParse {
         std::function<void(const char* argp[])> callback;
     };
 
-    static bool parse(int argc, const char *argv[], const std::vector<OptionParser> &opts);
+    bool parse(int argc, const char *argv[], const std::vector<OptionParser> &opts);
 }

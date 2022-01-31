@@ -1,21 +1,14 @@
-set(TARGET vulkan-test)
+include("${PROJECT_SOURCE_DIR}/Lib/Entry/cmake/vixl_application.cmake")
 
-set(LIBS)
+set(TARGET vulkan-test)
 
 set(SOURCES
         main.cpp
         )
 
-add_executable(${TARGET} ${SOURCES})
-
-target_link_libraries(${TARGET}
-        PRIVATE
-            vixl-graphics
-            SDL2-static
-        )
-
-target_include_directories(${TARGET}
-        PRIVATE
-            ${PROJECT_SOURCE_DIR}/Lib/Graphics/include
-            ${PROJECT_SOURCE_DIR}/3rdParty/sdl2/include
+add_vixl_application(
+        TARGET ${TARGET}
+        PLATFORM macOS
+        VULKAN_SDK $ENV{VULKAN_SDK}
+        SOURCES ${SOURCES}
         )
