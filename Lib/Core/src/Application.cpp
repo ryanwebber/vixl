@@ -12,10 +12,14 @@
 #include <VX/Core/Renderer.h>
 #include <VX/Core/Window.h>
 
+#include <spdlog/spdlog.h>
+
 namespace VX::Core {
 
     using VX::Error;
     using VX::Expected;
+
+    namespace Test = spdlog;
 
     void Application::run() {
 

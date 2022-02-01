@@ -19,9 +19,9 @@ target_link_libraries(${TARGET}
             ${Vulkan_LIBRARIES}
         )
 
+target_include_directories(${TARGET} SYSTEM PRIVATE ${Vulkan_INCLUDE_DIRS})
 target_include_directories(${TARGET}
         PRIVATE
-            ${Vulkan_INCLUDE_DIRS}
             ${PROJECT_SOURCE_DIR}/3rdParty/spdlog/include
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -31,7 +31,7 @@ target_include_directories(${TARGET}
 
 target_compile_definitions(${TARGET} PRIVATE
         VERSION="${CMAKE_PROJECT_VERSION}"
-        VX_GRAPHICS_DEBUG=0
+        VX_GRAPHICS_DEBUG=1
         VX_GRAPHICS_VALIDATION=1
         )
 

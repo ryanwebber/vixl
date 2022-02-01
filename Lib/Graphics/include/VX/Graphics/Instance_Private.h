@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
@@ -11,11 +12,13 @@ namespace VX::Graphics::Private {
     private:
         vk::raii::Context m_context;
         vk::raii::Instance m_instance;
+        std::vector<std::shared_ptr<void>> m_resources;
 
     public:
-        InstanceData(vk::raii::Context context, vk::raii::Instance instance)
+        InstanceData(vk::raii::Context context, vk::raii::Instance instance, std::vector<std::shared_ptr<void>> resources)
                 : m_context(std::move(context))
                 , m_instance(std::move(instance))
+                , m_resources(std::move(resources))
         {}
 
         ~InstanceData() = default;
