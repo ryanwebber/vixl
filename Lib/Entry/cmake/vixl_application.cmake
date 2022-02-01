@@ -13,6 +13,10 @@ function(add_vixl_application)
         message(FATAL_ERROR "Vulkan SDK path required via argument VULKAN_SDK.")
     endif()
 
+    set(APPLICATION_SOURCES
+            ${VIXL_APPLICATION_CMAKE_DIR}/../src/Inlines.cpp
+            )
+
     list(APPEND APPLICATION_SOURCES ${ARG_SOURCES})
 
     if(${ARG_PLATFORM} STREQUAL macOS)
@@ -92,6 +96,11 @@ function(add_vixl_application)
                 POST_BUILD
                 COMMAND install_name_tool -change "@rpath/libvulkan.1.dylib" "@executable_path/../Frameworks/libvulkan.1.dylib" "${APP_BUNDLE_DIR}/Contents/MacOS/${ARG_TARGET}"
                 DEPENDS vulkan
+                )
+
+        target_compile_definitions(${ARG_TARGET}
+                PRIVATE
+                    VX_PLATFORM_MACOS=1
                 )
     else()
         message(FATAL_ERROR "Unsupported platform: ${ARG_PLATFORM}")

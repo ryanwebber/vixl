@@ -33,6 +33,7 @@ namespace VX::Core {
         [[nodiscard]] SizeInt size() const;
         [[nodiscard]] const bgfx::PlatformData& platform_data() const { return m_platform_data; }
         [[nodiscard]] std::vector<const char*> graphics_extensions() const;
+        [[nodiscard]] void* native_window_pointer() const;
 
         void destroy();
         void clear();

@@ -1,20 +1,9 @@
 #pragma once
 
-#include <bgfx/platform.h>
-
-#if BX_PLATFORM_OSX
-    #define VX_PLATFORM_OSX 1
-    #include <VX/Core/Platform/API/OSX.h>
-    namespace VX::Core::Platform {
-        namespace Current = API::OSX;
-    }
-#elif BX_PLATFORM_WINDOWS
-    #error Unsupported platform
-#elif BX_PLATFORM_LINUX
-    #error Unsupported platform
+#if VX_PLATFORM_MACOS
+    #include <VX/Core/Platform/MacOS/Platform_MacOS.h>
+#elif VX_PLATFORM_GENERIC
+    #include <VX/Core/Platform/Generic/Platform_Generic.h>
 #else
-    #include <VX/Core/Platform/API/Generic.h>
-    namespace VX::Core::Platform {
-        namespace Current = API::Generic;
-    }
+    #error Unknown platform
 #endif

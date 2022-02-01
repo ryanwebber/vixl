@@ -3,7 +3,7 @@
 #include "SDL_vulkan.h"
 
 #include <VX/Core/NativeWindow.h>
-#include <VX/Core/Platform/Platform.h>
+#include <VX/Core/Platform/Platform_Extern.h>
 
 namespace VX::Core {
 
@@ -53,8 +53,7 @@ namespace VX::Core {
         pd.context = nullptr;
         pd.backBuffer = nullptr;
         pd.backBufferDS = nullptr;
-
-        Platform::Current::initialize_platform_data(wmi, pd);
+        pd.nwh = Platform::Current::SDL::native_window_pointer(wmi);
 
         auto renderer = SDL_CreateRenderer(window, 0, {});
 
@@ -68,5 +67,13 @@ namespace VX::Core {
         std::vector<const char*> extensionNames(extensionCount);
         SDL_Vulkan_GetInstanceExtensions(nullptr, &extensionCount, extensionNames.data());
         return extensionNames;
+    }
+
+    void* NativeWindow::native_window_pointer() const
+    {
+        SDL_SysWMinfo wmi;
+        SDL_VERSION(&wmi.version);
+        SDL_GetWindowWMInfo(m_window, &wmi);
+        return Platform::Current::SDL::native_window_pointer(wmi);
     }
 }

@@ -32,6 +32,7 @@ target_include_directories(${TARGET}
 target_compile_definitions(${TARGET} PRIVATE
         VERSION="${CMAKE_PROJECT_VERSION}"
         VX_GRAPHICS_DEBUG=0
+        VX_GRAPHICS_VALIDATION=1
         )
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

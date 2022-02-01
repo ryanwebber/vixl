@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.6)
 project(Vixl VERSION 0.1.0)
 
+option(VX_BUILD_EXAMPLES "Build the examples" ON)
+
 # https://cmake.org/cmake/help/latest/policy/CMP0118.html#policy:CMP0118
 # This ensures that generated sources propagate the GENERATED source
 # property when used out of the originating cmake directory. This means
@@ -27,6 +29,9 @@ endif()
 add_subdirectory(3rdParty)
 add_subdirectory(Lib)
 add_subdirectory(Tools)
-add_subdirectory(Examples)
+
+if(${VX_BUILD_EXAMPLES})
+    add_subdirectory(Examples)
+endif()
 
 message(STATUS "CXX Flags: ${CMAKE_CXX_FLAGS}")

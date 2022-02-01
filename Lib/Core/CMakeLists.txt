@@ -56,7 +56,8 @@ target_include_directories(${TARGET}
             "../../3rdParty/fmt/include"
             "../../3rdParty/imgui-wrapper"
             "../../3rdParty/pixman-wrapper/pixman"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../Common/include"
+            "${PROJECT_SOURCE_DIR}/Lib/Common/include"
+            "${PROJECT_SOURCE_DIR}/Lib/Graphics/include"
             "${CMAKE_CURRENT_BINARY_DIR}/include" # Generated code
             "${CMAKE_BINARY_DIR}" # Generated headers for pixman
         PUBLIC

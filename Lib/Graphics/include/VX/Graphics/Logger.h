@@ -8,7 +8,7 @@
 namespace VX::Graphics {
 
     inline void init_logger() {
-        auto logger = spdlog::stdout_color_mt("Graphics");
+        auto logger = spdlog::stdout_color_mt("graphics");
         logger->set_level(spdlog::level::debug);
         spdlog::set_default_logger(logger);
     }

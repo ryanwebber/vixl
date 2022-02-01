@@ -3,23 +3,25 @@
 #include "SDL.h"
 #include "SDL_syswm.h"
 
-#include <bgfx/bgfx.h>
-
 #include <corefoundation/CFBundle.h>
 #include <climits>
 
 #include <filesystem>
 #include <string_view>
 
-namespace VX::Core::Platform::API::OSX {
-    static const std::string_view name = "OSX";
+namespace VX::Core::Platform::Current {
 
-    static void initialize_platform_data(const SDL_SysWMinfo &wmi, bgfx::PlatformData &pd) {
-        pd.ndt = nullptr;
-        pd.nwh = wmi.info.cocoa.window;
+    std::string_view name() {
+        return "MacOS";
     }
 
-    static std::filesystem::path get_resource_directory() {
+    namespace SDL {
+        void* native_window_pointer(const SDL_SysWMinfo &wmi) {
+            return wmi.info.cocoa.window;
+        }
+    }
+
+    std::filesystem::path get_resource_directory() {
         CFBundleRef mainBundle = CFBundleGetMainBundle();
         CFURLRef resourceURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
 
