@@ -12,17 +12,16 @@ namespace VX::Graphics {
         class InstanceData;
     }
 
-    class Instance;
-
     struct PlatformData {
-        void* native_window_handle;
-        std::vector<const char*> required_extensions;
+        void* native_window_handle { nullptr };
+        std::vector<const char*> required_extensions { };
     };
 
     struct GraphicsInfo {
         PlatformData platform_data;
     };
 
+    class Instance;
     std::shared_ptr<Instance> init(const GraphicsInfo&);
 
     class Instance final : private std::enable_shared_from_this<Instance> {
@@ -33,6 +32,9 @@ namespace VX::Graphics {
         explicit Instance(std::unique_ptr<Private::InstanceData>);
     public:
         ~Instance() = default;
+
+        Private::InstanceData& data() { return *m_instance_data; };
+        const Private::InstanceData& data() const { return *m_instance_data; };
 
         friend std::shared_ptr<Instance> init(const GraphicsInfo&);
     };

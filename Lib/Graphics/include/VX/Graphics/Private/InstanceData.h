@@ -3,9 +3,8 @@
 #include <memory>
 #include <vector>
 
-#define VULKAN_HPP_NO_CONSTRUCTORS
-#include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_raii.hpp>
+#include <VX/Graphics/Private/Vulkan.h>
+#include <VX/Graphics/Private/Device.h>
 
 namespace VX::Graphics::Private {
     class InstanceData {

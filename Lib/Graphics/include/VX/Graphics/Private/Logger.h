@@ -5,7 +5,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-namespace VX::Graphics {
+namespace VX::Graphics::Private {
 
     inline void init_logger() {
         auto logger = spdlog::stdout_color_mt("graphics");

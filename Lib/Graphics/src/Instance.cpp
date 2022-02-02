@@ -1,13 +1,16 @@
+#include <map>
 #include <vector>
 #include <unordered_map>
 
 #include <VX/Graphics/Instance.h>
-#include <VX/Graphics/Instance_Private.h>
-#include <VX/Graphics/Logger.h>
+#include <VX/Graphics/Private/InstanceData.h>
+#include <VX/Graphics/Private/Logger.h>
 
 namespace VX::Graphics {
 
-    static const std::vector<const char*> validation_layers = {
+    using namespace Private;
+
+    static const std::vector<const char*> default_validation_layers = {
 #if VX_GRAPHICS_VALIDATION
             "VK_LAYER_KHRONOS_validation"
 #endif
@@ -113,11 +116,122 @@ namespace VX::Graphics {
         return required_extensions;
     }
 
+    static vk::raii::PhysicalDevice select_physical_device(const vk::raii::Instance &instance) {
+
+        static const std::vector<std::function<int(const vk::raii::PhysicalDevice&, const vk::PhysicalDeviceProperties&)>> evaluators = {
+                [](const auto& device, const auto& props) {
+                    switch (props.deviceType) {
+                        case vk::PhysicalDeviceType::eDiscreteGpu:
+                            return 100;
+                        case vk::PhysicalDeviceType::eIntegratedGpu:
+                            return 50;
+                        case vk::PhysicalDeviceType::eVirtualGpu:
+                            return 25;
+                        case vk::PhysicalDeviceType::eCpu:
+                            return 10;
+                        default:
+                            return 0;
+                    }
+                },
+        };
+
+        std::multimap<int, vk::raii::PhysicalDevice> devices_rankings;
+        for (auto& device : instance.enumeratePhysicalDevices()) {
+            auto props = device.getProperties();
+            int total_score = 0;
+            for (const auto& evaluator : evaluators) {
+                auto score = evaluator(device, props);
+                if (score < 0) {
+                    total_score = score;
+                    break;
+                }
+            }
+
+            if (total_score >= 0) {
+                devices_rankings.insert(std::make_pair(total_score, std::move(device)));
+            }
+        }
+
+        if (!devices_rankings.empty()) {
+            auto &device = devices_rankings.begin()->second;
+            Log::debug("Selected physical device ({} found): {}", devices_rankings.size(), device.getProperties().deviceName);
+            return std::move(device);
+        }
+
+        throw std::runtime_error("No suitable graphical device found.");
+    }
+
+    static vk::raii::Device init_logical_device(const vk::raii::PhysicalDevice &physical_device, std::vector<const char*> validation_layers) {
+
+        static const std::vector<vk::QueueFlags> required_queues = {
+            // 1. A queue that supports graphics
+            vk::QueueFlagBits::eGraphics,
+        };
+
+        float queue_priority = 1.0f;
+
+        uint32_t queue_count = 0;
+        vk::DeviceQueueCreateInfo *head = nullptr;
+        std::vector<std::shared_ptr<vk::DeviceQueueCreateInfo>> create_infos;
+
+        auto queue_families = physical_device.getQueueFamilyProperties();
+        for (const auto& requested_queue_flags : required_queues) {
+            uint32_t i = 0;
+            for (const auto& queue_family : queue_families) {
+                if ((queue_family.queueFlags & requested_queue_flags) == requested_queue_flags) {
+
+                    // Queue is valid!
+                    auto queue_create_info = std::make_shared<vk::DeviceQueueCreateInfo>(vk::DeviceQueueCreateInfo {
+                        .sType = vk::StructureType::eDeviceQueueCreateInfo,
+                        .pNext = head,
+                        .queueFamilyIndex = i,
+                        .queueCount = 1,
+                        .pQueuePriorities = &queue_priority,
+                    });
+
+                    head = queue_create_info.get();
+                    create_infos.push_back(queue_create_info);
+
+                    break;
+                }
+
+                i++;
+            }
+
+            if (i == queue_families.size()) {
+                throw std::runtime_error("No queues satisfy required features");
+            }
+        }
+
+        std::vector<const char*> required_extensions;
+        auto supported_extensions = physical_device.enumerateDeviceExtensionProperties();
+        for (const auto extension : supported_extensions) {
+            // https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451
+            if (std::string(extension.extensionName) == "VK_KHR_portability_subset") {
+                required_extensions.push_back("VK_KHR_portability_subset");
+            }
+        }
+
+        vk::PhysicalDeviceFeatures required_features = { /* None specified */ };
+        vk::DeviceCreateInfo create_info = {
+            .sType = vk::StructureType::eDeviceCreateInfo,
+            .queueCreateInfoCount = static_cast<uint32_t>(required_queues.size()),
+            .pQueueCreateInfos = head,
+            .enabledLayerCount = static_cast<uint32_t>(validation_layers.size()),
+            .ppEnabledLayerNames = validation_layers.data(),
+            .enabledExtensionCount = static_cast<uint32_t>(required_extensions.size()),
+            .ppEnabledExtensionNames = required_extensions.data(),
+            .pEnabledFeatures = &required_features,
+        };
+
+        return std::move(physical_device.createDevice(create_info));
+    }
+
     std::shared_ptr<Instance> init(const GraphicsInfo &info)
     {
         init_logger();
 
-        auto layers = init_layers(validation_layers);
+        auto layers = init_layers(default_validation_layers);
         auto extensions = init_extensions(info.platform_data.required_extensions);
 
         vk::raii::Context context;
@@ -144,7 +258,14 @@ namespace VX::Graphics {
 
         vk::raii::Instance instance(context, instance_info);
 
+        // Setup extension callbacks (ex. debug messaging)
         auto callbacks = init_callbacks(extensions, instance);
+
+        // Choose a physical device to use, since we only want to use one of them
+        auto physical_device = select_physical_device(instance);
+
+        // Create a logical_device
+        auto logical_device = init_logical_device(physical_device, layers);
 
         auto instance_data = std::make_unique<Private::InstanceData>(
                 std::move(context),
