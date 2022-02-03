@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-namespace VX::Core {
+namespace VX {
     template<typename T>
     union SizeT {
         glm::vec<2, T, glm::defaultp> vec;

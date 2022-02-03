@@ -14,7 +14,9 @@ namespace VX::Core {
         [[nodiscard]] SizeInt viewport_size() const { return m_viewport_size; }
 
         static RenderTarget to_window(const Window& window) {
-            return RenderTarget(window.native_window().size());
+            auto viewport = window.native_window().viewport();
+            SizeInt size { .width = viewport.width, .height = viewport.height };
+            return RenderTarget(size);
         }
     };
 }

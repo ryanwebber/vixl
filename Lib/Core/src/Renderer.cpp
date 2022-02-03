@@ -5,8 +5,6 @@
 namespace VX::Core {
     void Renderer::render_frame() {
 
-        m_native_window.clear();
-
         // This dummy draw call is here to make sure that view 0 is cleared if no other draw calls are submitted to view 0.
         bgfx::touch(0);
 
@@ -19,8 +17,6 @@ namespace VX::Core {
 
         // Render the frame
         bgfx::frame();
-
-        m_native_window.swap_buffers();
     }
 
     void Renderer::destroy() {

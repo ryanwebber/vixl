@@ -5,6 +5,7 @@
 #include <VX/Graphics/Instance.h>
 #include <VX/Graphics/Private/InstanceData.h>
 #include <VX/Graphics/Private/Logger.h>
+#include <VX/Graphics/Private/Queue.h>
 
 namespace VX::Graphics {
 
@@ -169,10 +170,7 @@ namespace VX::Graphics {
         };
 
         float queue_priority = 1.0f;
-
-        uint32_t queue_count = 0;
-        vk::DeviceQueueCreateInfo *head = nullptr;
-        std::vector<std::shared_ptr<vk::DeviceQueueCreateInfo>> create_infos;
+        std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
 
         auto queue_families = physical_device.getQueueFamilyProperties();
         for (const auto& requested_queue_flags : required_queues) {
@@ -181,26 +179,23 @@ namespace VX::Graphics {
                 if ((queue_family.queueFlags & requested_queue_flags) == requested_queue_flags) {
 
                     // Queue is valid!
-                    auto queue_create_info = std::make_shared<vk::DeviceQueueCreateInfo>(vk::DeviceQueueCreateInfo {
+                    queue_create_infos.push_back({
                         .sType = vk::StructureType::eDeviceQueueCreateInfo,
-                        .pNext = head,
+                        .pNext = nullptr,
                         .queueFamilyIndex = i,
                         .queueCount = 1,
                         .pQueuePriorities = &queue_priority,
                     });
-
-                    head = queue_create_info.get();
-                    create_infos.push_back(queue_create_info);
 
                     break;
                 }
 
                 i++;
             }
+        }
 
-            if (i == queue_families.size()) {
-                throw std::runtime_error("No queues satisfy required features");
-            }
+        if (queue_create_infos.size() != required_queues.size()) {
+            throw std::runtime_error("One or more queue requirements could not be satisfied by the device.");
         }
 
         std::vector<const char*> required_extensions;
@@ -215,8 +210,8 @@ namespace VX::Graphics {
         vk::PhysicalDeviceFeatures required_features = { /* None specified */ };
         vk::DeviceCreateInfo create_info = {
             .sType = vk::StructureType::eDeviceCreateInfo,
-            .queueCreateInfoCount = static_cast<uint32_t>(required_queues.size()),
-            .pQueueCreateInfos = head,
+            .queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size()),
+            .pQueueCreateInfos = queue_create_infos.data(),
             .enabledLayerCount = static_cast<uint32_t>(validation_layers.size()),
             .ppEnabledLayerNames = validation_layers.data(),
             .enabledExtensionCount = static_cast<uint32_t>(required_extensions.size()),

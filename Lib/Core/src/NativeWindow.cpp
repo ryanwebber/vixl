@@ -1,6 +1,8 @@
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "SDL_vulkan.h"
+#include "../../Platform/include/VX/Platform/NativeWindow.h"
+
 
 #include <VX/Core/NativeWindow.h>
 #include <VX/Core/Platform/Platform_Extern.h>

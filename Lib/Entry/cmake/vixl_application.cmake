@@ -57,6 +57,12 @@ function(add_vixl_application)
                 vixl-common
                 vixl-entry
                 vixl-graphics
+                vixl-platform
+
+                # Shared external libs
+                stdc++
+                spdlog
+                SDL2-static
                 )
 
         find_library(COCOA_LIBRARY Cocoa)

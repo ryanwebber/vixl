@@ -4,9 +4,6 @@ add_subdirectory(glm)
 add_subdirectory(json)
 add_subdirectory(sdl2)
 
-add_subdirectory(imgui-wrapper)
-add_subdirectory(pixman-wrapper)
-
 set(BGFX_BUILD_TOOLS ON CACHE BOOL "Enable building bgfx tools" FORCE)
 set(BGFX_BUILD_EXAMPLES OFF CACHE BOOL "Disable building bgfx examples" FORCE)
 add_subdirectory(bgfx)

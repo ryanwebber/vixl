@@ -2,11 +2,9 @@
 
 #include <VX/Core/Input.h>
 
-#define VX_DEFINE_EVENT()
-
 namespace VX::Core {
-    Input::Input(NativeWindow window, Executor &executor)
-        : m_native_window(window)
+    Input::Input(std::shared_ptr<NativeWindow> window, Executor &executor)
+        : m_native_window(std::move(window))
         , m_on_window_resize_event(executor)
     {
     }

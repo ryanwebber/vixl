@@ -5,6 +5,8 @@
 #include "SDL.h"
 #include "SDL_syswm.h"
 
+#include <VX/Graphics/Platform.h>
+
 namespace VX::Core::Platform::Current {
     extern std::string_view name();
     namespace SDL {

@@ -12,7 +12,6 @@ set(SOURCES
         src/Input.cpp
         src/Logger.cpp
         src/Material.cpp
-        src/NativeWindow.cpp
         src/RenderBuffer.cpp
         src/RenderBuiltins.cpp
         src/RenderContext.cpp
@@ -37,37 +36,32 @@ target_compile_features(${TARGET} PUBLIC cxx_std_20)
 target_link_libraries(${TARGET}
         PRIVATE
             fmt
-            imgui
-            pixman
             bimg
         PUBLIC
-            stdc++
-            glm
-            spdlog
             uvw
             EnTT::EnTT
             bx
             bgfx
-            SDL2-static
         )
 
 target_include_directories(${TARGET}
         PRIVATE
-            "../../3rdParty/fmt/include"
-            "../../3rdParty/imgui-wrapper"
-            "../../3rdParty/pixman-wrapper/pixman"
+            "${PROJECT_SOURCE_DIR}/3rdParty/fmt/include"
             "${PROJECT_SOURCE_DIR}/Lib/Common/include"
             "${PROJECT_SOURCE_DIR}/Lib/Graphics/include"
-            "${CMAKE_CURRENT_BINARY_DIR}/include" # Generated code
-            "${CMAKE_BINARY_DIR}" # Generated headers for pixman
+            "${PROJECT_SOURCE_DIR}/Lib/Platform/include"
+
+            # Generated code
+            "${CMAKE_CURRENT_BINARY_DIR}/include"
+
         PUBLIC
-            "../../3rdParty/bgfx/bgfx/include"
-            "../../3rdParty/entt/src"
-            "../../3rdParty/expected/include"
-            "../../3rdParty/glm"
-            "../../3rdParty/sdl2/include"
-            "../../3rdParty/spdlog/include"
-            "../../3rdParty/uvw/src"
+            "${PROJECT_SOURCE_DIR}/3rdParty/bgfx/bgfx/include"
+            "${PROJECT_SOURCE_DIR}/3rdParty/entt/src"
+            "${PROJECT_SOURCE_DIR}/3rdParty/expected/include"
+            "${PROJECT_SOURCE_DIR}/3rdParty/glm"
+            "${PROJECT_SOURCE_DIR}/3rdParty/sdl2/include"
+            "${PROJECT_SOURCE_DIR}/3rdParty/spdlog/include"
+            "${PROJECT_SOURCE_DIR}/3rdParty/uvw/src"
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
         )
 

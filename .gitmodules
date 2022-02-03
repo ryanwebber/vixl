@@ -1,6 +1,3 @@
-[submodule "3rdParty/imgui-wrapper/imgui"]
-	path = 3rdParty/imgui-wrapper/imgui
-	url = git@github.com:ocornut/imgui.git
 [submodule "3rdParty/spdlog"]
 	path = 3rdParty/spdlog
 	url = git@github.com:gabime/spdlog.git
@@ -13,9 +10,6 @@
 [submodule "3rdParty/uvw"]
 	path = 3rdParty/uvw
 	url = git@github.com:skypjack/uvw.git
-[submodule "3rdParty/pixman-wrapper/pixman"]
-	path = 3rdParty/pixman-wrapper/pixman
-	url = https://gitlab.freedesktop.org/pixman/pixman.git
 [submodule "3rdParty/bgfx"]
 	path = 3rdParty/bgfx
 	url = git@github.com:bkaradzic/bgfx.cmake.git

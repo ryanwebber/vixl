@@ -4,24 +4,25 @@
 
 #include <VX/Noncopyable.h>
 
-#include <VX/Core/NativeWindow.h>
 #include <VX/Core/RenderStack.h>
 #include <VX/Graphics/Instance.h>
+#include <VX/Platform/NativeWindow.h>
 
 namespace VX::Core {
+
+    using namespace VX::Platform;
+
     class Renderer final {
         VX_MAKE_NONCOPYABLE(Renderer);
         VX_MAKE_NONMOVABLE(Renderer);
 
     private:
         RenderStack m_render_stack;
-        NativeWindow m_native_window;
         std::shared_ptr<Graphics::Instance> m_graphics;
 
     public:
-        explicit Renderer(NativeWindow nw, std::shared_ptr<Graphics::Instance> graphics)
-            : m_native_window(nw)
-            , m_graphics(std::move(graphics))
+        explicit Renderer(std::shared_ptr<Graphics::Instance> graphics)
+            : m_graphics(std::move(graphics))
         {};
 
         ~Renderer() = default;

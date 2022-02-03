@@ -1,11 +1,12 @@
 #include <VX/Core/Application.h>
 #include <VX/Core/Async.h>
 #include <VX/Core/Input.h>
-#include <VX/Core/NativeWindow.h>
 #include <VX/Core/Renderer.h>
 #include <VX/Core/Window.h>
 #include <VX/Entry/Main.h>
 #include <VX/Graphics/Instance.h>
+#include <VX/Platform/Platform.h>
+#include <VX/Platform/Abstraction/WindowFactory.h>
 
 #ifndef TARGET_FPS
 #define TARGET_FPS 60
@@ -13,18 +14,27 @@
 
 int vixl_main(const VX::Entry::Context &ctx) {
 
-    auto native_window = VX::Core::NativeWindow::create_with_size({ .width = 800, .height = 600 }).value();
+    VX::Platform::Abstraction::WindowOptions window_options = {
+            .name = "Entry Test",
+            .size = {
+                    .width = 800,
+                    .height = 600,
+            }
+    };
+
+    auto native_window = VX::Platform::get_abstraction<VX::Platform::Abstraction::WindowFactory>()
+            .create_with_options(window_options);
+
     auto graphics = VX::Graphics::init({
         .platform_data = {
-            .native_window_handle = native_window.native_window_pointer(),
-            .required_extensions = native_window.graphics_extensions()
+            .required_extensions = { }
         }
     });
 
     auto event_loop = std::make_shared<VX::Core::EventLoop>();
     auto window = std::make_shared<VX::Core::Window>(native_window);
     auto input = std::make_shared<VX::Core::Input>(native_window, *event_loop->executor());
-    auto renderer = std::make_shared<VX::Core::Renderer>(native_window, graphics);
+    auto renderer = std::make_shared<VX::Core::Renderer>(graphics);
 
     VX::Core::Application app(event_loop, window, input, renderer);
 

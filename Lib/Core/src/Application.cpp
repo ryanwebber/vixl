@@ -29,7 +29,6 @@ namespace VX::Core {
         m_event_loop->run();
 
         m_renderer->destroy();
-        m_window->native_window().destroy();
 
         Logger::Core->debug("Goodbye!");
     }

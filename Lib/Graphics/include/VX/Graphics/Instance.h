@@ -6,16 +6,13 @@
 #include <VX/Noncopyable.h>
 #include <VX/Copyable.h>
 
+#include <VX/Graphics/Platform.h>
+
 namespace VX::Graphics {
 
     namespace Private {
         class InstanceData;
     }
-
-    struct PlatformData {
-        void* native_window_handle { nullptr };
-        std::vector<const char*> required_extensions { };
-    };
 
     struct GraphicsInfo {
         PlatformData platform_data;
