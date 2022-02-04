@@ -4,8 +4,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include <bgfx/bgfx.h>
-
 #include <VX/Copyable.h>
 
 #include <VX/Core/Handle.h>
@@ -41,9 +39,9 @@ namespace VX::Core {
 
         [[nodiscard]] Material clone() const;
 
-        [[nodiscard]] bgfx::ShaderHandle vertex_shader_handle() const { return **m_vertex_shader; }
-        [[nodiscard]] bgfx::ShaderHandle fragment_shader_handle() const { return **m_fragment_shader; }
-        [[nodiscard]] bgfx::ProgramHandle shader_program_handle() const { return **m_shader_program; }
+        [[nodiscard]] ShaderHandle vertex_shader_handle() const { return *m_vertex_shader; }
+        [[nodiscard]] ShaderHandle fragment_shader_handle() const { return *m_fragment_shader; }
+        [[nodiscard]] ProgramHandle shader_program_handle() const { return *m_shader_program; }
 
         [[nodiscard]] const std::unordered_map<uint8_t, SampleTexture>& texture_slots() const { return m_texture_slots; }
 
@@ -58,9 +56,7 @@ namespace VX::Core {
 
         template <uint8_t SLOT>
         void set_texture(const std::string sampler_name, const Texture &texture) {
-            auto uniform_handle = std::make_shared<VX::Core::UniformHandle>(bgfx::createUniform(sampler_name.c_str(),  bgfx::UniformType::Sampler));
-            auto texture_handle = texture.texture_handle();
-            set_texture<SLOT>({ std::move(uniform_handle), std::move(texture_handle) });
+#warning "Material#set_texture not implemented"
         }
     };
 }

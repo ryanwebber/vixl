@@ -7,8 +7,7 @@
 namespace VX::Core {
 
     std::shared_ptr<ProgramHandle> compile(const ShaderHandle &vs, const ShaderHandle &fs) {
-        auto handle = bgfx::createProgram(*vs, *fs, false);
-        return std::make_shared<ProgramHandle>(handle);
+        return nullptr;
     }
 
     Material::Material(const std::string_view &name, std::shared_ptr<ShaderHandle> vertex_shader, std::shared_ptr<ShaderHandle> fragment_shader)

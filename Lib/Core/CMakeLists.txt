@@ -36,33 +36,35 @@ target_compile_features(${TARGET} PUBLIC cxx_std_20)
 target_link_libraries(${TARGET}
         PRIVATE
             fmt
-            bimg
         PUBLIC
             uvw
             EnTT::EnTT
-            bx
-            bgfx
         )
 
 target_include_directories(${TARGET}
         PRIVATE
-            "${PROJECT_SOURCE_DIR}/3rdParty/fmt/include"
             "${PROJECT_SOURCE_DIR}/Lib/Common/include"
             "${PROJECT_SOURCE_DIR}/Lib/Graphics/include"
             "${PROJECT_SOURCE_DIR}/Lib/Platform/include"
 
             # Generated code
             "${CMAKE_CURRENT_BINARY_DIR}/include"
-
         PUBLIC
-            "${PROJECT_SOURCE_DIR}/3rdParty/bgfx/bgfx/include"
+            "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        )
+
+target_include_directories(${TARGET}
+        SYSTEM
+        PRIVATE
+            "${PROJECT_SOURCE_DIR}/3rdParty/fmt/include"
+        SYSTEM
+        PUBLIC
             "${PROJECT_SOURCE_DIR}/3rdParty/entt/src"
             "${PROJECT_SOURCE_DIR}/3rdParty/expected/include"
             "${PROJECT_SOURCE_DIR}/3rdParty/glm"
             "${PROJECT_SOURCE_DIR}/3rdParty/sdl2/include"
             "${PROJECT_SOURCE_DIR}/3rdParty/spdlog/include"
             "${PROJECT_SOURCE_DIR}/3rdParty/uvw/src"
-            "${CMAKE_CURRENT_SOURCE_DIR}/include"
         )
 
 target_compile_definitions(${TARGET}
@@ -76,38 +78,6 @@ target_compile_definitions(${TARGET}
         PUBLIC
             VX_VERSION="${CMAKE_PROJECT_VERSION}"
         )
-
-# Shaders
-
-add_compiled_shader(
-        TARGET      vixl-shader-sprite_fragment
-        TYPE        fragment
-        PLATFORM    osx
-        PROFILE     metal
-        SRC         ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/sprite/fragment.sc
-        DEFINITION  ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/sprite/varying.def.sc
-        OUTPUT      ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Shader/Sprite/fragment.h
-        NAME        vx_sprite_fragment_shader
-        INCLUDES
-            ${PROJECT_SOURCE_DIR}/3rdParty/bgfx/bgfx/src
-        DEPS
-            ${TARGET}
-)
-
-add_compiled_shader(
-        TARGET      vixl-shader-sprite_vertex
-        TYPE        vertex
-        PLATFORM    osx
-        PROFILE     metal
-        SRC         ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/sprite/vertex.sc
-        DEFINITION  ${CMAKE_CURRENT_SOURCE_DIR}/res/shaders/sprite/varying.def.sc
-        OUTPUT      ${CMAKE_CURRENT_BINARY_DIR}/include/VX/Core/Generated/Shader/Sprite/vertex.h
-        NAME        vx_sprite_vertex_shader
-        INCLUDES
-            ${PROJECT_SOURCE_DIR}/3rdParty/bgfx/bgfx/src
-        DEPS
-            ${TARGET}
-)
 
 # Packed assets
 

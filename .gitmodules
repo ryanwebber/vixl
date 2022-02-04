@@ -10,9 +10,6 @@
 [submodule "3rdParty/uvw"]
 	path = 3rdParty/uvw
 	url = git@github.com:skypjack/uvw.git
-[submodule "3rdParty/bgfx"]
-	path = 3rdParty/bgfx
-	url = git@github.com:bkaradzic/bgfx.cmake.git
 [submodule "3rdParty/expected"]
 	path = 3rdParty/expected
 	url = git@github.com:TartanLlama/expected.git

@@ -27,9 +27,8 @@ if (${VX_PLATFORM_SCHEME} STREQUAL "AUTO")
 endif()
 
 if (${VX_PLATFORM_SCHEME} STREQUAL "MACOS_DEFAULT")
-    add_compile_definitions(
-            VX_SCHEME_MACOS_DEFAULT=1
-    )
+    add_compile_definitions(VX_SCHEME_MACOS_DEFAULT=1)
+    SET(VX_GRAPHICS_MACOS_SUPPORT ON CACHE BOOL "Include macOS graphics support")
 else()
     message(FATAL_ERROR "Unknown platform scheme: ${VX_PLATFORM_SCHEME}")
 endif()

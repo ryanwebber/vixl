@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <bgfx/bgfx.h>
 
 namespace VX::Core {
     template<typename T>
@@ -23,7 +22,7 @@ namespace VX::Core {
         Handle& operator=(const Handle&) noexcept = default;
 
         ~Handle() {
-            bgfx::destroy(m_handle);
+            m_handle.destroy();
         }
 
         T get() const { return m_handle; };

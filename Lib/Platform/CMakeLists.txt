@@ -10,10 +10,17 @@ ADD_LIBRARY(${TARGET} STATIC ${SOURCES})
 target_compile_features(${TARGET} PUBLIC cxx_std_17)
 
 target_include_directories(${TARGET}
+        SYSTEM
+        PUBLIC
+            ${PROJECT_SOURCE_DIR}/3rdParty/sdl2/include
+            ${PROJECT_SOURCE_DIR}/3rdParty/glm
+        )
+
+target_include_directories(${TARGET}
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR}/include
-            ${PROJECT_SOURCE_DIR}/3rdParty/sdl2/include
             ${PROJECT_SOURCE_DIR}/Lib/Common/include
+            ${PROJECT_SOURCE_DIR}/Lib/Graphics/include
         )
 
 target_compile_definitions(${TARGET}

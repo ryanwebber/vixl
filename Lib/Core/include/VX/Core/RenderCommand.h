@@ -3,7 +3,6 @@
 #include <memory>
 
 #include <glm/glm.hpp>
-#include <bgfx/bgfx.h>
 
 #include <VX/Core/Material.h>
 #include <VX/Core/Handle.h>
@@ -12,7 +11,6 @@
 namespace VX::Core {
     class RenderCommand final {
     private:
-        RenderState m_state { BGFX_STATE_DEFAULT };
         glm::mat4x4 m_transform { glm::mat4x4(1) };
         std::shared_ptr<VertexBufferHandle> m_vertex_buffer;
         std::shared_ptr<IndexBufferHandle> m_index_buffer;
@@ -34,7 +32,6 @@ namespace VX::Core {
         RenderCommand(const RenderCommand&) noexcept = default;
         RenderCommand& operator=(const RenderCommand&) noexcept = default;
 
-        [[nodiscard]] const RenderState& state() const { return m_state; }
         [[nodiscard]] const glm::mat4x4& transform() const { return m_transform; }
         [[nodiscard]] const VertexBufferHandle& vertex_buffer() const { return *m_vertex_buffer; }
         [[nodiscard]] const IndexBufferHandle& index_buffer() const { return *m_index_buffer; }

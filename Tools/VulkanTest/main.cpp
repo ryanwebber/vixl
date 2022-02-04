@@ -7,6 +7,7 @@
 #include <VX/Graphics/Instance.h>
 #include <VX/Platform/Platform.h>
 #include <VX/Platform/Abstraction/WindowFactory.h>
+#include <VX/Platform/Abstraction/GraphicsInitializer.h>
 
 #ifndef TARGET_FPS
 #define TARGET_FPS 60
@@ -15,21 +16,15 @@
 int vixl_main(const VX::Entry::Context &ctx) {
 
     VX::Platform::Abstraction::WindowOptions window_options = {
-            .name = "Entry Test",
-            .size = {
-                    .width = 800,
-                    .height = 600,
-            }
+        .name = "Entry Test",
+        .size = { 800, 600 }
     };
 
     auto native_window = VX::Platform::get_abstraction<VX::Platform::Abstraction::WindowFactory>()
             .create_with_options(window_options);
 
-    auto graphics = VX::Graphics::init({
-        .platform_data = {
-            .required_extensions = { }
-        }
-    });
+    auto graphics = VX::Platform::get_abstraction<VX::Platform::Abstraction::GraphicsInitializer>()
+            .initialize_with_window(*native_window);
 
     auto event_loop = std::make_shared<VX::Core::EventLoop>();
     auto window = std::make_shared<VX::Core::Window>(native_window);

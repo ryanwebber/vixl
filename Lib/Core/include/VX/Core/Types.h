@@ -1,13 +1,31 @@
 #pragma once
 
 #include <VX/Core/Handle.h>
+#include <VX/Core/Logger.h>
 
 namespace VX::Core {
-    typedef uint64_t RenderState;
-    typedef Handle<bgfx::ShaderHandle> ShaderHandle;
-    typedef Handle<bgfx::ProgramHandle> ProgramHandle;
-    typedef Handle<bgfx::TextureHandle> TextureHandle;
-    typedef Handle<bgfx::VertexBufferHandle> VertexBufferHandle;
-    typedef Handle<bgfx::IndexBufferHandle> IndexBufferHandle;
-    typedef Handle<bgfx::UniformHandle> UniformHandle;
+
+    struct HandleStub {
+        static size_t s_index;
+
+        size_t idx;
+
+        HandleStub()
+            : idx(++s_index)
+        {
+            Logger::Core->debug("Handle init: {}", idx);
+        }
+
+        inline void destroy()
+        {
+            Logger::Core->debug("Handle destroy: {}", idx);
+        }
+    };
+
+    typedef Handle<HandleStub> ShaderHandle;
+    typedef Handle<HandleStub> ProgramHandle;
+    typedef Handle<HandleStub> TextureHandle;
+    typedef Handle<HandleStub> VertexBufferHandle;
+    typedef Handle<HandleStub> IndexBufferHandle;
+    typedef Handle<HandleStub> UniformHandle;
 }

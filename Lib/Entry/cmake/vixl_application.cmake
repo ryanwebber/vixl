@@ -13,11 +13,22 @@ function(add_vixl_application)
         message(FATAL_ERROR "Vulkan SDK path required via argument VULKAN_SDK.")
     endif()
 
-    set(APPLICATION_SOURCES
-            ${VIXL_APPLICATION_CMAKE_DIR}/../src/Inlines.cpp
+    set(APPLICATION_SOURCES ${ARG_SOURCES})
+
+    set(APPLICATION_LIBS
+            vixl-core
+            vixl-common
+            vixl-entry
+            vixl-graphics
+            vixl-platform
             )
 
-    list(APPEND APPLICATION_SOURCES ${ARG_SOURCES})
+    set(EXTERNAL_LIBS
+            glm
+            SDL2-static
+            spdlog
+            stdc++
+            )
 
     if(${ARG_PLATFORM} STREQUAL macOS)
 
@@ -52,24 +63,12 @@ function(add_vixl_application)
                 ${PROJECT_SOURCE_DIR}/Lib/Entry/include
                 )
 
-        set(APPLICATION_LIBS
-                vixl-core
-                vixl-common
-                vixl-entry
-                vixl-graphics
-                vixl-platform
-
-                # Shared external libs
-                stdc++
-                spdlog
-                SDL2-static
-                )
-
         find_library(COCOA_LIBRARY Cocoa)
         find_library(QUARTZ_LIBRARY QuartzCore)
         list(APPEND APPLICATION_LIBS ${COCOA_LIBRARY} ${QUARTZ_LIBRARY})
 
         target_link_libraries(${ARG_TARGET} ${APPLICATION_LIBS})
+        target_link_libraries(${ARG_TARGET} ${EXTERNAL_LIBS})
 
         set_property(SOURCE ${MOLTEN_VK_ICD_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/vulkan/icd.d")
 
@@ -102,11 +101,6 @@ function(add_vixl_application)
                 POST_BUILD
                 COMMAND install_name_tool -change "@rpath/libvulkan.1.dylib" "@executable_path/../Frameworks/libvulkan.1.dylib" "${APP_BUNDLE_DIR}/Contents/MacOS/${ARG_TARGET}"
                 DEPENDS vulkan
-                )
-
-        target_compile_definitions(${ARG_TARGET}
-                PRIVATE
-                    VX_PLATFORM_MACOS=1
                 )
     else()
         message(FATAL_ERROR "Unsupported platform: ${ARG_PLATFORM}")

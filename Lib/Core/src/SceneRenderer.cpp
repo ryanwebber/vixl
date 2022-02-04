@@ -1,9 +1,7 @@
-#include <bx/math.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <VX/Core/RenderPass.h>
 #include <VX/Core/SceneRenderer.h>
-#include <VX/Core/Logger.h>
 
 namespace VX::Core {
 
@@ -28,9 +26,9 @@ namespace VX::Core {
             if (!weak_context.expired()) {
                 auto context = weak_context.lock();
 
-                auto view_matrix_ptr = glm::value_ptr(context->view_projection().view_matrix);
-                auto proj_matrix_ptr = glm::value_ptr(context->view_projection().projection_matrix);
-                bgfx::setViewTransform(0, view_matrix_ptr, proj_matrix_ptr);
+                auto view_matrix = context->view_projection().view_matrix;
+                auto proj_matrix = context->view_projection().projection_matrix;
+                // TODO: do something with the view-projection matrix
 
                 for (auto &command : context->buffer().commands()) {
                     rp.submit(command);

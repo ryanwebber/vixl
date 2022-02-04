@@ -12,15 +12,15 @@ namespace VX::Platform::Private {
         SDLWindowFactory() = default;
 
     public:
-        std::shared_ptr<VX::Platform::NativeWindow> create_with_options(const Abstraction::WindowOptions &options) const override {
+        [[nodiscard]] std::shared_ptr<VX::Platform::NativeWindow> create_with_options(const Abstraction::WindowOptions &options) const override {
             SDL_Init(SDL_INIT_EVERYTHING);
 
             SDL_Window* window = SDL_CreateWindow(
                     options.name.data(),
                     SDL_WINDOWPOS_UNDEFINED,
                     SDL_WINDOWPOS_UNDEFINED,
-                    options.size.width,
-                    options.size.height,
+                    options.size.x,
+                    options.size.y,
                     SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | FLAGS);
 
             return std::make_shared<NativeWindow>(window);

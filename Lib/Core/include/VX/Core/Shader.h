@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <span>
+
 #include <VX/Core/Types.h>
 
 namespace VX::Core {

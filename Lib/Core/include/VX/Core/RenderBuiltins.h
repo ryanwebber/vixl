@@ -30,9 +30,9 @@ namespace VX::Core {
     class RenderBuiltins final {
     private:
         AssetBundle m_asset_bundle;
-        std::vector<Shape> m_shapes;
-        std::vector<Texture> m_textures;
-        std::vector<Material> m_materials;
+        std::vector<Shape> m_shapes { };
+        std::vector<Texture> m_textures { };
+        std::vector<Material> m_materials { };
 
     public:
         explicit RenderBuiltins(AssetBundle&);

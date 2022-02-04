@@ -1,4 +1,5 @@
 #include <glm/glm.hpp>
+
 #include <VX/Core/Scene.h>
 
 namespace VX::Core {
@@ -14,11 +15,9 @@ namespace VX::Core {
     }
 
     void Scene::render(RenderContext &context, const RenderTarget &target) {
-
-        auto up_is_down = bgfx::getCaps()->originBottomLeft ? 1.0f : -1.0f;
         glm::vec3 eye(0.0f, 0.0f, -5.0f);
         glm::vec3 center(0.0f, 0.0f, 0.0f);
-        glm::vec3 up(0.0f, up_is_down, 0.0f);
+        glm::vec3 up(0.0f, 1.0f, 0.0f);
         auto view_matrix = glm::lookAt(eye, center, up);
 
         auto viewport_size = target.viewport_size().cast<float>();
