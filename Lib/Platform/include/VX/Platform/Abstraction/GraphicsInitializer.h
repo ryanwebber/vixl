@@ -3,7 +3,6 @@
 #include <string_view>
 
 #include <VX/Graphics/Instance.h>
-
 #include <VX/Platform/NativeWindow.h>
 
 namespace VX::Platform::Abstraction {

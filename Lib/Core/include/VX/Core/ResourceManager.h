@@ -8,11 +8,13 @@
 #include <VX/Expected.h>
 #include <VX/Noncopyable.h>
 
+#include <VX/Platform/ResourceLocator.h>
 #include <VX/Core/AssetBundle.h>
-#include <VX/Core/ResourceLocator.h>
 #include <VX/Core/Async.h>
 
 namespace VX::Core {
+
+    using namespace Platform;
 
     class ResourceManager final {
         VX_MAKE_NONMOVABLE(ResourceManager);

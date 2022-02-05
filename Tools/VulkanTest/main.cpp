@@ -1,19 +1,23 @@
 #include <VX/Core/Application.h>
 #include <VX/Core/Async.h>
 #include <VX/Core/Input.h>
+#include <VX/Core/Logger.h>
 #include <VX/Core/Renderer.h>
 #include <VX/Core/Window.h>
 #include <VX/Entry/Main.h>
 #include <VX/Graphics/Instance.h>
 #include <VX/Platform/Platform.h>
-#include <VX/Platform/Abstraction/WindowFactory.h>
+#include <VX/Platform/Abstraction/FileSystem.h>
 #include <VX/Platform/Abstraction/GraphicsInitializer.h>
+#include <VX/Platform/Abstraction/WindowFactory.h>
 
 #ifndef TARGET_FPS
 #define TARGET_FPS 60
 #endif
 
 int vixl_main(const VX::Entry::Context &ctx) {
+
+    auto logger = VX::Core::Logger::create_named("vulkan-test");
 
     VX::Platform::Abstraction::WindowOptions window_options = {
         .name = "Entry Test",
@@ -25,6 +29,11 @@ int vixl_main(const VX::Entry::Context &ctx) {
 
     auto graphics = VX::Platform::get_abstraction<VX::Platform::Abstraction::GraphicsInitializer>()
             .initialize_with_window(*native_window);
+
+    auto resource_locator = VX::Platform::get_abstraction<VX::Platform::Abstraction::FileSystem>()
+            .resource_locator();
+
+    logger->debug("Got resource directory: {}", resource_locator.resource_path().string());
 
     auto event_loop = std::make_shared<VX::Core::EventLoop>();
     auto window = std::make_shared<VX::Core::Window>(native_window);

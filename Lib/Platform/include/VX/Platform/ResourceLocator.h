@@ -5,7 +5,7 @@
 
 #include <VX/Copyable.h>
 
-namespace VX::Core {
+namespace VX::Platform {
     class ResourceLocator final {
         VX_DEFAULT_MOVABLE(ResourceLocator);
         VX_DEFAULT_COPYABLE(ResourceLocator);
@@ -13,7 +13,7 @@ namespace VX::Core {
         std::filesystem::path m_resource_path;
     public:
         explicit ResourceLocator(const std::filesystem::path& path)
-            : m_resource_path({ path })
+                : m_resource_path({ path })
         {
         }
 

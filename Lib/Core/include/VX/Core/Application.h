@@ -14,7 +14,6 @@
 #include <VX/Core/Input.h>
 #include <VX/Core/RenderStack.h>
 #include <VX/Core/Renderer.h>
-#include <VX/Core/ResourceLocator.h>
 #include <VX/Core/ResourceManager.h>
 #include <VX/Core/Size.h>
 #include <VX/Core/Window.h>
