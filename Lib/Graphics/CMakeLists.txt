@@ -13,9 +13,16 @@ set(SOURCES
         src/Instance.cpp
         )
 
+set(DEFINITIONS
+        )
+
 if(${VX_GRAPHICS_MACOS_SUPPORT})
     list(APPEND SOURCES
             src/Graphics_MacOS.cpp
+            )
+
+    list(APPEND DEFINITIONS
+            VK_USE_PLATFORM_METAL_EXT=1
             )
 endif()
 
@@ -44,6 +51,7 @@ target_include_directories(${TARGET}
             ${PROJECT_SOURCE_DIR}/Lib/Common/include
         )
 
+target_compile_definitions(${TARGET} PRIVATE ${DEFINITIONS})
 target_compile_definitions(${TARGET} PRIVATE
         VERSION="${CMAKE_PROJECT_VERSION}"
         VX_GRAPHICS_DEBUG=1

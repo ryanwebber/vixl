@@ -27,8 +27,9 @@ namespace VX {
         [[nodiscard]] std::span<std::byte> get_slice(size_t offset, size_t length) const { return std::span { m_buffer.get() + offset, length }; }
         [[nodiscard]] ByteBuffer get_owned_slice(size_t offset, size_t size) const {
             if (offset + size >= m_size) {
-                // Crash?
+                throw std::runtime_error("Size for owned slice extents outside buffer.");
             }
+
             auto buffer = std::make_unique<std::byte[]>(size);
             memcpy(buffer.get(), &m_buffer[offset], size);
             return { std::move(buffer), size };

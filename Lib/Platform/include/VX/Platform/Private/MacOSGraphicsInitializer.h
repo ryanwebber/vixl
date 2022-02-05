@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SDL.h"
+#include "SDL_syswm.h"
 #include "SDL_vulkan.h"
 
 #include <VX/Graphics/Graphics_MacOS.h>
@@ -12,7 +13,7 @@ namespace VX::Platform::Private {
         MacOSGraphicsInitializer() = default;
 
     public:
-        [[nodiscard]] std::shared_ptr<Graphics::Instance> initialize_with_window(const NativeWindow&) const override {
+        [[nodiscard]] std::shared_ptr<Graphics::Instance> initialize_with_window(NativeWindow &native_window) const override {
 
             // Grab the required extensions
             unsigned int extension_count = 0;
@@ -20,11 +21,15 @@ namespace VX::Platform::Private {
             std::vector<const char*> extensionNames(extension_count);
             SDL_Vulkan_GetInstanceExtensions(nullptr, &extension_count, extensionNames.data());
 
+            auto renderer = native_window.create_renderer();
+            auto metal_layer = SDL_RenderGetMetalLayer(renderer);
+
             Graphics::GraphicsInfo graphics_info = {
                     .required_extensions = std::move(extensionNames)
             };
 
             Graphics::MacOS::PlatformData platform_data = {
+                    .metal_layer = static_cast<Graphics::MacOS::CAMetalLayer*>(metal_layer),
             };
 
             return Graphics::MacOS::initialize(graphics_info, platform_data);

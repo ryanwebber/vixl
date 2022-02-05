@@ -34,6 +34,8 @@ namespace VX::Platform::Private {
             abort();
         }
 
+        CFRelease(resourceURL);
+
         return { path };
     }
 

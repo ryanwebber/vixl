@@ -61,11 +61,7 @@ namespace VX::Graphics::Private {
 
     static std::vector<const char*> init_layers(const std::vector<const char*> &requested_layers) {
         auto available_layers = vk::enumerateInstanceLayerProperties();
-        Log::debug("Available validation layers ({}):", available_layers.size());
-        for (const auto& discovered_layer : available_layers) {
-            Log::debug("\t- {}: {}", discovered_layer.layerName, discovered_layer.description);
-        }
-
+        Log::debug("Requested validation layers ({}):", requested_layers.size());
         for (const auto requested_layer : requested_layers) {
             std::string layer_name(requested_layer);
             auto found_layer = std::find_if(available_layers.begin(), available_layers.end(), [&](const auto& layer) {
@@ -76,6 +72,8 @@ namespace VX::Graphics::Private {
                 Log::error("Requested validation layer not found: {}", layer_name);
                 throw std::runtime_error("Requested validation layer not found: " + layer_name);
             }
+
+            Log::debug("\t- {}: {}", found_layer->layerName, found_layer->description);
         }
 
         return requested_layers;
@@ -91,19 +89,20 @@ namespace VX::Graphics::Private {
 #endif
 
         auto available_extensions = vk::enumerateInstanceExtensionProperties();
-        Log::debug("Available graphics extensions ({}):", available_extensions.size());
-        for (const auto extension : available_extensions) {
-            Log::debug("\t- {}", extension.extensionName);
-        }
-
+        Log::debug("Requested graphics extensions ({}):", requested_extensions.size());
         for (const auto required_extension : required_extensions) {
+            Log::debug("\t- {}", required_extension);
             std::string extension_name(required_extension);
             auto found_extension = std::find_if(available_extensions.begin(), available_extensions.end(), [&](const auto& extension) {
                 return extension_name == extension.extensionName;
             });
 
             if (found_extension == available_extensions.end()) {
-                Log::error("Required extension not found: {}", extension_name);
+                Log::error("Required extension not found: {}. Available extensions:", extension_name);
+                for (const auto& available_extension : available_extensions) {
+                    Log::debug("\t- {}", available_extension.extensionName);
+                }
+
                 throw std::runtime_error("Required extension not found: " + extension_name);
             }
         }
@@ -216,7 +215,7 @@ namespace VX::Graphics::Private {
         return std::move(physical_device.createDevice(create_info));
     }
 
-    std::shared_ptr<Instance> initialize(const GraphicsInfo &info, const SurfaceProvider& provider)
+    std::shared_ptr<Instance> initialize(const GraphicsInfo &info, const PlatformDelegate& delegate)
     {
         init_logger();
 
@@ -249,6 +248,10 @@ namespace VX::Graphics::Private {
 
         // Setup extension callbacks (ex. debug messaging)
         auto callbacks = init_callbacks(extensions, instance);
+
+        // Create a surface the render pipeline will eventually render to
+        auto surface = delegate.init_surface(instance);
+        Log::debug("Got surface: {}", vk::to_string(surface.objectType));
 
         // Choose a physical device to use, since we only want to use one of them
         auto physical_device = select_physical_device(instance);

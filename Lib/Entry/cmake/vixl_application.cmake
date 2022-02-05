@@ -65,7 +65,8 @@ function(add_vixl_application)
 
         find_library(COCOA_LIBRARY Cocoa)
         find_library(QUARTZ_LIBRARY QuartzCore)
-        list(APPEND APPLICATION_LIBS ${COCOA_LIBRARY} ${QUARTZ_LIBRARY})
+        find_library(METAL_LIBRARY Metal)
+        list(APPEND APPLICATION_LIBS ${COCOA_LIBRARY} ${QUARTZ_LIBRARY} ${METAL_LIBRARY})
 
         target_link_libraries(${ARG_TARGET} ${APPLICATION_LIBS})
         target_link_libraries(${ARG_TARGET} ${EXTERNAL_LIBS})

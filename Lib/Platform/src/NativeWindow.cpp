@@ -6,6 +6,10 @@
 namespace VX::Platform {
     NativeWindow::~NativeWindow()
     {
+        for (auto renderer : m_renderers) {
+            SDL_DestroyRenderer(renderer);
+        }
+
         SDL_DestroyWindow(m_sdl_window);
     }
 
@@ -22,5 +26,12 @@ namespace VX::Platform {
         Viewport viewport;
         SDL_GetWindowSize(m_sdl_window, &viewport.width, &viewport.height);
         return viewport;
+    }
+
+    SDL_Renderer *NativeWindow::create_renderer()
+    {
+        auto renderer = SDL_CreateRenderer(m_sdl_window, -1, 0);
+        m_renderers.push_back(renderer);
+        return renderer;
     }
 }

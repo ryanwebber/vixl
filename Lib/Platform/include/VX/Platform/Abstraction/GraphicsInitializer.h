@@ -14,6 +14,6 @@ namespace VX::Platform::Abstraction {
     public:
         ~GraphicsInitializer() = default;
 
-        [[nodiscard]] virtual std::shared_ptr<Graphics::Instance> initialize_with_window(const NativeWindow&) const = 0;
+        [[nodiscard]] virtual std::shared_ptr<Graphics::Instance> initialize_with_window(NativeWindow&) const = 0;
     };
 }
