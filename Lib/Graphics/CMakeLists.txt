@@ -18,7 +18,7 @@ set(DEFINITIONS
 
 if(${VX_GRAPHICS_MACOS_SUPPORT})
     list(APPEND SOURCES
-            src/Graphics_MacOS.cpp
+            src/Init_MacOS.cpp
             )
 
     list(APPEND DEFINITIONS

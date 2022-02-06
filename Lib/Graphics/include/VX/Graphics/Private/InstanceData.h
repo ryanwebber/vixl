@@ -5,8 +5,6 @@
 
 #include <VX/Graphics/Private/Vulkan.h>
 
-#include <VX/Graphics/Private/Device.h>
-
 namespace VX::Graphics::Private {
     class InstanceData {
     private:

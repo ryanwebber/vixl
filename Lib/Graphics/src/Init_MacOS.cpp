@@ -1,4 +1,4 @@
-#include <VX/Graphics/Graphics_MacOS.h>
+#include <VX/Graphics/Init_MacOS.h>
 #include <VX/Graphics/Private/Init.h>
 #include <VX/Graphics/Private/PlatformDelegate.h>
 #include <VX/Graphics/Private/Vulkan.h>

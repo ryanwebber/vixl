@@ -4,7 +4,7 @@
 #include "SDL_syswm.h"
 #include "SDL_vulkan.h"
 
-#include <VX/Graphics/Graphics_MacOS.h>
+#include <VX/Graphics/Init_MacOS.h>
 #include <VX/Platform/Abstraction/GraphicsInitializer.h>
 
 namespace VX::Platform::Private {

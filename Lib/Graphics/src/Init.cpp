@@ -1,4 +1,5 @@
 #include <map>
+#include <set>
 #include <vector>
 #include <unordered_map>
 
@@ -6,6 +7,7 @@
 #include <VX/Graphics/Private/Init.h>
 #include <VX/Graphics/Private/InstanceData.h>
 #include <VX/Graphics/Private/Logger.h>
+#include <VX/Graphics/Private/Queue.h>
 #include <VX/Graphics/Private/Vulkan.h>
 
 namespace VX::Graphics::Private {
@@ -110,11 +112,22 @@ namespace VX::Graphics::Private {
         return required_extensions;
     }
 
-    static vk::raii::PhysicalDevice select_physical_device(const vk::raii::Instance &instance) {
+    static vk::raii::PhysicalDevice select_physical_device(const vk::raii::Instance &instance, const vk::raii::SurfaceKHR &surface) {
 
-        static const std::vector<std::function<int(const vk::raii::PhysicalDevice&, const vk::PhysicalDeviceProperties&)>> evaluators = {
-                [](const auto& device, const auto& props) {
-                    switch (props.deviceType) {
+        static const std::vector<std::function<int(const vk::raii::PhysicalDevice&)>> evaluators = {
+                [&](const auto& device) {
+                    // Ensure the device supports the render surface
+                    for (auto i = 0; i < device.getQueueFamilyProperties().size(); i++) {
+                        if (device.getSurfaceSupportKHR(i, *surface)) {
+                            return 0;
+                        }
+                    }
+
+                    return -1;
+                },
+                [](const auto& device) {
+                    // Order the devices based on the type
+                    switch (device.getProperties().deviceType) {
                         case vk::PhysicalDeviceType::eDiscreteGpu:
                             return 100;
                         case vk::PhysicalDeviceType::eIntegratedGpu:
@@ -131,10 +144,9 @@ namespace VX::Graphics::Private {
 
         std::multimap<int, vk::raii::PhysicalDevice> devices_rankings;
         for (auto& device : instance.enumeratePhysicalDevices()) {
-            auto props = device.getProperties();
             int total_score = 0;
             for (const auto& evaluator : evaluators) {
-                auto score = evaluator(device, props);
+                auto score = evaluator(device);
                 if (score < 0) {
                     total_score = score;
                     break;
@@ -155,40 +167,36 @@ namespace VX::Graphics::Private {
         throw std::runtime_error("No suitable graphical device found.");
     }
 
-    static vk::raii::Device init_logical_device(const vk::raii::PhysicalDevice &physical_device, std::vector<const char*> validation_layers) {
+    static vk::raii::Device init_logical_device(
+            const vk::raii::PhysicalDevice &physical_device,
+            const vk::raii::SurfaceKHR &surface,
+            std::vector<const char*> validation_layers) {
 
-        static const std::vector<vk::QueueFlags> required_queues = {
-                // 1. A queue that supports graphics
-                vk::QueueFlagBits::eGraphics,
-        };
+        QueueBuilder queue_builder({
+            QueueFeature::Graphics,
+            QueueFeature::Presentation,
+        });
 
-        float queue_priority = 1.0f;
-        std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
+        uint32_t i = 0;
+        for (const auto& queue_family_props : physical_device.getQueueFamilyProperties()) {
 
-        auto queue_families = physical_device.getQueueFamilyProperties();
-        for (const auto& requested_queue_flags : required_queues) {
-            uint32_t i = 0;
-            for (const auto& queue_family : queue_families) {
-                if ((queue_family.queueFlags & requested_queue_flags) == requested_queue_flags) {
-
-                    // Queue is valid!
-                    queue_create_infos.push_back({
-                                                         .sType = vk::StructureType::eDeviceQueueCreateInfo,
-                                                         .pNext = nullptr,
-                                                         .queueFamilyIndex = i,
-                                                         .queueCount = 1,
-                                                         .pQueuePriorities = &queue_priority,
-                                                 });
-
-                    break;
-                }
-
-                i++;
+            if (queue_family_props.queueFlags & vk::QueueFlagBits::eGraphics) {
+                queue_builder.add_feature_for_index(i, QueueFeature::Graphics);
             }
+
+            if (physical_device.getSurfaceSupportKHR(i, *surface)) {
+                queue_builder.add_feature_for_index(i, QueueFeature::Presentation);
+            }
+
+            // Break out early if we can
+            if (queue_builder.is_fully_satisfied())
+                break;
+
+            i++;
         }
 
-        if (queue_create_infos.size() != required_queues.size()) {
-            throw std::runtime_error("One or more queue requirements could not be satisfied by the device.");
+        if (!queue_builder.is_fully_satisfied()) {
+            throw std::runtime_error("Unable to satisfy one or more device queue requirements with the selected device");
         }
 
         std::vector<const char*> required_extensions;
@@ -198,6 +206,17 @@ namespace VX::Graphics::Private {
             if (std::string(extension.extensionName) == "VK_KHR_portability_subset") {
                 required_extensions.push_back("VK_KHR_portability_subset");
             }
+        }
+
+        float queue_priority = 1.0f;
+        std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
+        for(const auto idx : queue_builder.unique_queues()) {
+            queue_create_infos.push_back({
+                 .sType = vk::StructureType::eDeviceQueueCreateInfo,
+                 .pQueuePriorities = &queue_priority,
+                 .queueCount = 1,
+                 .queueFamilyIndex = idx
+            });
         }
 
         vk::PhysicalDeviceFeatures required_features = { /* None specified */ };
@@ -251,13 +270,12 @@ namespace VX::Graphics::Private {
 
         // Create a surface the render pipeline will eventually render to
         auto surface = delegate.init_surface(instance);
-        Log::debug("Got surface: {}", vk::to_string(surface.objectType));
 
         // Choose a physical device to use, since we only want to use one of them
-        auto physical_device = select_physical_device(instance);
+        auto physical_device = select_physical_device(instance, surface);
 
         // Create a logical_device
-        auto logical_device = init_logical_device(physical_device, layers);
+        auto logical_device = init_logical_device(physical_device, surface, layers);
 
         auto instance_data = std::make_unique<Private::InstanceData>(
                 std::move(context),
