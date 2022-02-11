@@ -11,6 +11,7 @@ message(STATUS "Vulkan info:\n\tLibs: ${Vulkan_LIBRARIES}\n\tincludes: ${Vulkan_
 set(SOURCES
         src/Init.cpp
         src/Instance.cpp
+        src/QueueSupport.cpp
         )
 
 set(DEFINITIONS

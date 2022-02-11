@@ -21,11 +21,11 @@ namespace VX::Platform {
         return wmi;
     }
 
-    Viewport NativeWindow::viewport() const
+    glm::vec2 NativeWindow::screen_size() const
     {
-        Viewport viewport;
-        SDL_GetWindowSize(m_sdl_window, &viewport.width, &viewport.height);
-        return viewport;
+        glm::vec<2, int> size = { };
+        SDL_GetWindowSize(m_sdl_window, &size.x, &size.y);
+        return size;
     }
 
     SDL_Renderer *NativeWindow::create_renderer()

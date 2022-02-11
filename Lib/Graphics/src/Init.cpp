@@ -1,5 +1,4 @@
 #include <map>
-#include <set>
 #include <vector>
 #include <unordered_map>
 
@@ -7,7 +6,8 @@
 #include <VX/Graphics/Private/Init.h>
 #include <VX/Graphics/Private/InstanceData.h>
 #include <VX/Graphics/Private/Logger.h>
-#include <VX/Graphics/Private/Queue.h>
+#include <VX/Graphics/Private/QueueSupport.h>
+#include <VX/Graphics/Private/SwapchainSupport.h>
 #include <VX/Graphics/Private/Vulkan.h>
 
 namespace VX::Graphics::Private {
@@ -167,18 +167,15 @@ namespace VX::Graphics::Private {
         throw std::runtime_error("No suitable graphical device found.");
     }
 
-    static vk::raii::Device init_logical_device(
-            const vk::raii::PhysicalDevice &physical_device,
-            const vk::raii::SurfaceKHR &surface,
-            std::vector<const char*> validation_layers) {
-
-        QueueBuilder queue_builder({
+    static QueueSupport query_queue_support(const vk::raii::PhysicalDevice &physical_device, const vk::raii::SurfaceKHR &surface)
+    {
+        QueueSupportBuilder queue_builder({
             QueueFeature::Graphics,
             QueueFeature::Presentation,
         });
 
         uint32_t i = 0;
-        for (const auto& queue_family_props : physical_device.getQueueFamilyProperties()) {
+        for (const auto &queue_family_props: physical_device.getQueueFamilyProperties()) {
 
             if (queue_family_props.queueFlags & vk::QueueFlagBits::eGraphics) {
                 queue_builder.add_feature_for_index(i, QueueFeature::Graphics);
@@ -199,9 +196,21 @@ namespace VX::Graphics::Private {
             throw std::runtime_error("Unable to satisfy one or more device queue requirements with the selected device");
         }
 
-        std::vector<const char*> required_extensions;
+        return queue_builder.build();
+    }
+
+    static vk::raii::Device init_logical_device(
+                const vk::raii::PhysicalDevice &physical_device,
+                const QueueSupport &queue_support,
+                std::vector<const char*> validation_layers) {
+
+        std::vector<const char *> required_extensions = {
+            // Add the swapchain extension, because we'll need to create a swapchain...
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        };
+
         auto supported_extensions = physical_device.enumerateDeviceExtensionProperties();
-        for (const auto extension : supported_extensions) {
+        for (const auto extension: supported_extensions) {
             // https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451
             if (std::string(extension.extensionName) == "VK_KHR_portability_subset") {
                 required_extensions.push_back("VK_KHR_portability_subset");
@@ -210,12 +219,12 @@ namespace VX::Graphics::Private {
 
         float queue_priority = 1.0f;
         std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
-        for(const auto idx : queue_builder.unique_queues()) {
+        for(const auto idx : queue_support.unique_queues()) {
             queue_create_infos.push_back({
                  .sType = vk::StructureType::eDeviceQueueCreateInfo,
-                 .pQueuePriorities = &queue_priority,
+                 .queueFamilyIndex = idx,
                  .queueCount = 1,
-                 .queueFamilyIndex = idx
+                 .pQueuePriorities = &queue_priority,
             });
         }
 
@@ -232,6 +241,106 @@ namespace VX::Graphics::Private {
         };
 
         return std::move(physical_device.createDevice(create_info));
+    }
+
+    static SwapchainSupport query_swapchain_support(const vk::raii::PhysicalDevice &physical_device, const vk::raii::SurfaceKHR &surface) {
+        auto capabilities = physical_device.getSurfaceCapabilitiesKHR(*surface);
+        auto color_formats = physical_device.getSurfaceFormatsKHR(*surface);
+        auto present_modes = physical_device.getSurfacePresentModesKHR(*surface);
+
+        auto preferred_color_format = vk::Format::eB8G8R8A8Srgb;
+        auto selected_color_format_itr = std::find_if(color_formats.begin(), color_formats.end(), [&](const auto& color_format) {
+            return color_format.format == preferred_color_format
+                   && color_format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
+        });
+
+        if (selected_color_format_itr == color_formats.end())
+            throw std::runtime_error("No supported color format found");
+
+        auto selected_presentation_mode = vk::PresentModeKHR::eMailbox;
+        auto selected_presentation_mode_itr = std::find(present_modes.begin(), present_modes.end(), selected_presentation_mode);
+        if (selected_presentation_mode_itr == present_modes.end())
+            selected_presentation_mode = vk::PresentModeKHR::eFifo;
+
+        // Recommended use at least the min value plus one, so we don't have to
+        // wait on the graphics driver
+        auto image_count = std::max(capabilities.minImageCount + 1, capabilities.maxImageCount);
+
+        return {
+            .present_mode = selected_presentation_mode,
+            .surface_format = *selected_color_format_itr,
+            .surface_capabilities = capabilities,
+            .image_count = image_count,
+        };
+    }
+
+    static vk::raii::SwapchainKHR init_swapchain(
+            const vk::raii::Device &logical_device,
+            const vk::raii::SurfaceKHR &surface,
+            const SwapchainSupport &swapchain_support,
+            const QueueSupport &queue_support,
+            vk::Extent2D extents) {
+
+        vk::SwapchainCreateInfoKHR create_info = {
+            .sType = vk::StructureType::eSwapchainCreateInfoKHR,
+            .surface = *surface,
+            .minImageCount = swapchain_support.image_count,
+            .imageFormat = swapchain_support.surface_format.format,
+            .imageColorSpace = swapchain_support.surface_format.colorSpace,
+            .imageExtent = extents,
+            .imageArrayLayers = 1,
+            .imageUsage = vk::ImageUsageFlagBits::eColorAttachment,
+            .preTransform = swapchain_support.surface_capabilities.currentTransform,
+            .compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
+            .presentMode = swapchain_support.present_mode,
+            .clipped = VK_TRUE,
+            .oldSwapchain = VK_NULL_HANDLE,
+        };
+
+        auto graphics_queue_index = queue_support.queue_for_feature(QueueFeature::Graphics).value();
+        auto present_queue_index = queue_support.queue_for_feature(QueueFeature::Presentation).value();
+
+        uint32_t queue_families[] = { graphics_queue_index, present_queue_index };
+
+        if (graphics_queue_index != present_queue_index) {
+            create_info.pQueueFamilyIndices = &queue_families[0];
+            create_info.queueFamilyIndexCount = 2;
+            create_info.imageSharingMode = vk::SharingMode::eConcurrent;
+        } else {
+            create_info.queueFamilyIndexCount = 0;
+            create_info.imageSharingMode = vk::SharingMode::eExclusive;
+        }
+
+        return logical_device.createSwapchainKHR(create_info);
+    }
+
+    std::vector<vk::raii::ImageView> initialize_swapchain_image_views(const vk::raii::Device &logical_device, const vk::raii::SwapchainKHR &swapchain, const SwapchainSupport &swapchain_support) {
+        std::vector<vk::raii::ImageView> views;
+        for (const auto& image : swapchain.getImages()) {
+            vk::ImageViewCreateInfo create_info = {
+                .sType = vk::StructureType::eImageViewCreateInfo,
+                .image = image,
+                .format = swapchain_support.surface_format.format,
+                .components = {
+                    .r = vk::ComponentSwizzle::eR,
+                    .g = vk::ComponentSwizzle::eG,
+                    .b = vk::ComponentSwizzle::eB,
+                    .a = vk::ComponentSwizzle::eA,
+                },
+                .subresourceRange = {
+                    .aspectMask = vk::ImageAspectFlagBits::eColor,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+                .viewType = vk::ImageViewType::e2D,
+            };
+
+            views.emplace_back(logical_device, create_info);
+        }
+
+        return views;
     }
 
     std::shared_ptr<Instance> initialize(const GraphicsInfo &info, const PlatformDelegate& delegate)
@@ -274,8 +383,26 @@ namespace VX::Graphics::Private {
         // Choose a physical device to use, since we only want to use one of them
         auto physical_device = select_physical_device(instance, surface);
 
+        // Query a mix of all the queues we'll need
+        auto queue_support = query_queue_support(physical_device, surface);
+
         // Create a logical_device
-        auto logical_device = init_logical_device(physical_device, surface, layers);
+        auto logical_device = init_logical_device(physical_device, queue_support, layers);
+
+        // Determine the size of our framebuffer
+        auto framebuffer_extents = vk::Extent2D {
+            .width = static_cast<uint32_t>(info.framebuffer_dimensions.x),
+            .height = static_cast<uint32_t>(info.framebuffer_dimensions.y),
+        };
+
+        // Configure the swapchain support
+        auto swapchain_support = query_swapchain_support(physical_device, surface);
+
+        // Create the swapchain we will render to, using the created surface
+        auto swapchain = init_swapchain(logical_device, surface, swapchain_support, queue_support, framebuffer_extents);
+
+        // Fetch views into the swapchain images
+        auto swapchain_image_views = initialize_swapchain_image_views(logical_device, swapchain, swapchain_support);
 
         auto instance_data = std::make_unique<Private::InstanceData>(
                 std::move(context),

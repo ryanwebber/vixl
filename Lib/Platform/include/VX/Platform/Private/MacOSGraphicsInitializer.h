@@ -24,8 +24,12 @@ namespace VX::Platform::Private {
             auto renderer = native_window.create_renderer();
             auto metal_layer = SDL_RenderGetMetalLayer(renderer);
 
+            glm::vec<2, int> framebuffer_dimensions = { };
+            SDL_GetRendererOutputSize(renderer, &framebuffer_dimensions.x, &framebuffer_dimensions.y);
+
             Graphics::GraphicsInfo graphics_info = {
-                    .required_extensions = std::move(extensionNames)
+                    .required_extensions = std::move(extensionNames),
+                    .framebuffer_dimensions = framebuffer_dimensions,
             };
 
             Graphics::MacOS::PlatformData platform_data = {

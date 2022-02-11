@@ -14,9 +14,9 @@ namespace VX::Core {
         [[nodiscard]] SizeInt viewport_size() const { return m_viewport_size; }
 
         static RenderTarget to_window(const Window& window) {
-            auto viewport = window.native_window().viewport();
-            SizeInt size { .width = viewport.width, .height = viewport.height };
-            return RenderTarget(size);
+            // TODO: This should hook into the graphics swapchain, not the window
+            SizeInt buffer_size = { window.native_window().screen_size() };
+            return RenderTarget(buffer_size);
         }
     };
 }

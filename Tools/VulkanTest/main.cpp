@@ -5,7 +5,6 @@
 #include <VX/Core/Renderer.h>
 #include <VX/Core/Window.h>
 #include <VX/Entry/Main.h>
-#include <VX/Graphics/Instance.h>
 #include <VX/Platform/Platform.h>
 #include <VX/Platform/Abstraction/FileSystem.h>
 #include <VX/Platform/Abstraction/GraphicsInitializer.h>
