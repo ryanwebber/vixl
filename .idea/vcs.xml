@@ -2,17 +2,11 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/3rdParty/bgfx" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/3rdParty/bgfx/bgfx" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/3rdParty/bgfx/bimg" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/3rdParty/bgfx/bx" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/entt" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/expected" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/fmt" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/glm" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/3rdParty/imgui-wrapper/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/json" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/3rdParty/pixman-wrapper/pixman" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/sdl2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/spdlog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/uvw" vcs="Git" />

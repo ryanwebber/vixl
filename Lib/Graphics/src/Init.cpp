@@ -63,7 +63,7 @@ namespace VX::Graphics::Private {
 
     static std::vector<const char*> init_layers(const std::vector<const char*> &requested_layers) {
         auto available_layers = vk::enumerateInstanceLayerProperties();
-        Log::debug("Requested validation layers ({}):", requested_layers.size());
+        Log::debug("Using validation layers ({}):", requested_layers.size());
         for (const auto requested_layer : requested_layers) {
             std::string layer_name(requested_layer);
             auto found_layer = std::find_if(available_layers.begin(), available_layers.end(), [&](const auto& layer) {
@@ -91,7 +91,7 @@ namespace VX::Graphics::Private {
 #endif
 
         auto available_extensions = vk::enumerateInstanceExtensionProperties();
-        Log::debug("Requested graphics extensions ({}):", requested_extensions.size());
+        Log::debug("Using graphics extensions ({}):", required_extensions.size());
         for (const auto required_extension : required_extensions) {
             Log::debug("\t- {}", required_extension);
             std::string extension_name(required_extension);
@@ -217,6 +217,11 @@ namespace VX::Graphics::Private {
             }
         }
 
+        Log::debug("Using device extensions ({}):", required_extensions.size());
+        for (const auto required_extension : required_extensions) {
+            Log::debug("\t- {}", required_extension);
+        }
+
         float queue_priority = 1.0f;
         std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
         for(const auto idx : queue_support.unique_queues()) {
@@ -320,6 +325,7 @@ namespace VX::Graphics::Private {
             vk::ImageViewCreateInfo create_info = {
                 .sType = vk::StructureType::eImageViewCreateInfo,
                 .image = image,
+                .viewType = vk::ImageViewType::e2D,
                 .format = swapchain_support.surface_format.format,
                 .components = {
                     .r = vk::ComponentSwizzle::eR,
@@ -334,7 +340,6 @@ namespace VX::Graphics::Private {
                     .baseArrayLayer = 0,
                     .layerCount = 1,
                 },
-                .viewType = vk::ImageViewType::e2D,
             };
 
             views.emplace_back(logical_device, create_info);
