@@ -86,14 +86,11 @@ int main (int argc, const char *argv[])
         s_name = input_file_name;
     }
 
-    std::ifstream input_stream(input_path, std::ios::binary | std::ios::ate);
+    std::ifstream input_stream(input_path, std::ios::binary);
     if (input_stream.fail() || !input_stream.is_open()) {
         std::cerr << "Unable to open input: " << input_path << std::endl;
         return 1;
     }
-
-    auto file_size_in_bytes = input_stream.tellg();
-    input_stream.seekg(0, std::ios::beg);
 
     std::ofstream output_stream(output_path);
     if (output_stream.fail() || !output_stream.is_open()) {
@@ -101,20 +98,21 @@ int main (int argc, const char *argv[])
         return 1;
     }
 
-    output_stream << "#include <array>" << std::endl;
+    output_stream << "#include <vector>" << std::endl;
     output_stream << std::endl;
 
     if (!s_namespace.empty()) {
         output_stream << "namespace " << s_namespace << " {" << std::endl;
     }
 
-    output_stream << "const std::array<std::byte, " << file_size_in_bytes << "> " << s_name << " = {" << std::endl;
+    output_stream << "const std::vector<unsigned char> " << s_name << " = {" << std::endl;
 
     char buffer[16];
     while (input_stream.read(buffer, sizeof(buffer)) || input_stream.gcount() > 0) {
         output_stream << "    ";
         for (auto i = 0; i < input_stream.gcount(); i++) {
-            output_stream << "0x" << std::setfill('0') << std::setw(2) << std::nouppercase << std::hex << static_cast<int>(buffer[i]);
+            auto byte = static_cast<unsigned char>(buffer[i]);
+            output_stream << "0x" << std::setfill('0') << std::setw(2) << std::nouppercase << std::hex << static_cast<int>(byte);
             output_stream << ", ";
         }
 

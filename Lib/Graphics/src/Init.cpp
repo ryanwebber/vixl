@@ -10,6 +10,9 @@
 #include <VX/Graphics/Private/SwapchainSupport.h>
 #include <VX/Graphics/Private/Vulkan.h>
 
+#include <VX/Graphics/Private/ExampleFragmentShader.h>
+#include <VX/Graphics/Private/ExampleVertexShader.h>
+
 namespace VX::Graphics::Private {
 
     static const std::vector<const char*> default_validation_layers = {
@@ -348,6 +351,16 @@ namespace VX::Graphics::Private {
         return views;
     }
 
+    vk::raii::ShaderModule create_shader_module(const vk::raii::Device &logical_device, const std::vector<unsigned char> &shader_binary) {
+        vk::ShaderModuleCreateInfo create_info = {
+            .sType = vk::StructureType::eShaderModuleCreateInfo,
+            .codeSize = shader_binary.size(),
+            .pCode = reinterpret_cast<const uint32_t*>(shader_binary.data()),
+        };
+
+        return logical_device.createShaderModule(create_info);
+    }
+
     std::shared_ptr<Instance> initialize(const GraphicsInfo &info, const PlatformDelegate& delegate)
     {
         init_logger();
@@ -409,6 +422,11 @@ namespace VX::Graphics::Private {
         // Fetch views into the swapchain images
         auto swapchain_image_views = initialize_swapchain_image_views(logical_device, swapchain, swapchain_support);
 
+#pragma mark: Inline graphics pipeline initialization
+
+        auto vertex_shader_module = create_shader_module(logical_device, example_vertex_shader_source);
+        auto fragment_shader_module = create_shader_module(logical_device, example_fragment_shader_source);
+        
         auto instance_data = std::make_unique<Private::InstanceData>(
                 std::move(context),
                 std::move(instance),
