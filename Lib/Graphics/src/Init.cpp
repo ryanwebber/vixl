@@ -36,11 +36,10 @@ namespace VX::Graphics::Private {
 
     static void init_debug_messenger(const vk::raii::Instance &instance, std::vector<std::shared_ptr<void>> &resources) {
         vk::DebugUtilsMessengerCreateInfoEXT create_info = {
-                .sType = vk::StructureType::eDebugUtilsMessengerCreateInfoEXT,
-                .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
-                .messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
-                .pfnUserCallback = validation_layer_callback,
-                .pUserData = nullptr,
+            .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
+            .messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
+            .pfnUserCallback = validation_layer_callback,
+            .pUserData = nullptr,
         };
 
         auto messenger = instance.createDebugUtilsMessengerEXT(create_info);
@@ -229,7 +228,6 @@ namespace VX::Graphics::Private {
         std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
         for(const auto idx : queue_support.unique_queues()) {
             queue_create_infos.push_back({
-                 .sType = vk::StructureType::eDeviceQueueCreateInfo,
                  .queueFamilyIndex = idx,
                  .queueCount = 1,
                  .pQueuePriorities = &queue_priority,
@@ -238,7 +236,6 @@ namespace VX::Graphics::Private {
 
         vk::PhysicalDeviceFeatures required_features = { /* None specified */ };
         vk::DeviceCreateInfo create_info = {
-                .sType = vk::StructureType::eDeviceCreateInfo,
                 .queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size()),
                 .pQueueCreateInfos = queue_create_infos.data(),
                 .enabledLayerCount = static_cast<uint32_t>(validation_layers.size()),
@@ -290,7 +287,6 @@ namespace VX::Graphics::Private {
             vk::Extent2D extents) {
 
         vk::SwapchainCreateInfoKHR create_info = {
-            .sType = vk::StructureType::eSwapchainCreateInfoKHR,
             .surface = *surface,
             .minImageCount = swapchain_support.image_count,
             .imageFormat = swapchain_support.surface_format.format,
@@ -326,7 +322,6 @@ namespace VX::Graphics::Private {
         std::vector<vk::raii::ImageView> views;
         for (const auto& image : swapchain.getImages()) {
             vk::ImageViewCreateInfo create_info = {
-                .sType = vk::StructureType::eImageViewCreateInfo,
                 .image = image,
                 .viewType = vk::ImageViewType::e2D,
                 .format = swapchain_support.surface_format.format,
@@ -353,12 +348,149 @@ namespace VX::Graphics::Private {
 
     vk::raii::ShaderModule create_shader_module(const vk::raii::Device &logical_device, const std::vector<unsigned char> &shader_binary) {
         vk::ShaderModuleCreateInfo create_info = {
-            .sType = vk::StructureType::eShaderModuleCreateInfo,
             .codeSize = shader_binary.size(),
             .pCode = reinterpret_cast<const uint32_t*>(shader_binary.data()),
         };
 
         return logical_device.createShaderModule(create_info);
+    }
+
+    vk::raii::PipelineLayout create_pipeline_layout(const vk::raii::Device &logical_device) {
+        return logical_device.createPipelineLayout({});
+    }
+
+    vk::raii::RenderPass create_render_pass(const vk::raii::Device &logical_device, vk::SurfaceFormatKHR surface_format) {
+        vk::AttachmentDescription color_attachment = {
+            .format = surface_format.format,
+            .samples = vk::SampleCountFlagBits::e1,
+            .loadOp = vk::AttachmentLoadOp::eClear,
+            .storeOp = vk::AttachmentStoreOp::eStore,
+            .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+            .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+            .initialLayout = vk::ImageLayout::eUndefined,
+            .finalLayout = vk::ImageLayout::ePresentSrcKHR,
+        };
+
+        // This is a direct reference to the implementation of our shader
+        vk::AttachmentReference color_attachment_reference = {
+            .attachment = 0,
+            .layout = vk::ImageLayout::eColorAttachmentOptimal,
+        };
+
+        vk::SubpassDescription subpass_description = {
+            .pipelineBindPoint = vk::PipelineBindPoint::eGraphics,
+            .colorAttachmentCount = 1,
+            .pColorAttachments = &color_attachment_reference,
+        };
+
+        vk::RenderPassCreateInfo render_pass_create_info = {
+            .attachmentCount = 1,
+            .pAttachments = &color_attachment,
+            .subpassCount = 1,
+            .pSubpasses = &subpass_description,
+        };
+
+        return logical_device.createRenderPass(render_pass_create_info);
+    }
+
+    vk::raii::Pipeline create_graphics_pipeline(const vk::raii::Device &logical_device,
+                                                const vk::raii::PipelineLayout &pipeline_layout,
+                                                const vk::raii::RenderPass &render_pass,
+                                                const vk::raii::ShaderModule &vertex_shader,
+                                                const vk::raii::ShaderModule &fragment_shader,
+                                                vk::Extent2D extents) {
+
+        vk::PipelineVertexInputStateCreateInfo vertex_input_state_create_info = { };
+
+        vk::PipelineInputAssemblyStateCreateInfo input_assembly_state_create_info = {
+            .topology = vk::PrimitiveTopology::eTriangleList,
+            .primitiveRestartEnable = false,
+        };
+
+        vk::Viewport viewport = {
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = static_cast<float>(extents.width),
+            .height = static_cast<float>(extents.height),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f,
+        };
+
+        vk::Rect2D scissor = {
+            .offset = { 0, 0 },
+            .extent = extents,
+        };
+
+        vk::PipelineViewportStateCreateInfo viewport_state_create_info = {
+            .viewportCount = 1,
+            .pViewports = &viewport,
+            .scissorCount = 1,
+            .pScissors = &scissor,
+        };
+
+        vk::PipelineRasterizationStateCreateInfo rasterization_state_create_info = {
+            .depthClampEnable = false,
+            .rasterizerDiscardEnable = false,
+            .polygonMode = vk::PolygonMode::eFill,
+            .cullMode = vk::CullModeFlagBits::eBack,
+            .frontFace = vk::FrontFace::eClockwise,
+                .depthBiasEnable = false,
+            .lineWidth = 1.0f,
+        };
+
+        vk::PipelineMultisampleStateCreateInfo multisample_state_create_info = {
+            .rasterizationSamples = vk::SampleCountFlagBits::e1,
+            .sampleShadingEnable = false,
+        };
+
+        vk::PipelineColorBlendAttachmentState color_blend_attachment_state = {
+            .blendEnable = true,
+            .srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
+            .dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+            .colorBlendOp = vk::BlendOp::eAdd,
+            .srcAlphaBlendFactor = vk::BlendFactor::eOne,
+            .dstAlphaBlendFactor = vk::BlendFactor::eZero,
+            .alphaBlendOp = vk::BlendOp::eAdd,
+        };
+
+        vk::PipelineColorBlendStateCreateInfo color_blend_state_create_info = {
+            .logicOpEnable = false,
+            .logicOp = vk::LogicOp::eCopy,
+            .attachmentCount = 1,
+            .pAttachments = &color_blend_attachment_state,
+        };
+
+        vk::PipelineShaderStageCreateInfo shader_stages[] = {
+            {
+                .stage = vk::ShaderStageFlagBits::eVertex,
+                .module = *vertex_shader,
+                .pName = "main",
+            },
+            {
+                .stage = vk::ShaderStageFlagBits::eFragment,
+                .module = *fragment_shader,
+                .pName = "main",
+            },
+        };
+
+        vk::GraphicsPipelineCreateInfo pipeline_create_info = {
+            .stageCount = 2,
+            .pStages = &shader_stages[0],
+            .pVertexInputState = &vertex_input_state_create_info,
+            .pInputAssemblyState = &input_assembly_state_create_info,
+            .pViewportState = &viewport_state_create_info,
+            .pRasterizationState = &rasterization_state_create_info,
+            .pMultisampleState = &multisample_state_create_info,
+            .pDepthStencilState = nullptr,
+            .pColorBlendState = &color_blend_state_create_info,
+            .pDynamicState = nullptr,
+
+            .layout = *pipeline_layout,
+            .renderPass = *render_pass,
+            .subpass = 0,
+        };
+
+        return logical_device.createGraphicsPipeline({ nullptr }, pipeline_create_info);
     }
 
     std::shared_ptr<Instance> initialize(const GraphicsInfo &info, const PlatformDelegate& delegate)
@@ -371,7 +503,6 @@ namespace VX::Graphics::Private {
         vk::raii::Context context;
 
         vk::ApplicationInfo app_info = {
-                .sType = vk::StructureType::eApplicationInfo,
                 .pApplicationName = "Generic Vixl Application",
                 .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
                 .pEngineName = "Vixl",
@@ -380,7 +511,6 @@ namespace VX::Graphics::Private {
         };
 
         vk::InstanceCreateInfo instance_info = {
-                .sType = vk::StructureType::eInstanceCreateInfo,
                 .pApplicationInfo = &app_info,
 
                 .enabledLayerCount = static_cast<uint32_t>(layers.size()),
@@ -426,7 +556,18 @@ namespace VX::Graphics::Private {
 
         auto vertex_shader_module = create_shader_module(logical_device, example_vertex_shader_source);
         auto fragment_shader_module = create_shader_module(logical_device, example_fragment_shader_source);
-        
+
+        auto pipeline_layout = create_pipeline_layout(logical_device);
+        auto render_pass = create_render_pass(logical_device, swapchain_support.surface_format);
+
+        auto graphics_pipeline = create_graphics_pipeline(
+                logical_device,
+                pipeline_layout,
+                render_pass,
+                vertex_shader_module,
+                fragment_shader_module,
+                framebuffer_extents);
+
         auto instance_data = std::make_unique<Private::InstanceData>(
                 std::move(context),
                 std::move(instance),

@@ -113,7 +113,13 @@ int main (int argc, const char *argv[])
         for (auto i = 0; i < input_stream.gcount(); i++) {
             auto byte = static_cast<unsigned char>(buffer[i]);
             output_stream << "0x" << std::setfill('0') << std::setw(2) << std::nouppercase << std::hex << static_cast<int>(byte);
-            output_stream << ", ";
+            output_stream << ",";
+
+            if (i % 4 == 3 && i < 15) {
+                output_stream << "   ";
+            } else if (i < 15) {
+                output_stream << " ";
+            }
         }
 
         output_stream << std::endl;
