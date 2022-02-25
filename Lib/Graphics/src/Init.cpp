@@ -606,7 +606,7 @@ namespace VX::Graphics::Private {
         auto render_pass = create_render_pass(logical_device, swapchain_support.surface_format);
         auto framebuffers = create_framebuffers(logical_device, render_pass, swapchain_image_views, framebuffer_extents);
         auto command_pool = create_command_pool(logical_device, queue_support);
-        auto command_buffers = create_command_buffers(logical_device, command_pool, framebuffers.size());
+        auto command_buffers = create_command_buffers(logical_device, command_pool, 2);
 
 #pragma mark: Inline graphics pipeline initialization
 
@@ -626,13 +626,14 @@ namespace VX::Graphics::Private {
 #pragma mark: Construct API objects
 
         std::vector<std::shared_ptr<Framebuffer>> api_framebuffers;
-        for (auto i = 0; i < framebuffers.size(); i++) {
-            auto command_buffer = std::make_shared<CommandBuffer>(std::move(command_buffers[i]));
-            auto framebuffer = std::make_shared<Framebuffer>(std::move(framebuffers[i]), std::move(command_buffer));
-            api_framebuffers.push_back(std::move(framebuffer));
-        }
+        for (auto& framebuffer: framebuffers)
+            api_framebuffers.push_back(std::make_shared<Framebuffer>(std::move(framebuffer)));
 
-        Swapchain api_swapchain(std::move(swapchain), std::move(api_framebuffers));
+        std::vector<std::shared_ptr<CommandBuffer>> api_command_buffers;
+        for (auto& command_buffer: command_buffers)
+            api_command_buffers.push_back(std::make_shared<CommandBuffer>(std::move(command_buffer)));
+
+        Swapchain api_swapchain(std::move(swapchain), std::move(api_framebuffers), std::move(api_command_buffers));
         RenderPipeline api_render_pipeline(std::make_shared<vk::raii::RenderPass>(std::move(render_pass)));
 
         // Move everything we don't need a reference to but need to keep allocated and alive under vk::raii

@@ -17,7 +17,7 @@ namespace VX::Graphics::Private {
             : m_command_buffer(std::move(command_buffer))
         {}
 
-        [[nodiscard]] const vk::raii::CommandBuffer &command_buffer() const { return m_command_buffer; }
         vk::raii::CommandBuffer &command_buffer() { return m_command_buffer; }
+        [[nodiscard]] const vk::raii::CommandBuffer &command_buffer() const { return m_command_buffer; }
     };
 }

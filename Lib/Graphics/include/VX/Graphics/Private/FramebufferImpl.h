@@ -12,14 +12,13 @@ namespace VX::Graphics::Private {
         VX_DEFAULT_MOVABLE(FramebufferImpl);
     private:
         vk::raii::Framebuffer m_framebuffer;
-        std::shared_ptr<CommandBuffer> m_associated_command_buffer;
 
     public:
-        explicit FramebufferImpl(vk::raii::Framebuffer framebuffer, std::shared_ptr<CommandBuffer> associated_command_buffer)
+        explicit FramebufferImpl(vk::raii::Framebuffer framebuffer)
                 : m_framebuffer(std::move(framebuffer))
-                , m_associated_command_buffer(std::move(associated_command_buffer))
         {}
 
-        [[nodiscard]] std::shared_ptr<CommandBuffer> associated_command_buffer() const { return m_associated_command_buffer; }
+        vk::raii::Framebuffer &framebuffer() { return m_framebuffer; }
+        [[nodiscard]] const vk::raii::Framebuffer &framebuffer() const { return m_framebuffer; }
     };
 }

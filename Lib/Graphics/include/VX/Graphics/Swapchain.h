@@ -3,7 +3,7 @@
 #include <vector>
 
 #include <VX/Graphics/APIObject.h>
-#include <VX/Graphics/Framebuffer.h>
+#include <VX/Graphics/RenderTarget.h>
 
 namespace VX::Graphics {
 
@@ -14,23 +14,26 @@ namespace VX::Graphics {
     class Swapchain final : public APIObject<Private::SwapchainImpl> {
     public:
         using APIObject<Private::SwapchainImpl>::APIObject;
+    };
 
-        [[nodiscard]] const std::vector<std::shared_ptr<Framebuffer>> &framebuffers() const;
+    struct SwapchainTarget {
+        RenderTarget render_target;
+        int swap_index;
     };
 
     class FrameSynchronizer final {
     public:
-        explicit FrameSynchronizer(const Swapchain& swapchain);
+
+    public:
         ~FrameSynchronizer() = default;
 
-        void swap_and_present(size_t index);
+        void swap_and_present(const SwapchainTarget&);
     };
 
     class FrameSequencer final {
     public:
-        explicit FrameSequencer(const Swapchain& swapchain);
         ~FrameSequencer() = default;
 
-        size_t next_swap_index();
+        RenderTarget next_render_target();
     };
 }

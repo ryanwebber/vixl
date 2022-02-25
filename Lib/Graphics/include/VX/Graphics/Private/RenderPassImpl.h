@@ -15,13 +15,11 @@ namespace VX::Graphics::Private {
     private:
         CommandRecorder m_command_recorder;
         std::shared_ptr<vk::raii::RenderPass> m_render_pass;
-        std::shared_ptr<Framebuffer> m_framebuffer;
 
     public:
-        RenderPassImpl(std::shared_ptr<vk::raii::RenderPass> render_pass, std::shared_ptr<Framebuffer> framebuffer)
+        RenderPassImpl(std::shared_ptr<vk::raii::RenderPass> render_pass, std::shared_ptr<CommandBuffer> command_buffer)
             : m_render_pass(std::move(render_pass))
-            , m_command_recorder(framebuffer->associated_command_buffer())
-            , m_framebuffer(std::move(framebuffer))
+            , m_command_recorder(std::move(command_buffer))
         {}
 
         [[nodiscard]] const CommandRecorder& command_recorder() const { return m_command_recorder; }

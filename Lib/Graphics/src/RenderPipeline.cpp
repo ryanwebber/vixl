@@ -3,8 +3,8 @@
 #include <VX/Graphics/Private/Vulkan.h>
 
 namespace VX::Graphics {
-    Token<RenderPass> RenderPipeline::try_begin_render_pass(std::shared_ptr<Framebuffer> target) {
-        return impl().try_begin_render_pass(std::move(target));
+    Token<RenderPass> RenderPipeline::try_begin_render_pass(const RenderTarget& render_target) {
+        return impl().try_begin_render_pass(render_target);
     }
 
     void RenderPipeline::end_render_pass(Token<RenderPass> &render_pass) {

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <VX/Graphics/APIObject.h>
-#include <VX/Graphics/Framebuffer.h>
 #include <VX/Graphics/RenderPass.h>
+#include <VX/Graphics/RenderTarget.h>
 #include <VX/Graphics/Token.h>
 
 namespace VX::Graphics {
@@ -15,7 +15,7 @@ namespace VX::Graphics {
     public:
         using APIObject<Private::RenderPipelineImpl>::APIObject;
 
-        Token<RenderPass> try_begin_render_pass(std::shared_ptr<Framebuffer> target);
+        Token<RenderPass> try_begin_render_pass(const RenderTarget&);
         void end_render_pass(Token<RenderPass>&);
     };
 }

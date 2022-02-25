@@ -13,15 +13,15 @@ namespace VX::Graphics::Private {
     private:
         vk::raii::SwapchainKHR m_swapchain;
         std::vector<std::shared_ptr<Framebuffer>> m_framebuffers;
+        std::vector<std::shared_ptr<CommandBuffer>> m_command_buffers;
 
     public:
-        explicit SwapchainImpl(vk::raii::SwapchainKHR swapchain, std::vector<std::shared_ptr<Framebuffer>> framebuffers)
+        explicit SwapchainImpl(vk::raii::SwapchainKHR swapchain,
+                               std::vector<std::shared_ptr<Framebuffer>> framebuffers,
+                               std::vector<std::shared_ptr<CommandBuffer>> command_buffers)
             : m_swapchain(std::move(swapchain))
             , m_framebuffers(std::move(framebuffers))
+            , m_command_buffers(std::move(command_buffers))
         {}
-
-        const std::vector<std::shared_ptr<Framebuffer>> &framebuffers() const {
-            return m_framebuffers;
-        }
     };
 }

@@ -12,7 +12,5 @@ namespace VX::Graphics {
     class Framebuffer final : public APIObject<Private::FramebufferImpl> {
     public:
         using APIObject<Private::FramebufferImpl>::APIObject;
-
-        [[nodiscard]] std::shared_ptr<CommandBuffer> associated_command_buffer() const;
     };
 }
