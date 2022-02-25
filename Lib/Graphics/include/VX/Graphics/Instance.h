@@ -1,29 +1,37 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include <VX/Noncopyable.h>
 #include <VX/Copyable.h>
 
-#include <VX/Graphics/Graphics.h>
+#include <VX/Graphics/APIObject.h>
+#include <VX/Graphics/RenderPipeline.h>
+#include <VX/Graphics/Framebuffer.h>
+#include <VX/Graphics/Swapchain.h>
+#include <VX/Graphics/Token.h>
 
 namespace VX::Graphics {
 
     namespace Private {
-        class InstanceData;
+        class InstanceImpl;
     }
 
-    class Instance final : private std::enable_shared_from_this<Instance> {
-        VX_MAKE_NONMOVABLE(Instance);
-        VX_MAKE_NONCOPYABLE(Instance);
-    private:
-        std::unique_ptr<Private::InstanceData> m_instance_data;
+    class Instance final : public APIObject<Private::InstanceImpl>, private std::enable_shared_from_this<Instance> {
     public:
-        explicit Instance(std::unique_ptr<Private::InstanceData>);
-        ~Instance() = default;
+        using APIObject<Private::InstanceImpl>::APIObject;
 
-        Private::InstanceData& data() { return *m_instance_data; };
-        const Private::InstanceData& data() const { return *m_instance_data; };
+        const RenderPipeline& render_pipeline() const;
+        RenderPipeline& render_pipeline();
+
+        const Swapchain& swapchain() const;
+        Swapchain& swapchain();
+
+        // APIs for:
+        //  * Graphics pipeline creation
+        //  * Creating new render targets
+        //  * Mipmap generation?
     };
 }

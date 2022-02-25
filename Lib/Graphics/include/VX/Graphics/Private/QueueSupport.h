@@ -29,6 +29,11 @@ namespace VX::Graphics::Private {
         [[nodiscard]] bool has_feature(QueueFeature feature) const;
         [[nodiscard]] std::optional<uint32_t> queue_for_feature(QueueFeature feature) const;
         [[nodiscard]] std::set<uint32_t> unique_queues() const;
+
+        template <QueueFeature TFeature>
+        [[nodiscard]] uint32_t get_queue() const {
+            return queue_for_feature(TFeature).value();
+        }
     };
 
     class QueueSupportBuilder final {

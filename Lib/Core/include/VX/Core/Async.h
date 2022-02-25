@@ -330,7 +330,7 @@ namespace VX::Core {
             e.run();
         }
 
-        const std::shared_ptr<Executor> &executor() { return m_executor; }
+        const std::shared_ptr<Executor> executor() { return m_executor; }
     };
 
     // Impl functions now that everything is declared

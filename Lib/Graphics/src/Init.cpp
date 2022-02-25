@@ -2,13 +2,23 @@
 #include <vector>
 #include <unordered_map>
 
-#include <VX/Graphics/Instance.h>
-#include <VX/Graphics/Private/Init.h>
-#include <VX/Graphics/Private/InstanceData.h>
+#include <VX/Graphics/Private/CommandBufferImpl.h>
+#include <VX/Graphics/Private/FramebufferImpl.h>
+#include <VX/Graphics/Private/InstanceImpl.h>
 #include <VX/Graphics/Private/Logger.h>
+#include <VX/Graphics/Private/PlatformDelegate.h>
 #include <VX/Graphics/Private/QueueSupport.h>
+#include <VX/Graphics/Private/RenderPassImpl.h>
+#include <VX/Graphics/Private/RenderPipelineImpl.h>
+#include <VX/Graphics/Private/SwapchainImpl.h>
 #include <VX/Graphics/Private/SwapchainSupport.h>
 #include <VX/Graphics/Private/Vulkan.h>
+
+#include <VX/Graphics/Instance.h>
+#include <VX/Graphics/CommandBuffer.h>
+#include <VX/Graphics/Framebuffer.h>
+#include <VX/Graphics/Graphics.h>
+#include <VX/Graphics/Swapchain.h>
 
 #include <VX/Graphics/Private/ExampleFragmentShader.h>
 #include <VX/Graphics/Private/ExampleVertexShader.h>
@@ -47,20 +57,17 @@ namespace VX::Graphics::Private {
         resources.push_back(std::move(shared_messenger));
     }
 
-    static std::vector<std::shared_ptr<void>> init_callbacks(const std::vector<const char*> &extensions, const vk::raii::Instance &instance) {
+    static void init_callbacks(const std::vector<const char*> &extensions, const vk::raii::Instance &instance, std::vector<std::shared_ptr<void>> &extra_resources) {
         static const std::unordered_map<const char*, std::function<void(const vk::raii::Instance&, std::vector<std::shared_ptr<void>>&)>> jump_table = {
                 { VK_EXT_DEBUG_UTILS_EXTENSION_NAME , init_debug_messenger },
         };
 
-        std::vector<std::shared_ptr<void>> resources;
         for(const auto& extension : extensions) {
             auto entry = jump_table.find(extension);
             if (entry != jump_table.end()) {
-                entry->second(instance, resources);
+                entry->second(instance, extra_resources);
             }
         }
-
-        return resources;
     }
 
     static std::vector<const char*> init_layers(const std::vector<const char*> &requested_layers) {
@@ -301,8 +308,8 @@ namespace VX::Graphics::Private {
             .oldSwapchain = VK_NULL_HANDLE,
         };
 
-        auto graphics_queue_index = queue_support.queue_for_feature(QueueFeature::Graphics).value();
-        auto present_queue_index = queue_support.queue_for_feature(QueueFeature::Presentation).value();
+        auto graphics_queue_index = queue_support.get_queue<QueueFeature::Graphics>();
+        auto present_queue_index = queue_support.get_queue<QueueFeature::Presentation>();
 
         uint32_t queue_families[] = { graphics_queue_index, present_queue_index };
 
@@ -493,6 +500,48 @@ namespace VX::Graphics::Private {
         return logical_device.createGraphicsPipeline({ nullptr }, pipeline_create_info);
     }
 
+    std::vector<vk::raii::Framebuffer> create_framebuffers(
+            const vk::raii::Device &logical_device,
+            const vk::raii::RenderPass &render_pass,
+            const std::vector<vk::raii::ImageView> &images,
+            vk::Extent2D extents) {
+
+        std::vector<vk::raii::Framebuffer> framebuffers;
+        for (const auto& image : images) {
+            auto image_ref = *image;
+            vk::FramebufferCreateInfo create_info = {
+                .renderPass = *render_pass,
+                .attachmentCount = 1,
+                .pAttachments = &image_ref,
+                .width = extents.width,
+                .height = extents.height,
+                .layers = 1,
+            };
+
+            framebuffers.emplace_back(logical_device, create_info);
+        }
+
+        return framebuffers;
+    }
+
+    vk::raii::CommandPool create_command_pool(const vk::raii::Device &logical_device, const QueueSupport &queue_support) {
+        vk::CommandPoolCreateInfo create_info = {
+            .queueFamilyIndex = queue_support.get_queue<QueueFeature::Graphics>(),
+        };
+
+        return logical_device.createCommandPool(create_info);
+    }
+
+    std::vector<vk::raii::CommandBuffer> create_command_buffers(const vk::raii::Device &logical_device, const vk::raii::CommandPool &command_pool, size_t buffer_count) {
+        vk::CommandBufferAllocateInfo allocate_info = {
+            .commandPool = *command_pool,
+            .level = vk::CommandBufferLevel::ePrimary,
+            .commandBufferCount = static_cast<uint32_t >(buffer_count),
+        };
+
+        return logical_device.allocateCommandBuffers(allocate_info);
+    }
+
     std::shared_ptr<Instance> initialize(const GraphicsInfo &info, const PlatformDelegate& delegate)
     {
         init_logger();
@@ -522,8 +571,10 @@ namespace VX::Graphics::Private {
 
         vk::raii::Instance instance(context, instance_info);
 
+        std::vector<std::shared_ptr<void>> extra_resources;
+
         // Setup extension callbacks (ex. debug messaging)
-        auto callbacks = init_callbacks(extensions, instance);
+        init_callbacks(extensions, instance, extra_resources);
 
         // Create a surface the render pipeline will eventually render to
         auto surface = delegate.init_surface(instance);
@@ -552,13 +603,17 @@ namespace VX::Graphics::Private {
         // Fetch views into the swapchain images
         auto swapchain_image_views = initialize_swapchain_image_views(logical_device, swapchain, swapchain_support);
 
+        auto render_pass = create_render_pass(logical_device, swapchain_support.surface_format);
+        auto framebuffers = create_framebuffers(logical_device, render_pass, swapchain_image_views, framebuffer_extents);
+        auto command_pool = create_command_pool(logical_device, queue_support);
+        auto command_buffers = create_command_buffers(logical_device, command_pool, framebuffers.size());
+
 #pragma mark: Inline graphics pipeline initialization
 
         auto vertex_shader_module = create_shader_module(logical_device, example_vertex_shader_source);
         auto fragment_shader_module = create_shader_module(logical_device, example_fragment_shader_source);
 
         auto pipeline_layout = create_pipeline_layout(logical_device);
-        auto render_pass = create_render_pass(logical_device, swapchain_support.surface_format);
 
         auto graphics_pipeline = create_graphics_pipeline(
                 logical_device,
@@ -568,11 +623,36 @@ namespace VX::Graphics::Private {
                 fragment_shader_module,
                 framebuffer_extents);
 
-        auto instance_data = std::make_unique<Private::InstanceData>(
-                std::move(context),
-                std::move(instance),
-                std::move(callbacks));
+#pragma mark: Construct API objects
 
-        return std::make_unique<Instance>(std::move(instance_data));
+        std::vector<std::shared_ptr<Framebuffer>> api_framebuffers;
+        for (auto i = 0; i < framebuffers.size(); i++) {
+            auto command_buffer = std::make_shared<CommandBuffer>(std::move(command_buffers[i]));
+            auto framebuffer = std::make_shared<Framebuffer>(std::move(framebuffers[i]), std::move(command_buffer));
+            api_framebuffers.push_back(std::move(framebuffer));
+        }
+
+        Swapchain api_swapchain(std::move(swapchain), std::move(api_framebuffers));
+        RenderPipeline api_render_pipeline(std::make_shared<vk::raii::RenderPass>(std::move(render_pass)));
+
+        // Move everything we don't need a reference to but need to keep allocated and alive under vk::raii
+        // Note: order matters here
+        std::vector<std::shared_ptr<void>> global_resources;
+        global_resources.push_back(std::make_shared<vk::raii::Context>(std::move(context)));
+        global_resources.push_back(std::make_shared<vk::raii::Instance>(std::move(instance)));
+        global_resources.insert(global_resources.end(), extra_resources.begin(), extra_resources.end());
+        global_resources.push_back(std::make_shared<vk::raii::SurfaceKHR>(std::move(surface)));
+        global_resources.push_back(std::make_shared<vk::raii::PhysicalDevice>(std::move(physical_device)));
+        global_resources.push_back(std::make_shared<vk::raii::Device>(std::move(logical_device)));
+        global_resources.push_back(std::make_shared<vk::raii::CommandPool>(std::move(command_pool)));
+
+        for (auto& view : swapchain_image_views) {
+            global_resources.push_back(std::make_shared<vk::raii::ImageView>(std::move(view)));
+        }
+
+        return std::make_unique<Instance>(
+                std::move(api_swapchain),
+                std::move(api_render_pipeline),
+                std::move(global_resources));
     }
 }

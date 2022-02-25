@@ -9,9 +9,15 @@ find_package(Vulkan REQUIRED FATAL_ERROR)
 message(STATUS "Vulkan info:\n\tLibs: ${Vulkan_LIBRARIES}\n\tincludes: ${Vulkan_INCLUDE_DIRS}\n")
 
 set(SOURCES
+        src/CommandBuffer.cpp
+        src/CommandRecorder.cpp
+        src/Framebuffer.cpp
         src/Init.cpp
         src/Instance.cpp
         src/QueueSupport.cpp
+        src/RenderPass.cpp
+        src/RenderPipeline.cpp
+        src/Swapchain.cpp
         )
 
 set(DEFINITIONS
