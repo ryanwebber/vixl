@@ -16,7 +16,7 @@ namespace VX::Graphics::Private {
 
     class QueueSupport final {
         VX_DEFAULT_MOVABLE(QueueSupport);
-        VX_MAKE_NONCOPYABLE(QueueSupport);
+        VX_DEFAULT_COPYABLE(QueueSupport);
     private:
         std::unordered_map<QueueFeature, uint32_t> m_indexes;
     public:

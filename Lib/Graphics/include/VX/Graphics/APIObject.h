@@ -31,4 +31,27 @@ namespace VX::Graphics {
     public:
         virtual ~APIObject() = default;
     };
+
+    template <class T>
+    class APIWrapper {
+        VX_DEFAULT_MOVABLE(APIWrapper);
+        VX_MAKE_NONCOPYABLE(APIWrapper);
+    private:
+        T m_obj;
+    public:
+        template <class ...Args>
+        explicit APIWrapper(Args&& ...args)
+            : m_obj(std::forward<Args>(args)...)
+        {}
+
+        explicit APIWrapper(T other)
+            : m_obj(std::move(other))
+        {}
+
+        auto& operator*() { return *m_obj; }
+        const auto& operator*() const { return *m_obj; }
+
+        auto operator->() { return &m_obj; }
+        auto operator->() const { return &m_obj; }
+    };
 }

@@ -15,7 +15,10 @@ namespace VX::Graphics {
     public:
         using APIObject<Private::RenderPipelineImpl>::APIObject;
 
-        Token<RenderPass> try_begin_render_pass(const RenderTarget&);
-        void end_render_pass(Token<RenderPass>&);
+        Token<RenderPass> try_begin_render_pass(const RenderTarget &render_target,
+                                                const RenderTiming &render_timing,
+                                                const std::shared_ptr<CommandBuffer>& command_buffer);
+
+        void submit_render_pass(Token<RenderPass>&);
     };
 }

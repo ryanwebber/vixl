@@ -2,8 +2,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include <VX/Graphics/Private/CommandBufferImpl.h>
-#include <VX/Graphics/Private/FramebufferImpl.h>
+#include <VX/Graphics/Private/Assert.h>
 #include <VX/Graphics/Private/InstanceImpl.h>
 #include <VX/Graphics/Private/Logger.h>
 #include <VX/Graphics/Private/PlatformDelegate.h>
@@ -13,6 +12,7 @@
 #include <VX/Graphics/Private/SwapchainImpl.h>
 #include <VX/Graphics/Private/SwapchainSupport.h>
 #include <VX/Graphics/Private/Vulkan.h>
+#include <VX/Graphics/Private/Wrappers.h>
 
 #include <VX/Graphics/Instance.h>
 #include <VX/Graphics/CommandBuffer.h>
@@ -395,6 +395,7 @@ namespace VX::Graphics::Private {
             .pAttachments = &color_attachment,
             .subpassCount = 1,
             .pSubpasses = &subpass_description,
+            // TODO: dependencies
         };
 
         return logical_device.createRenderPass(render_pass_create_info);
@@ -615,26 +616,29 @@ namespace VX::Graphics::Private {
 
         auto pipeline_layout = create_pipeline_layout(logical_device);
 
-        auto graphics_pipeline = create_graphics_pipeline(
-                logical_device,
-                pipeline_layout,
-                render_pass,
-                vertex_shader_module,
-                fragment_shader_module,
-                framebuffer_extents);
+        auto graphics_pipeline = create_graphics_pipeline(logical_device,
+                                                          pipeline_layout,
+                                                          render_pass,
+                                                          vertex_shader_module,
+                                                          fragment_shader_module,
+                                                          framebuffer_extents);
 
 #pragma mark: Construct API objects
 
         std::vector<std::shared_ptr<Framebuffer>> api_framebuffers;
+        api_framebuffers.reserve(framebuffers.size());
         for (auto& framebuffer: framebuffers)
             api_framebuffers.push_back(std::make_shared<Framebuffer>(std::move(framebuffer)));
 
         std::vector<std::shared_ptr<CommandBuffer>> api_command_buffers;
+        api_command_buffers.reserve(command_buffers.size());
         for (auto& command_buffer: command_buffers)
             api_command_buffers.push_back(std::make_shared<CommandBuffer>(std::move(command_buffer)));
 
-        Swapchain api_swapchain(std::move(swapchain), std::move(api_framebuffers), std::move(api_command_buffers));
-        RenderPipeline api_render_pipeline(std::make_shared<vk::raii::RenderPass>(std::move(render_pass)));
+        auto shared_device = std::make_shared<vk::raii::Device>(std::move(logical_device));
+        auto shared_render_pass = std::make_shared<vk::raii::RenderPass>(std::move(render_pass));
+        Swapchain api_swapchain(std::move(swapchain), shared_device, std::move(api_framebuffers), std::move(api_command_buffers));
+        RenderPipeline api_render_pipeline(queue_support, shared_render_pass, shared_device);
 
         // Move everything we don't need a reference to but need to keep allocated and alive under vk::raii
         // Note: order matters here
@@ -644,16 +648,15 @@ namespace VX::Graphics::Private {
         global_resources.insert(global_resources.end(), extra_resources.begin(), extra_resources.end());
         global_resources.push_back(std::make_shared<vk::raii::SurfaceKHR>(std::move(surface)));
         global_resources.push_back(std::make_shared<vk::raii::PhysicalDevice>(std::move(physical_device)));
-        global_resources.push_back(std::make_shared<vk::raii::Device>(std::move(logical_device)));
+        global_resources.push_back(shared_device);
         global_resources.push_back(std::make_shared<vk::raii::CommandPool>(std::move(command_pool)));
 
         for (auto& view : swapchain_image_views) {
             global_resources.push_back(std::make_shared<vk::raii::ImageView>(std::move(view)));
         }
 
-        return std::make_unique<Instance>(
-                std::move(api_swapchain),
-                std::move(api_render_pipeline),
-                std::move(global_resources));
+        return std::make_unique<Instance>(std::move(api_swapchain),
+                                          std::move(api_render_pipeline),
+                                          std::move(global_resources));
     }
 }

@@ -57,6 +57,9 @@ namespace VX::Graphics {
         [[nodiscard]] bool has_token() const { return m_token.is_valid(); }
         Token<T> borrow_token() { return std::move(m_token); }
 
+        T &peek() { return *m_token; }
+        const T &peek() const { return *m_token; }
+
         bool reclaim(Token<T> &token) {
             if (token.is_valid()) {
                 if (auto lender = token.m_lender.lock()) {
