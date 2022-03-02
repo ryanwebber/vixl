@@ -20,7 +20,8 @@ namespace VX::Graphics {
 
         ~CommandRecorder() = default;
 
-        std::shared_ptr<CommandBuffer> command_buffer() { return m_command_buffer; };
+        CommandBuffer &command_buffer() { return *m_command_buffer; };
+        [[nodiscard]] const CommandBuffer &command_buffer() const { return *m_command_buffer; };
 
         // void BindGraphicsPipeline()
         // void Draw(...)

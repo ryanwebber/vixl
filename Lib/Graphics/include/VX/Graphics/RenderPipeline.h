@@ -1,9 +1,12 @@
 #pragma once
 
+#include <optional>
+
 #include <VX/Graphics/APIObject.h>
 #include <VX/Graphics/RenderPass.h>
+#include <VX/Graphics/RenderRequest.h>
 #include <VX/Graphics/RenderTarget.h>
-#include <VX/Graphics/Token.h>
+#include <VX/Graphics/Ticket.h>
 
 namespace VX::Graphics {
 
@@ -15,10 +18,7 @@ namespace VX::Graphics {
     public:
         using APIObject<Private::RenderPipelineImpl>::APIObject;
 
-        Token<RenderPass> try_begin_render_pass(const RenderTarget &render_target,
-                                                const RenderTiming &render_timing,
-                                                const std::shared_ptr<CommandBuffer>& command_buffer);
-
-        void submit_render_pass(Token<RenderPass>&);
+        std::optional<RenderPass> try_begin_render_pass(RenderRequest);
+        void end_render_pass(RenderPass&);
     };
 }

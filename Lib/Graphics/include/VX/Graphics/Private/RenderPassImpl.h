@@ -15,31 +15,38 @@ namespace VX::Graphics::Private {
         VX_MAKE_NONCOPYABLE(RenderPassImpl);
         VX_DEFAULT_MOVABLE(RenderPassImpl);
     private:
-        RenderTarget m_render_target;
-        RenderTiming m_render_timing;
         CommandRecorder m_command_recorder;
-        QueueSupport m_queue_support;
-        std::shared_ptr<vk::raii::Device> m_device;
-        std::shared_ptr<vk::raii::RenderPass> m_render_pass;
+        RenderTarget m_render_target;
+        std::shared_ptr<Fence> m_render_fence;
+        std::shared_ptr<Semaphore> m_wait_semaphore;
+        std::shared_ptr<Semaphore> m_signal_semaphore;
 
     public:
-        RenderPassImpl(RenderTarget render_target,
-                       RenderTiming render_timing,
-                       CommandRecorder command_recorder,
-                       QueueSupport queue_support,
-                       std::shared_ptr<vk::raii::Device> device,
-                       std::shared_ptr<vk::raii::RenderPass> render_pass)
-            : m_render_target(std::move(render_target))
-            , m_render_timing(std::move(render_timing))
-            , m_command_recorder(std::move(command_recorder))
-            , m_queue_support(std::move(queue_support))
-            , m_device(std::move(device))
-            , m_render_pass(std::move(render_pass))
+        RenderPassImpl(CommandRecorder command_recorder,
+                       RenderTarget render_target,
+                       std::shared_ptr<Fence> render_fence,
+                       std::shared_ptr<Semaphore> wait_semaphore,
+                       std::shared_ptr<Semaphore> signal_semaphore)
+            : m_command_recorder(std::move(command_recorder))
+            , m_render_target(std::move(render_target))
+            , m_render_fence(std::move(render_fence))
+            , m_wait_semaphore(std::move(wait_semaphore))
+            , m_signal_semaphore(std::move(signal_semaphore))
         {}
 
         CommandRecorder& command_recorder() { return m_command_recorder; }
         [[nodiscard]] const CommandRecorder& command_recorder() const { return m_command_recorder; }
 
-        void submit();
+        RenderTarget &render_target() { return m_render_target; }
+        [[nodiscard]] const RenderTarget &render_target() const { return m_render_target; }
+
+        Fence &render_fence() { return *m_render_fence; }
+        [[nodiscard]] const Fence &render_fence() const { return *m_render_fence; }
+
+        Semaphore &wait_semaphore() { return *m_wait_semaphore; }
+        [[nodiscard]] const Semaphore &wait_semaphore() const { return *m_wait_semaphore; }
+
+        Semaphore &signal_semaphore() { return *m_signal_semaphore; }
+        [[nodiscard]] const Semaphore &signal_semaphore() const { return *m_signal_semaphore; }
     };
 }

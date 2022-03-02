@@ -6,49 +6,86 @@
 namespace VX::Graphics {
 
     namespace Private {
-        void RenderPipelineImpl::submit_render_pass(Token<RenderPass> &token)
-        {
-            if (m_current_render_pass_holder == nullptr) {
-                return;
-            }
 
-            if (m_current_render_pass_holder->reclaim(token)) {
-                m_current_render_pass_holder->peek()->submit();
-                m_current_render_pass_holder.reset();
-            }
+        std::optional<RenderPass> RenderPipelineImpl::try_begin_render_pass(RenderRequest request) {
+
+            vk::CommandBufferBeginInfo command_buffer_begin_info = {};
+
+            vk::ClearValue clear_values[] = {
+                    {
+                        .color = {{{ 0.0f, 0.0f, 0.0f, 0.0f }}},
+                    }
+            };
+
+            vk::RenderPassBeginInfo render_pass_begin_info = {
+                    .renderPass = **m_render_pass,
+                    .framebuffer = ***request.render_target.target_framebuffer(),
+                    .renderArea = {
+                            .offset = {
+                                    .x = 0,
+                                    .y = 0,
+                            },
+                            .extent = {
+                                    .width = static_cast<uint32_t>(request.render_target.dimensions().x),
+                                    .height = static_cast<uint32_t>(request.render_target.dimensions().y),
+                            },
+                    },
+                    .clearValueCount = 1,
+                    .pClearValues = clear_values
+            };
+
+            request.command_buffer->impl()->reset();
+            request.command_buffer->impl()->begin(command_buffer_begin_info);
+            request.command_buffer->impl()->beginRenderPass(render_pass_begin_info, vk::SubpassContents::eInline);
+
+            CommandRecorder command_recorder(request.command_buffer);
+            return RenderPass(command_recorder,
+                              request.render_target,
+                              request.render_fence,
+                              request.wait_semaphore,
+                              request.signal_semaphore);
         }
 
-        Token<RenderPass> RenderPipelineImpl::try_begin_render_pass(const RenderTarget &render_target,
-                                                                    const RenderTiming &render_timing,
-                                                                    const std::shared_ptr<CommandBuffer>& command_buffer)
-        {
-            if (m_current_render_pass_holder != nullptr) {
-                return { };
-            }
+        void RenderPipelineImpl::end_render_pass(RenderPass &render_pass) {
+            vk::PipelineStageFlags wait_stage_flags[] = {
+                    vk::PipelineStageFlagBits::eColorAttachmentOutput
+            };
 
-            command_buffer->impl()->reset();
+            vk::Semaphore signal_semaphores[] = {
+                    **(render_pass->signal_semaphore())
+            };
 
-            CommandRecorder command_recorder(command_buffer);
-            auto render_pass = std::make_unique<RenderPass>(render_target,
-                                                            render_timing,
-                                                            command_recorder,
-                                                            m_queue_support,
-                                                            m_device,
-                                                            m_render_pass);
+            vk::Semaphore wait_semaphores[] = {
+                    **(render_pass->wait_semaphore())
+            };
 
-            m_current_render_pass_holder = std::make_shared<TokenLender<RenderPass>>(std::move(render_pass));
-            return m_current_render_pass_holder->borrow_token();
+            vk::CommandBuffer command_buffers[] = {
+                    **(render_pass->command_recorder().command_buffer())
+            };
+
+            vk::SubmitInfo submit_info = {
+                    .waitSemaphoreCount = 1,
+                    .pWaitSemaphores = wait_semaphores,
+                    .pWaitDstStageMask = wait_stage_flags,
+                    .commandBufferCount = 1,
+                    .pCommandBuffers = command_buffers,
+                    .signalSemaphoreCount = 1,
+                    .pSignalSemaphores = signal_semaphores,
+            };
+
+            auto queue = m_device->getQueue(m_queue_support.get_queue<QueueFeature::Graphics>(), 0);
+            queue.submit({ submit_info }, **(render_pass->render_fence()));
+
+            render_pass.command_recorder().command_buffer().impl()->endRenderPass();
+            render_pass.command_recorder().command_buffer().impl()->end();
         }
     }
 
-    Token<RenderPass> RenderPipeline::try_begin_render_pass(const RenderTarget &render_target,
-                                                            const RenderTiming &render_timing,
-                                                            const std::shared_ptr<CommandBuffer> &command_buffer)
-    {
-        return impl().try_begin_render_pass(render_target, render_timing, command_buffer);
+    std::optional<RenderPass> RenderPipeline::try_begin_render_pass(RenderRequest request) {
+        return impl().try_begin_render_pass(std::move(request));
     }
 
-    void RenderPipeline::submit_render_pass(Token<RenderPass> &render_pass) {
-        impl().submit_render_pass(render_pass);
+    void RenderPipeline::end_render_pass(RenderPass &render_pass) {
+        impl().end_render_pass(render_pass);
     }
 }

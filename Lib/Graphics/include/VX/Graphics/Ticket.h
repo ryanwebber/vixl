@@ -8,32 +8,32 @@
 namespace VX::Graphics {
 
     template <class T>
-    class TokenLender;
+    class TicketOwner;
 
     template <class T>
-    class Token final {
-        VX_DEFAULT_MOVABLE(Token);
-        VX_MAKE_NONCOPYABLE(Token);
+    class Ticket final {
+        VX_DEFAULT_MOVABLE(Ticket);
+        VX_MAKE_NONCOPYABLE(Ticket);
     private:
         std::unique_ptr<T> m_obj;
-        std::weak_ptr<TokenLender<T>> m_lender;
+        std::weak_ptr<TicketOwner<T>> m_lender;
 
     public:
-        Token()
+        Ticket()
             : m_obj(nullptr)
             , m_lender({ })
         {}
 
-        Token(std::unique_ptr<T> obj, std::weak_ptr<TokenLender<T>> lender)
+        Ticket(std::unique_ptr<T> obj, std::weak_ptr<TicketOwner<T>> lender)
             : m_obj(std::move(obj))
             , m_lender(lender)
         {
         }
 
         [[nodiscard]] bool is_valid() const { return m_obj != nullptr; }
-        void return_token();
+        void return_ticket();
 
-        ~Token() { return_token(); }
+        ~Ticket() { return_ticket(); }
 
         T& operator*() { return *m_obj; }
         const T& operator*() const { return *m_obj; }
@@ -41,26 +41,26 @@ namespace VX::Graphics {
         T* operator->() { return m_obj.get(); }
         const T* operator->() const { return m_obj.get(); }
 
-        friend class TokenLender<T>;
+        friend class TicketOwner<T>;
     };
 
     template <class T>
-    class TokenLender final : public std::enable_shared_from_this<TokenLender<T>> {
+    class TicketOwner final : public std::enable_shared_from_this<TicketOwner<T>> {
     private:
-        Token<T> m_token;
+        Ticket<T> m_token;
 
     public:
-        explicit TokenLender(std::unique_ptr<T> data)
+        explicit TicketOwner(std::unique_ptr<T> data)
                 : m_token(std::move(data), this->weak_from_this())
         {}
 
         [[nodiscard]] bool has_token() const { return m_token.is_valid(); }
-        Token<T> borrow_token() { return std::move(m_token); }
+        Ticket<T> borrow_token() { return std::move(m_token); }
 
         T &peek() { return *m_token; }
         const T &peek() const { return *m_token; }
 
-        bool reclaim(Token<T> &token) {
+        bool reclaim(Ticket<T> &token) {
             if (token.is_valid()) {
                 if (auto lender = token.m_lender.lock()) {
                     if (lender.get() == this) {
@@ -75,11 +75,11 @@ namespace VX::Graphics {
 
         explicit operator bool() const { return has_token(); }
 
-        friend class Token<T>;
+        friend class Ticket<T>;
     };
 
     template<class T>
-    void Token<T>::return_token() {
+    void Ticket<T>::return_ticket() {
         if (auto lender = m_lender.lock()) {
             lender->reclaim(*this);
         }

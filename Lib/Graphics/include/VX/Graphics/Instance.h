@@ -11,7 +11,7 @@
 #include <VX/Graphics/RenderPipeline.h>
 #include <VX/Graphics/Framebuffer.h>
 #include <VX/Graphics/Swapchain.h>
-#include <VX/Graphics/Token.h>
+#include <VX/Graphics/Ticket.h>
 
 namespace VX::Graphics {
 

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <VX/Graphics/APIObject.h>
+#include <VX/Graphics/RenderRequest.h>
 #include <VX/Graphics/RenderTarget.h>
 #include <VX/Graphics/Synchronization.h>
 
@@ -13,32 +14,29 @@ namespace VX::Graphics {
         class FrameSequencerImpl;
         class FrameSynchronizerImpl;
         class SwapchainImpl;
-        class SwapchainTargetImpl;
+        class SwapStateImpl;
     }
 
-    class SwapchainTarget final: APIObject<Private::SwapchainTargetImpl> {
+    class SwapState final: APIObject<Private::SwapStateImpl> {
     public:
-        using APIObject<Private::SwapchainTargetImpl>::APIObject;
+        using APIObject<Private::SwapStateImpl>::APIObject;
 
+        [[nodiscard]] RenderRequest create_render_request() const;
         [[nodiscard]] int swap_index() const;
-        [[nodiscard]] const RenderTarget& render_target() const;
-        [[nodiscard]] const std::vector<std::shared_ptr<Semaphore>>& wait_semaphores() const;
-        [[nodiscard]] const std::vector<std::shared_ptr<Semaphore>>& signal_semaphores() const;
-        [[nodiscard]] const std::vector<std::shared_ptr<Fence>>& resource_reuse_fences() const;
-    };
-
-    class FrameSynchronizer final: APIObject<Private::FrameSynchronizerImpl> {
-    public:
-        using APIObject<Private::FrameSynchronizerImpl>::APIObject;
-
-        void swap_and_present(const SwapchainTarget&);
     };
 
     class FrameSequencer final: APIObject<Private::FrameSequencerImpl> {
     public:
         using APIObject<Private::FrameSequencerImpl>::APIObject;
 
-        std::optional<SwapchainTarget> acquire_next_swap_target();
+        std::optional<SwapState> acquire_next_swap_state();
+    };
+
+    class FrameSynchronizer final: APIObject<Private::FrameSynchronizerImpl> {
+    public:
+        using APIObject<Private::FrameSynchronizerImpl>::APIObject;
+
+        void swap_and_present(const SwapState&);
     };
 
     class Swapchain final : public APIObject<Private::SwapchainImpl> {

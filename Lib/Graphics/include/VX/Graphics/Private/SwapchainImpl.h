@@ -12,41 +12,34 @@
 
 namespace VX::Graphics::Private {
 
-    class SwapchainTargetImpl final {
-        VX_MAKE_NONCOPYABLE(SwapchainTargetImpl);
-        VX_DEFAULT_MOVABLE(SwapchainTargetImpl);
+    class SwapStateImpl final {
+        VX_MAKE_NONCOPYABLE(SwapStateImpl);
+        VX_DEFAULT_MOVABLE(SwapStateImpl);
     private:
         int m_swap_index;
         RenderTarget m_render_target;
-        std::vector<std::shared_ptr<Semaphore>> m_wait_semaphores;
-        std::vector<std::shared_ptr<Semaphore>> m_signal_semaphores;
-        std::vector<std::shared_ptr<Fence>> m_resource_reuse_fences;
+        std::shared_ptr<Fence> m_render_fence;
+        std::shared_ptr<Semaphore> m_wait_semaphore;
+        std::shared_ptr<Semaphore> m_signal_semaphore;
+        std::shared_ptr<CommandBuffer> m_command_buffer;
 
     public:
-        SwapchainTargetImpl(int swap_index,
-                            RenderTarget render_target,
-                            std::vector<std::shared_ptr<Semaphore>> wait_semaphores,
-                            std::vector<std::shared_ptr<Semaphore>> signal_semaphores,
-                            std::vector<std::shared_ptr<Fence>> resource_reuse_fences);
-
-        [[nodiscard]] int swap_index() const { return m_swap_index; }
-        [[nodiscard]] const RenderTarget& render_target() const { return m_render_target; }
-        [[nodiscard]] const std::vector<std::shared_ptr<Semaphore>>& wait_semaphores() const { return m_wait_semaphores; }
-        [[nodiscard]] const std::vector<std::shared_ptr<Semaphore>>& signal_semaphores() const { return m_signal_semaphores; }
-        [[nodiscard]] const std::vector<std::shared_ptr<Fence>>& resource_reuse_fences() const { return m_resource_reuse_fences; }
-    };
-
-    class FrameSynchronizerImpl final {
-        VX_MAKE_NONCOPYABLE(FrameSynchronizerImpl);
-        VX_DEFAULT_MOVABLE(FrameSynchronizerImpl);
-    private:
-        std::shared_ptr<vk::raii::SwapchainKHR> m_swapchain;
-    public:
-        explicit FrameSynchronizerImpl(std::shared_ptr<vk::raii::SwapchainKHR> swapchain)
-            : m_swapchain(std::move(swapchain))
+        SwapStateImpl(int swap_index,
+                      RenderTarget render_target,
+                      std::shared_ptr<Fence> render_fence,
+                      std::shared_ptr<Semaphore> wait_semaphore,
+                      std::shared_ptr<Semaphore> signal_semaphore,
+                      std::shared_ptr<CommandBuffer> command_buffer)
+            : m_swap_index(swap_index)
+            , m_render_target(std::move(render_target))
+            , m_render_fence(std::move(render_fence))
+            , m_wait_semaphore(std::move(wait_semaphore))
+            , m_signal_semaphore(std::move(signal_semaphore))
+            , m_command_buffer(std::move(command_buffer))
         {}
 
-        void swap_and_present(const SwapchainTarget&);
+        [[nodiscard]] RenderRequest create_render_request() const;
+        [[nodiscard]] int swap_index() const { return m_swap_index; }
     };
 
     class FrameSequencerImpl final {
@@ -71,7 +64,20 @@ namespace VX::Graphics::Private {
                                     std::vector<std::shared_ptr<Framebuffer>>,
                                     std::vector<std::shared_ptr<CommandBuffer>>);
 
-        std::optional<SwapchainTarget> acquire_next_swap_target();
+        std::optional<SwapState> acquire_next_swap_state();
+    };
+
+    class FrameSynchronizerImpl final {
+        VX_MAKE_NONCOPYABLE(FrameSynchronizerImpl);
+        VX_DEFAULT_MOVABLE(FrameSynchronizerImpl);
+    private:
+        std::shared_ptr<vk::raii::SwapchainKHR> m_swapchain;
+    public:
+        explicit FrameSynchronizerImpl(std::shared_ptr<vk::raii::SwapchainKHR> swapchain)
+                : m_swapchain(std::move(swapchain))
+        {}
+
+        void swap_and_present(const SwapState&);
     };
 
     class SwapchainImpl final {

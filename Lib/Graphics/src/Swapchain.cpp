@@ -12,20 +12,18 @@ namespace VX::Graphics {
 
         const auto semaphore_wait_timeout = std::numeric_limits<uint64_t>::max();
 
-        SwapchainTargetImpl::SwapchainTargetImpl(int swap_index,
-                                                 RenderTarget render_target,
-                                                 std::vector<std::shared_ptr<Semaphore>> wait_semaphores,
-                                                 std::vector<std::shared_ptr<Semaphore>> signal_semaphores,
-                                                 std::vector<std::shared_ptr<Fence>> resource_reuse_fences)
-            : m_swap_index(swap_index)
-            , m_render_target(std::move(render_target))
-            , m_wait_semaphores(std::move(wait_semaphores))
-            , m_signal_semaphores(std::move(signal_semaphores))
-            , m_resource_reuse_fences(std::move(resource_reuse_fences))
-        {
+        RenderRequest SwapStateImpl::create_render_request() const {
+            return {
+                    .render_target = m_render_target,
+                    .render_fence = m_render_fence,
+                    .wait_semaphore = m_wait_semaphore,
+                    .signal_semaphore = m_signal_semaphore,
+                    .command_buffer = m_command_buffer
+            };
         }
 
-        void FrameSynchronizerImpl::swap_and_present(const SwapchainTarget&) {
+        void FrameSynchronizerImpl::swap_and_present(const SwapState &) {
+            // TODO
         }
 
         FrameSequencerImpl::FrameSequencerImpl(std::shared_ptr<vk::raii::Device> device,
@@ -55,7 +53,7 @@ namespace VX::Graphics {
             }
         }
 
-        std::optional<SwapchainTarget> FrameSequencerImpl::acquire_next_swap_target() {
+        std::optional<SwapState> FrameSequencerImpl::acquire_next_swap_state() {
             auto wait_result = m_device->waitForFences({ ***m_frame_drawing_fences[m_current_frame_index] }, true, semaphore_wait_timeout);
             if (wait_result != vk::Result::eSuccess) {
                 Log::warn("Next swap target is unavailable: {}", vk::to_string(wait_result));
@@ -72,43 +70,31 @@ namespace VX::Graphics {
 
             const auto& selected_command_buffer = m_command_buffers[m_current_frame_index];
 
-            auto render_target = RenderTarget(m_framebuffers[image_index]);
-            std::vector<std::shared_ptr<Semaphore>> wait_semaphores = { m_image_selection_semaphores[m_current_frame_index] };
-            std::vector<std::shared_ptr<Semaphore>> signal_semaphores = { m_render_submission_semaphores[m_current_frame_index] };
-            std::vector<std::shared_ptr<Fence>> resource_reuse_fences = { m_frame_drawing_fences[m_current_frame_index] };
+            auto render_target = RenderTarget(m_framebuffers[image_index], { 800, 600 } ); // TODO: dimensions are wrong
+            std::shared_ptr<Fence> render_fence = m_frame_drawing_fences[m_current_frame_index];
+            std::shared_ptr<Semaphore> wait_semaphore = m_image_selection_semaphores[m_current_frame_index];
+            std::shared_ptr<Semaphore> signal_semaphore = m_render_submission_semaphores[m_current_frame_index];
 
             m_current_frame_index = (m_current_frame_index + 1) % max_inflight_count();
 
-            return SwapchainTarget(static_cast<int>(image_index), render_target, signal_semaphores, wait_semaphores, resource_reuse_fences);
+            return SwapState(static_cast<int>(image_index), render_target, render_fence, wait_semaphore, signal_semaphore, selected_command_buffer);
         }
     }
 
-    int SwapchainTarget::swap_index() const {
+    RenderRequest SwapState::create_render_request() const {
+        return impl().create_render_request();
+    }
+
+    int SwapState::swap_index() const {
         return impl().swap_index();
     }
 
-    const RenderTarget& SwapchainTarget::render_target() const {
-        return impl().render_target();
+    void FrameSynchronizer::swap_and_present(const SwapState &swap_state) {
+        return impl().swap_and_present(swap_state);
     }
 
-    const std::vector<std::shared_ptr<Semaphore>>& SwapchainTarget::wait_semaphores() const {
-        return impl().wait_semaphores();
-    }
-
-    const std::vector<std::shared_ptr<Semaphore>>& SwapchainTarget::signal_semaphores() const {
-        return impl().signal_semaphores();
-    }
-
-    const std::vector<std::shared_ptr<Fence>>& SwapchainTarget::resource_reuse_fences() const {
-        return impl().resource_reuse_fences();
-    }
-
-    void FrameSynchronizer::swap_and_present(const SwapchainTarget& target) {
-        impl().swap_and_present(target);
-    }
-
-    std::optional<SwapchainTarget> FrameSequencer::acquire_next_swap_target() {
-        return impl().acquire_next_swap_target();
+    std::optional<SwapState> FrameSequencer::acquire_next_swap_state() {
+        return impl().acquire_next_swap_state();
     }
 
     FrameSynchronizer& Swapchain::frame_synchronizer() {
