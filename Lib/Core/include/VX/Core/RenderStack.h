@@ -1,10 +1,11 @@
 #pragma once
 
-#include <VX/Noncopyable.h>
-#include <VX/Core/RenderLayer.h>
-
 #include <memory>
 #include <vector>
+
+#include <VX/Noncopyable.h>
+#include <VX/Graphics/Instance.h>
+#include <VX/Core/RenderLayer.h>
 
 namespace VX::Core {
     class RenderStack final {

@@ -8,10 +8,10 @@
 #include <VX/Copyable.h>
 
 #include <VX/Graphics/APIObject.h>
-#include <VX/Graphics/RenderPipeline.h>
 #include <VX/Graphics/Framebuffer.h>
+#include <VX/Graphics/GraphicsPipeline.h>
+#include <VX/Graphics/RenderPipeline.h>
 #include <VX/Graphics/Swapchain.h>
-#include <VX/Graphics/Ticket.h>
 
 namespace VX::Graphics {
 
@@ -28,6 +28,9 @@ namespace VX::Graphics {
 
         const Swapchain& swapchain() const;
         Swapchain& swapchain();
+
+        const GraphicsPipeline& example_graphics_pipeline() const;
+        GraphicsPipeline& example_graphics_pipeline();
 
         // APIs for:
         //  * Graphics pipeline creation

@@ -309,7 +309,7 @@ namespace VX::Core {
                     [](uvw::AsyncHandle &h) { h.close(); }, // Kill event listeners
                     [](auto &&) {
                         // TODO: Is this assert correct? We should probably let file system handles complete
-                        VX_ASSERT(false, "Event loop not able to close all resources. Program will probably hand...");
+                        VX_ASSERT(false, "Event loop not able to close all resources. Program will probably hang...");
                     },
             });
 
@@ -330,7 +330,7 @@ namespace VX::Core {
             e.run();
         }
 
-        const std::shared_ptr<Executor> executor() { return m_executor; }
+        std::shared_ptr<Executor> executor() { return m_executor; }
     };
 
     // Impl functions now that everything is declared

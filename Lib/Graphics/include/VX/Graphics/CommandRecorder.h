@@ -3,29 +3,21 @@
 #include <VX/Copyable.h>
 #include <VX/Noncopyable.h>
 
+#include <VX/Graphics/APIObject.h>
 #include <VX/Graphics/CommandBuffer.h>
+#include <VX/Graphics/GraphicsPipeline.h>
 
 namespace VX::Graphics {
 
-    class CommandRecorder final {
-        VX_DEFAULT_COPYABLE(CommandRecorder);
-        VX_DEFAULT_MOVABLE(CommandRecorder);
-    private:
-        std::shared_ptr<CommandBuffer> m_command_buffer;
+    namespace Private {
+        class CommandRecorderImpl;
+    }
 
+    class CommandRecorder final: public APIObject<Private::CommandRecorderImpl> {
     public:
-        explicit CommandRecorder(std::shared_ptr<CommandBuffer> command_buffer)
-            : m_command_buffer(std::move(command_buffer))
-        {}
+        using APIObject<Private::CommandRecorderImpl>::APIObject;
 
-        ~CommandRecorder() = default;
-
-        CommandBuffer &command_buffer() { return *m_command_buffer; };
-        [[nodiscard]] const CommandBuffer &command_buffer() const { return *m_command_buffer; };
-
-        // void BindGraphicsPipeline()
-        // void Draw(...)
-        // void DrawInstanced()
-        // void Submit()
+        void bind(const GraphicsPipeline&) const;
+        void draw() const;
     };
 }

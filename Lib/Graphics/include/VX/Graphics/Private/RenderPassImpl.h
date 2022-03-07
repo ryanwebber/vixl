@@ -6,6 +6,7 @@
 #include <VX/Graphics/APIObject.h>
 #include <VX/Graphics/Framebuffer.h>
 #include <VX/Graphics/RenderTarget.h>
+#include <VX/Graphics/Private/CommandRecorderImpl.h>
 #include <VX/Graphics/Private/QueueSupport.h>
 #include <VX/Graphics/Private/Vulkan.h>
 

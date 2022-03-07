@@ -17,7 +17,7 @@ namespace VX::Graphics {
         class SwapStateImpl;
     }
 
-    class SwapState final: APIObject<Private::SwapStateImpl> {
+    class SwapState final: public APIObject<Private::SwapStateImpl> {
     public:
         using APIObject<Private::SwapStateImpl>::APIObject;
 

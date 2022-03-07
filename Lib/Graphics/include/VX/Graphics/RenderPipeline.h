@@ -6,7 +6,6 @@
 #include <VX/Graphics/RenderPass.h>
 #include <VX/Graphics/RenderRequest.h>
 #include <VX/Graphics/RenderTarget.h>
-#include <VX/Graphics/Ticket.h>
 
 namespace VX::Graphics {
 

@@ -4,6 +4,8 @@
 
 #include <VX/Noncopyable.h>
 
+#include <VX/Graphics/Instance.h>
+
 #include <VX/Core/RenderStack.h>
 #include <VX/Graphics/Instance.h>
 #include <VX/Platform/NativeWindow.h>

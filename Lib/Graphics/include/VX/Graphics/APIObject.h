@@ -29,8 +29,11 @@ namespace VX::Graphics {
         T const * operator->() const { return m_data.operator->(); }
 
     public:
-        virtual ~APIObject() = default;
+        virtual ~APIObject() = 0;
     };
+
+//    template<class T>
+//    APIObject<T>::~APIObject() = default;
 
     template <class T>
     class APIWrapper {
@@ -53,5 +56,7 @@ namespace VX::Graphics {
 
         auto operator->() { return &m_obj; }
         auto operator->() const { return &m_obj; }
+
+        virtual ~APIWrapper() = default;
     };
 }

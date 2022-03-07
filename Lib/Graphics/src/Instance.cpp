@@ -1,3 +1,4 @@
+#include <VX/Graphics/Private/GraphicsPipelineImpl.h>
 #include <VX/Graphics/Private/InstanceImpl.h>
 #include <VX/Graphics/Private/RenderPassImpl.h>
 #include <VX/Graphics/Private/SwapchainImpl.h>
@@ -19,5 +20,13 @@ namespace VX::Graphics {
 
     Swapchain& Instance::swapchain() {
         return impl().swapchain();
+    }
+
+    const GraphicsPipeline &Instance::example_graphics_pipeline() const {
+        return impl().example_graphics_pipeline();
+    }
+
+    GraphicsPipeline &Instance::example_graphics_pipeline() {
+        return impl().example_graphics_pipeline();
     }
 }

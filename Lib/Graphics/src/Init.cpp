@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include <VX/Graphics/Private/Assert.h>
+#include <VX/Graphics/Private/GraphicsPipelineImpl.h>
 #include <VX/Graphics/Private/InstanceImpl.h>
 #include <VX/Graphics/Private/Logger.h>
 #include <VX/Graphics/Private/PlatformDelegate.h>
@@ -14,6 +15,7 @@
 #include <VX/Graphics/Private/Vulkan.h>
 #include <VX/Graphics/Private/Wrappers.h>
 
+#include <VX/Graphics/GraphicsPipeline.h>
 #include <VX/Graphics/Instance.h>
 #include <VX/Graphics/CommandBuffer.h>
 #include <VX/Graphics/Framebuffer.h>
@@ -390,12 +392,22 @@ namespace VX::Graphics::Private {
             .pColorAttachments = &color_attachment_reference,
         };
 
+        vk::SubpassDependency image_available_dependency = {
+                .srcSubpass = VK_SUBPASS_EXTERNAL,
+                .dstSubpass = 0,
+                .srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                .dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                .srcAccessMask = { },
+                .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+        };
+
         vk::RenderPassCreateInfo render_pass_create_info = {
             .attachmentCount = 1,
             .pAttachments = &color_attachment,
             .subpassCount = 1,
             .pSubpasses = &subpass_description,
-            // TODO: dependencies
+            .dependencyCount = 1,
+            .pDependencies = &image_available_dependency
         };
 
         return logical_device.createRenderPass(render_pass_create_info);
@@ -623,6 +635,11 @@ namespace VX::Graphics::Private {
                                                           fragment_shader_module,
                                                           framebuffer_extents);
 
+        GraphicsPipeline api_ex_graphics_pipeline(std::move(vertex_shader_module),
+                                                  std::move(fragment_shader_module),
+                                                  std::move(pipeline_layout),
+                                                  std::move(graphics_pipeline));
+
 #pragma mark: Construct API objects
 
         std::vector<std::shared_ptr<Framebuffer>> api_framebuffers;
@@ -637,7 +654,7 @@ namespace VX::Graphics::Private {
 
         auto shared_device = std::make_shared<vk::raii::Device>(std::move(logical_device));
         auto shared_render_pass = std::make_shared<vk::raii::RenderPass>(std::move(render_pass));
-        Swapchain api_swapchain(std::move(swapchain), shared_device, std::move(api_framebuffers), std::move(api_command_buffers));
+        Swapchain api_swapchain(queue_support, std::move(swapchain), shared_device, std::move(api_framebuffers), std::move(api_command_buffers));
         RenderPipeline api_render_pipeline(queue_support, shared_render_pass, shared_device);
 
         // Move everything we don't need a reference to but need to keep allocated and alive under vk::raii
@@ -657,6 +674,7 @@ namespace VX::Graphics::Private {
 
         return std::make_unique<Instance>(std::move(api_swapchain),
                                           std::move(api_render_pipeline),
+                                          std::move(api_ex_graphics_pipeline),
                                           std::move(global_resources));
     }
 }

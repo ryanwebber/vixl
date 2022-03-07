@@ -22,8 +22,28 @@ namespace VX::Graphics {
             };
         }
 
-        void FrameSynchronizerImpl::swap_and_present(const SwapState &) {
-            // TODO
+        void FrameSynchronizerImpl::swap_and_present(const SwapState &swap_state) {
+
+            vk::Semaphore wait_semaphores[] = {
+                **(swap_state->signal_semaphore())
+            };
+
+            vk::SwapchainKHR swapchains[] = { **m_swapchain };
+
+            uint32_t swap_indexes[] = {
+                    static_cast<uint32_t>(swap_state.swap_index())
+            };
+
+            vk::PresentInfoKHR present_info = {
+                    .waitSemaphoreCount = 1,
+                    .pWaitSemaphores = wait_semaphores,
+                    .swapchainCount = 1,
+                    .pSwapchains = swapchains,
+                    .pImageIndices = swap_indexes,
+            };
+
+            auto queue = m_device->getQueue(m_queue_support.get_queue<QueueFeature::Presentation>(), 0);
+            queue.presentKHR(present_info);
         }
 
         FrameSequencerImpl::FrameSequencerImpl(std::shared_ptr<vk::raii::Device> device,

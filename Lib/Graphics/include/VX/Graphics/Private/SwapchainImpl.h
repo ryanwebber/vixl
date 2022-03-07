@@ -8,6 +8,7 @@
 
 #include <VX/Graphics/Framebuffer.h>
 #include <VX/Graphics/Swapchain.h>
+#include <VX/Graphics/Private/QueueSupport.h>
 #include <VX/Graphics/Private/Vulkan.h>
 
 namespace VX::Graphics::Private {
@@ -38,8 +39,23 @@ namespace VX::Graphics::Private {
             , m_command_buffer(std::move(command_buffer))
         {}
 
+        ~SwapStateImpl() = default;
+
         [[nodiscard]] RenderRequest create_render_request() const;
+
         [[nodiscard]] int swap_index() const { return m_swap_index; }
+
+        RenderTarget &render_target() { return m_render_target; }
+        [[nodiscard]] const RenderTarget &render_target() const { return m_render_target; }
+
+        Fence &render_fence() { return *m_render_fence; }
+        [[nodiscard]] const Fence &render_fence() const { return *m_render_fence; }
+
+        Semaphore &wait_semaphore() { return *m_wait_semaphore; }
+        [[nodiscard]] const Semaphore &wait_semaphore() const { return *m_wait_semaphore; }
+
+        Semaphore &signal_semaphore() { return *m_signal_semaphore; }
+        [[nodiscard]] const Semaphore &signal_semaphore() const { return *m_signal_semaphore; }
     };
 
     class FrameSequencerImpl final {
@@ -71,10 +87,16 @@ namespace VX::Graphics::Private {
         VX_MAKE_NONCOPYABLE(FrameSynchronizerImpl);
         VX_DEFAULT_MOVABLE(FrameSynchronizerImpl);
     private:
+        QueueSupport m_queue_support;
+        std::shared_ptr<vk::raii::Device> m_device;
         std::shared_ptr<vk::raii::SwapchainKHR> m_swapchain;
     public:
-        explicit FrameSynchronizerImpl(std::shared_ptr<vk::raii::SwapchainKHR> swapchain)
-                : m_swapchain(std::move(swapchain))
+        explicit FrameSynchronizerImpl(QueueSupport queue_support,
+                                       std::shared_ptr<vk::raii::Device> device,
+                                       std::shared_ptr<vk::raii::SwapchainKHR> swapchain)
+            : m_queue_support(std::move(queue_support))
+            , m_device(std::move(device))
+            , m_swapchain(std::move(swapchain))
         {}
 
         void swap_and_present(const SwapState&);
@@ -92,7 +114,8 @@ namespace VX::Graphics::Private {
         FrameSynchronizer m_frame_synchronizer;
 
     public:
-        SwapchainImpl(vk::raii::SwapchainKHR swapchain,
+        SwapchainImpl(QueueSupport queue_support,
+                      vk::raii::SwapchainKHR swapchain,
                       std::shared_ptr<vk::raii::Device> device,
                       std::vector<std::shared_ptr<Framebuffer>> framebuffers,
                       std::vector<std::shared_ptr<CommandBuffer>> command_buffers)
@@ -100,7 +123,7 @@ namespace VX::Graphics::Private {
             , m_framebuffers(std::move(framebuffers))
             , m_command_buffers(std::move(command_buffers))
             , m_frame_sequencer(device, m_swapchain, m_framebuffers, m_command_buffers)
-            , m_frame_synchronizer(m_swapchain)
+            , m_frame_synchronizer(queue_support, device, m_swapchain)
         {}
 
         FrameSynchronizer& frame_synchronizer() { return m_frame_synchronizer; }

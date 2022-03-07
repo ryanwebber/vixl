@@ -54,6 +54,10 @@ int vixl_main(const VX::Entry::Context &ctx) {
         }
     });
 
+    auto render_handle = render_timer.subscriber().on([&](auto) {
+        renderer->render_frame();
+    });
+
     app.run();
 
     return 0;

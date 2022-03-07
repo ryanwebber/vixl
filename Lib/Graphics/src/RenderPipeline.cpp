@@ -1,4 +1,6 @@
+#include <VX/Graphics/CommandRecorder.h>
 #include <VX/Graphics/RenderPipeline.h>
+#include <VX/Graphics/Private/CommandRecorderImpl.h>
 #include <VX/Graphics/Private/RenderPipelineImpl.h>
 #include <VX/Graphics/Private/Wrappers.h>
 #include <VX/Graphics/Private/Vulkan.h>
@@ -38,8 +40,7 @@ namespace VX::Graphics {
             request.command_buffer->impl()->begin(command_buffer_begin_info);
             request.command_buffer->impl()->beginRenderPass(render_pass_begin_info, vk::SubpassContents::eInline);
 
-            CommandRecorder command_recorder(request.command_buffer);
-            return RenderPass(command_recorder,
+            return RenderPass(CommandRecorder(request.command_buffer),
                               request.render_target,
                               request.render_fence,
                               request.wait_semaphore,
@@ -60,7 +61,7 @@ namespace VX::Graphics {
             };
 
             vk::CommandBuffer command_buffers[] = {
-                    **(render_pass->command_recorder().command_buffer())
+                    **(render_pass->command_recorder()->command_buffer())
             };
 
             vk::SubmitInfo submit_info = {
@@ -76,8 +77,8 @@ namespace VX::Graphics {
             auto queue = m_device->getQueue(m_queue_support.get_queue<QueueFeature::Graphics>(), 0);
             queue.submit({ submit_info }, **(render_pass->render_fence()));
 
-            render_pass.command_recorder().command_buffer().impl()->endRenderPass();
-            render_pass.command_recorder().command_buffer().impl()->end();
+            render_pass.command_recorder()->command_buffer().impl()->endRenderPass();
+            render_pass.command_recorder()->command_buffer().impl()->end();
         }
     }
 

@@ -9,6 +9,7 @@ find_package(Vulkan REQUIRED FATAL_ERROR)
 message(STATUS "Vulkan info:\n\tLibs: ${Vulkan_LIBRARIES}\n\tincludes: ${Vulkan_INCLUDE_DIRS}\n")
 
 set(SOURCES
+        src/CommandRecorder.cpp
         src/Init.cpp
         src/Instance.cpp
         src/QueueSupport.cpp
