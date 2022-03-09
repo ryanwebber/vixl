@@ -1,9 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <VX/Graphics/Private/Vulkan.h>
+#include <VX/Graphics/Vulkan.h>
 
-namespace VX::Graphics::Private {
+namespace VX::Graphics {
     class PlatformDelegate {
     protected:
         PlatformDelegate() = default;

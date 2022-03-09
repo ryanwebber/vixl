@@ -441,7 +441,7 @@ namespace VX::Core {
                 });
 
                 read_handle->template once<uvw::ErrorEvent>([=](const auto &error, const auto &) {
-                    auto result = VX::make_unexpected<VX::ByteBuffer>(error.what());
+                    auto result = VX::make_unexpected(error.what());
                     cb(std::move(result));
                     read_handle->close();
                 });

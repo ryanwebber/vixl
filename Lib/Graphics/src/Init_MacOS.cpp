@@ -1,7 +1,7 @@
+#include <VX/Graphics/Init.h>
 #include <VX/Graphics/Init_MacOS.h>
-#include <VX/Graphics/Private/Init.h>
-#include <VX/Graphics/Private/PlatformDelegate.h>
-#include <VX/Graphics/Private/Vulkan.h>
+#include <VX/Graphics/PlatformDelegate.h>
+#include <VX/Graphics/Vulkan.h>
 
 #ifndef VK_USE_PLATFORM_METAL_EXT
 #error "Unexpected undefined VK_USE_PLATFORM_MACOS_KHR"
@@ -17,7 +17,7 @@ namespace VX::Graphics::MacOS {
             "VK_EXT_metal_surface",
     };
 
-    class MacOSPlatformDelegate final : public Private::PlatformDelegate {
+    class MacOSPlatformDelegate final : public PlatformDelegate {
     private:
         PlatformData m_platform_data;
     public:
@@ -35,7 +35,7 @@ namespace VX::Graphics::MacOS {
         }
     };
 
-    std::shared_ptr<Instance> initialize(const GraphicsInfo &graphics_info, const PlatformData &platform_data)
+    VX::Expected<Instance> init(const GraphicsInfo &graphics_info, const PlatformData &platform_data)
     {
         auto validated_graphics_info = graphics_info;
         for (const auto extension : s_required_macos_extensions) {
@@ -52,6 +52,6 @@ namespace VX::Graphics::MacOS {
             }
         }
 
-        return Private::initialize(validated_graphics_info, MacOSPlatformDelegate(platform_data));
+        return init(validated_graphics_info, MacOSPlatformDelegate(platform_data));
     }
 }

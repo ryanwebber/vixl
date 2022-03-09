@@ -2,30 +2,19 @@
 #include <vector>
 #include <unordered_map>
 
-#include <VX/Graphics/Private/Assert.h>
-#include <VX/Graphics/Private/GraphicsPipelineImpl.h>
-#include <VX/Graphics/Private/InstanceImpl.h>
-#include <VX/Graphics/Private/Logger.h>
-#include <VX/Graphics/Private/PlatformDelegate.h>
-#include <VX/Graphics/Private/QueueSupport.h>
-#include <VX/Graphics/Private/RenderPassImpl.h>
-#include <VX/Graphics/Private/RenderPipelineImpl.h>
-#include <VX/Graphics/Private/SwapchainImpl.h>
-#include <VX/Graphics/Private/SwapchainSupport.h>
-#include <VX/Graphics/Private/Vulkan.h>
-#include <VX/Graphics/Private/Wrappers.h>
-
-#include <VX/Graphics/GraphicsPipeline.h>
-#include <VX/Graphics/Instance.h>
-#include <VX/Graphics/CommandBuffer.h>
-#include <VX/Graphics/Framebuffer.h>
+#include <VX/Graphics/Assert.h>
 #include <VX/Graphics/Graphics.h>
-#include <VX/Graphics/Swapchain.h>
+#include <VX/Graphics/Init.h>
+#include <VX/Graphics/Instance.h>
+#include <VX/Graphics/Logger.h>
+#include <VX/Graphics/PlatformDelegate.h>
+#include <VX/Graphics/QueueSupport.h>
+#include <VX/Graphics/Vulkan.h>
 
-#include <VX/Graphics/Private/ExampleFragmentShader.h>
-#include <VX/Graphics/Private/ExampleVertexShader.h>
+#include <VX/Graphics/ExampleFragmentShader.h>
+#include <VX/Graphics/ExampleVertexShader.h>
 
-namespace VX::Graphics::Private {
+namespace VX::Graphics {
 
     static const std::vector<const char*> default_validation_layers = {
 #if VX_GRAPHICS_VALIDATION
@@ -45,6 +34,13 @@ namespace VX::Graphics::Private {
 
         return VK_FALSE;
     }
+
+    struct SwapchainSupport final {
+        vk::PresentModeKHR present_mode;
+        vk::SurfaceFormatKHR surface_format;
+        vk::SurfaceCapabilitiesKHR surface_capabilities;
+        uint32_t image_count;
+    };
 
     static void init_debug_messenger(const vk::raii::Instance &instance, std::vector<std::shared_ptr<void>> &resources) {
         vk::DebugUtilsMessengerCreateInfoEXT create_info = {
@@ -555,7 +551,7 @@ namespace VX::Graphics::Private {
         return logical_device.allocateCommandBuffers(allocate_info);
     }
 
-    std::shared_ptr<Instance> initialize(const GraphicsInfo &info, const PlatformDelegate& delegate)
+    Instance try_init(const GraphicsInfo &info, const PlatformDelegate& delegate)
     {
         init_logger();
 
@@ -621,60 +617,16 @@ namespace VX::Graphics::Private {
         auto command_pool = create_command_pool(logical_device, queue_support);
         auto command_buffers = create_command_buffers(logical_device, command_pool, 2);
 
-#pragma mark: Inline graphics pipeline initialization
+        return { nullptr };
+    }
 
-        auto vertex_shader_module = create_shader_module(logical_device, example_vertex_shader_source);
-        auto fragment_shader_module = create_shader_module(logical_device, example_fragment_shader_source);
-
-        auto pipeline_layout = create_pipeline_layout(logical_device);
-
-        auto graphics_pipeline = create_graphics_pipeline(logical_device,
-                                                          pipeline_layout,
-                                                          render_pass,
-                                                          vertex_shader_module,
-                                                          fragment_shader_module,
-                                                          framebuffer_extents);
-
-        GraphicsPipeline api_ex_graphics_pipeline(std::move(vertex_shader_module),
-                                                  std::move(fragment_shader_module),
-                                                  std::move(pipeline_layout),
-                                                  std::move(graphics_pipeline));
-
-#pragma mark: Construct API objects
-
-        std::vector<std::shared_ptr<Framebuffer>> api_framebuffers;
-        api_framebuffers.reserve(framebuffers.size());
-        for (auto& framebuffer: framebuffers)
-            api_framebuffers.push_back(std::make_shared<Framebuffer>(std::move(framebuffer)));
-
-        std::vector<std::shared_ptr<CommandBuffer>> api_command_buffers;
-        api_command_buffers.reserve(command_buffers.size());
-        for (auto& command_buffer: command_buffers)
-            api_command_buffers.push_back(std::make_shared<CommandBuffer>(std::move(command_buffer)));
-
-        auto shared_device = std::make_shared<vk::raii::Device>(std::move(logical_device));
-        auto shared_render_pass = std::make_shared<vk::raii::RenderPass>(std::move(render_pass));
-        Swapchain api_swapchain(queue_support, std::move(swapchain), shared_device, std::move(api_framebuffers), std::move(api_command_buffers));
-        RenderPipeline api_render_pipeline(queue_support, shared_render_pass, shared_device);
-
-        // Move everything we don't need a reference to but need to keep allocated and alive under vk::raii
-        // Note: order matters here
-        std::vector<std::shared_ptr<void>> global_resources;
-        global_resources.push_back(std::make_shared<vk::raii::Context>(std::move(context)));
-        global_resources.push_back(std::make_shared<vk::raii::Instance>(std::move(instance)));
-        global_resources.insert(global_resources.end(), extra_resources.begin(), extra_resources.end());
-        global_resources.push_back(std::make_shared<vk::raii::SurfaceKHR>(std::move(surface)));
-        global_resources.push_back(std::make_shared<vk::raii::PhysicalDevice>(std::move(physical_device)));
-        global_resources.push_back(shared_device);
-        global_resources.push_back(std::make_shared<vk::raii::CommandPool>(std::move(command_pool)));
-
-        for (auto& view : swapchain_image_views) {
-            global_resources.push_back(std::make_shared<vk::raii::ImageView>(std::move(view)));
+    VX::Expected<Instance> init(const GraphicsInfo &info, const PlatformDelegate& delegate) {
+        try {
+            return try_init(info, delegate);
+        } catch (const vk::Error &error) {
+            return VX::make_unexpected("Init: {}", error.what());
         }
 
-        return std::make_unique<Instance>(std::move(api_swapchain),
-                                          std::move(api_render_pipeline),
-                                          std::move(api_ex_graphics_pipeline),
-                                          std::move(global_resources));
+        VX_GRAPHICS_ASSERT_NOT_REACHED();
     }
 }

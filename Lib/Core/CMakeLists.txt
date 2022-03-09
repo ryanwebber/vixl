@@ -55,16 +55,14 @@ target_include_directories(${TARGET}
 
 target_include_directories(${TARGET}
         SYSTEM
-        PRIVATE
-            "${PROJECT_SOURCE_DIR}/3rdParty/fmt/include"
-        SYSTEM
         PUBLIC
-            "${PROJECT_SOURCE_DIR}/3rdParty/entt/src"
-            "${PROJECT_SOURCE_DIR}/3rdParty/expected/include"
-            "${PROJECT_SOURCE_DIR}/3rdParty/glm"
-            "${PROJECT_SOURCE_DIR}/3rdParty/sdl2/include"
-            "${PROJECT_SOURCE_DIR}/3rdParty/spdlog/include"
-            "${PROJECT_SOURCE_DIR}/3rdParty/uvw/src"
+            ${PROJECT_SOURCE_DIR}/3rdParty/entt/src
+            ${PROJECT_SOURCE_DIR}/3rdParty/expected/include
+            ${PROJECT_SOURCE_DIR}/3rdParty/fmt/include
+            ${PROJECT_SOURCE_DIR}/3rdParty/glm
+            ${PROJECT_SOURCE_DIR}/3rdParty/sdl2/include
+            ${PROJECT_SOURCE_DIR}/3rdParty/spdlog/include
+            ${PROJECT_SOURCE_DIR}/3rdParty/uvw/src
         )
 
 target_compile_definitions(${TARGET}

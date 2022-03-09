@@ -9,12 +9,10 @@ find_package(Vulkan REQUIRED FATAL_ERROR)
 message(STATUS "Vulkan info:\n\tLibs: ${Vulkan_LIBRARIES}\n\tincludes: ${Vulkan_INCLUDE_DIRS}\n")
 
 set(SOURCES
-        src/CommandRecorder.cpp
+        src/Graphics.cpp
         src/Init.cpp
         src/Instance.cpp
         src/QueueSupport.cpp
-        src/RenderPass.cpp
-        src/RenderPipeline.cpp
         src/Swapchain.cpp
         )
 
@@ -47,10 +45,14 @@ target_include_directories(${TARGET}
             ${PROJECT_SOURCE_DIR}/3rdParty/spdlog/include
         SYSTEM
         PUBLIC
+            ${PROJECT_SOURCE_DIR}/3rdParty/expected/include
+            ${PROJECT_SOURCE_DIR}/3rdParty/fmt/include
             ${PROJECT_SOURCE_DIR}/3rdParty/glm
         )
 
 target_include_directories(${TARGET}
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include_private
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR}/include
             ${PROJECT_SOURCE_DIR}/Lib/Common/include

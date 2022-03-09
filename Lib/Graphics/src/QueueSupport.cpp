@@ -1,6 +1,6 @@
-#include <VX/Graphics/Private/QueueSupport.h>
+#include <VX/Graphics/QueueSupport.h>
 
-namespace VX::Graphics::Private {
+namespace VX::Graphics {
 
     bool QueueSupport::has_feature(QueueFeature feature) const
     {

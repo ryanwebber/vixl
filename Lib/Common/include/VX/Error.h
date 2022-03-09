@@ -35,4 +35,10 @@ namespace VX {
         m_context.push_back(std::move(context_string));
         return std::move(*this);
     }
+
+    template<typename... Args>
+    Error make_error(std::string_view format, Args &&... args) noexcept {
+        auto context_string = fmt::vformat(format, fmt::make_format_args(args...));
+        return Error(context_string);
+    }
 }

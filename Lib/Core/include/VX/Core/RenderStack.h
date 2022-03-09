@@ -4,7 +4,6 @@
 #include <vector>
 
 #include <VX/Noncopyable.h>
-#include <VX/Graphics/Instance.h>
 #include <VX/Core/RenderLayer.h>
 
 namespace VX::Core {

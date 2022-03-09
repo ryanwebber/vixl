@@ -13,7 +13,7 @@ namespace VX::Platform::Private {
         MacOSGraphicsInitializer() = default;
 
     public:
-        [[nodiscard]] std::shared_ptr<Graphics::Instance> initialize_with_window(NativeWindow &native_window) const override {
+        [[nodiscard]] Graphics::Instance initialize_with_window(NativeWindow &native_window) const override {
 
             // Grab the required extensions
             unsigned int extension_count = 0;
@@ -36,7 +36,7 @@ namespace VX::Platform::Private {
                     .metal_layer = static_cast<Graphics::MacOS::CAMetalLayer*>(metal_layer),
             };
 
-            return Graphics::MacOS::initialize(graphics_info, platform_data);
+            return Graphics::MacOS::init(graphics_info, platform_data).value();
         }
 
         static const Abstraction::GraphicsInitializer& instance() {

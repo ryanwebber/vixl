@@ -13,6 +13,8 @@ target_include_directories(${TARGET}
         SYSTEM
         PUBLIC
             ${PROJECT_SOURCE_DIR}/3rdParty/sdl2/include
+            ${PROJECT_SOURCE_DIR}/3rdParty/expected/include
+            ${PROJECT_SOURCE_DIR}/3rdParty/fmt/include
             ${PROJECT_SOURCE_DIR}/3rdParty/glm
         )
 

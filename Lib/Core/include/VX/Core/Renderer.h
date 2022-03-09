@@ -4,10 +4,9 @@
 
 #include <VX/Noncopyable.h>
 
-#include <VX/Graphics/Instance.h>
+#include <VX/Graphics/Graphics.h>
 
 #include <VX/Core/RenderStack.h>
-#include <VX/Graphics/Instance.h>
 #include <VX/Platform/NativeWindow.h>
 
 namespace VX::Core {
@@ -20,12 +19,12 @@ namespace VX::Core {
 
     private:
         RenderStack m_render_stack;
-        std::shared_ptr<Graphics::Instance> m_graphics;
+        Graphics::Instance m_graphics;
 
     public:
-        explicit Renderer(std::shared_ptr<Graphics::Instance> graphics)
+        explicit Renderer(Graphics::Instance graphics)
             : m_graphics(std::move(graphics))
-        {};
+        {}
 
         ~Renderer() = default;
 
@@ -35,7 +34,7 @@ namespace VX::Core {
         RenderStack& render_stack() { return m_render_stack; }
         [[nodiscard]] const RenderStack& render_stack() const { return m_render_stack; }
 
-        std::shared_ptr<Graphics::Instance> &graphics() { return m_graphics; }
-        [[nodiscard]] const std::shared_ptr<Graphics::Instance> &graphics() const { return m_graphics; }
+        Graphics::Instance &graphics() { return m_graphics; }
+        [[nodiscard]] const Graphics::Instance &graphics() const { return m_graphics; }
     };
 }

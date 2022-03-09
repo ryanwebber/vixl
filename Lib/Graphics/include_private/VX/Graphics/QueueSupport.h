@@ -8,7 +8,7 @@
 #include <VX/Copyable.h>
 #include <VX/Noncopyable.h>
 
-namespace VX::Graphics::Private {
+namespace VX::Graphics {
 
     enum class QueueFeature: size_t {
         Graphics, Presentation

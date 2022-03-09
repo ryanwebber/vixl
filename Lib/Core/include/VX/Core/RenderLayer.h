@@ -1,7 +1,5 @@
 #pragma once
 
-#include <VX/Graphics/Instance.h>
-
 namespace VX::Core {
     class RenderLayer {
     private:

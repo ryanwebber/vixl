@@ -6,8 +6,6 @@
 
 #include <VX/Noncopyable.h>
 
-#include <VX/Graphics/Instance.h>
-
 #include <VX/Core/RenderContext.h>
 #include <VX/Core/RenderLayer.h>
 #include <VX/Core/RenderBuiltins.h>
