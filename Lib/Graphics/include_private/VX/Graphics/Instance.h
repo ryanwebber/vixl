@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <unordered_map>
 #include <vector>
 
@@ -16,9 +17,6 @@
 
 namespace VX::Graphics {
 
-    template <class T>
-    using ResourceList = std::unordered_map<HandleIdentifier, T>;
-
     class InstanceImpl final {
         VX_MAKE_NONCOPYABLE(InstanceImpl);
         VX_MAKE_NONMOVABLE(InstanceImpl);
@@ -33,12 +31,12 @@ namespace VX::Graphics {
         vk::raii::RenderPass m_render_pass;
         vk::raii::CommandPool m_command_pool;
 
-        QueueSupport m_queue_support;
+        std::shared_ptr<ResourceAllocator<RenderTarget, HandleType::RenderTarget>> m_render_targets;
+        std::shared_ptr<ResourceAllocator<RenderContext, HandleType::RenderContext>> m_render_contexts;
+        std::shared_ptr<ResourceAllocator<vk::raii::CommandBuffer, HandleType::CommandBuffer>> m_command_buffers;
+        std::shared_ptr<ResourceAllocator<vk::raii::Pipeline, HandleType::GraphicsPipeline>> m_graphics_pipelines;
 
-        ResourceList<RenderTarget> m_render_targets { };
-        ResourceList<RenderContext> m_render_contexts { };
-        ResourceList<vk::raii::CommandBuffer> m_command_buffers { };
-        ResourceList<vk::raii::Pipeline> m_graphics_pipelines { };
+        QueueSupport m_queue_support;
 
     public:
         InstanceImpl(vk::raii::Context context,
@@ -50,10 +48,10 @@ namespace VX::Graphics {
                      Swapchain swapchain,
                      vk::raii::RenderPass render_pass,
                      vk::raii::CommandPool command_pool,
-                     ResourceList<RenderTarget> render_targets,
-                     ResourceList<RenderContext> render_contexts,
-                     ResourceList<vk::raii::CommandBuffer> command_buffers,
-                     ResourceList<vk::raii::Pipeline> graphics_pipelines,
+                     std::shared_ptr<ResourceAllocator<RenderTarget, HandleType::RenderTarget>> render_targets,
+                     std::shared_ptr<ResourceAllocator<RenderContext, HandleType::RenderContext>> render_contexts,
+                     std::shared_ptr<ResourceAllocator<vk::raii::CommandBuffer, HandleType::CommandBuffer>> command_buffers,
+                     std::shared_ptr<ResourceAllocator<vk::raii::Pipeline, HandleType::GraphicsPipeline>> graphics_pipelines,
                      QueueSupport queue_support)
             : m_context(std::move(context))
             , m_instance(std::move(instance))

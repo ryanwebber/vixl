@@ -9,10 +9,15 @@
 #include <VX/Graphics/Logger.h>
 #include <VX/Graphics/PlatformDelegate.h>
 #include <VX/Graphics/QueueSupport.h>
+#include <VX/Graphics/RenderContext.h>
+#include <VX/Graphics/RenderTarget.h>
+#include <VX/Graphics/Swapchain.h>
 #include <VX/Graphics/Vulkan.h>
 
 #include <VX/Graphics/ExampleFragmentShader.h>
 #include <VX/Graphics/ExampleVertexShader.h>
+
+#define VX_GRAPHICS_FRAME_POOL_SIZE 2
 
 namespace VX::Graphics {
 
@@ -323,9 +328,9 @@ namespace VX::Graphics {
         return logical_device.createSwapchainKHR(create_info);
     }
 
-    std::vector<vk::raii::ImageView> initialize_swapchain_image_views(const vk::raii::Device &logical_device, const vk::raii::SwapchainKHR &swapchain, const SwapchainSupport &swapchain_support) {
+    std::vector<vk::raii::ImageView> initialize_swapchain_image_views(const vk::raii::Device &logical_device, const SwapchainSupport &swapchain_support, const std::vector<VkImage> &images) {
         std::vector<vk::raii::ImageView> views;
-        for (const auto& image : swapchain.getImages()) {
+        for (const auto& image : images) {
             vk::ImageViewCreateInfo create_info = {
                 .image = image,
                 .viewType = vk::ImageViewType::e2D,
@@ -580,10 +585,10 @@ namespace VX::Graphics {
 
         vk::raii::Instance instance(context, instance_info);
 
-        std::vector<std::shared_ptr<void>> extra_resources;
+        std::vector<std::shared_ptr<void>> callbacks;
 
         // Setup extension callbacks (ex. debug messaging)
-        init_callbacks(extensions, instance, extra_resources);
+        init_callbacks(extensions, instance, callbacks);
 
         // Create a surface the render pipeline will eventually render to
         auto surface = delegate.init_surface(instance);
@@ -610,14 +615,73 @@ namespace VX::Graphics {
         auto swapchain = init_swapchain(logical_device, surface, swapchain_support, queue_support, framebuffer_extents);
 
         // Fetch views into the swapchain images
-        auto swapchain_image_views = initialize_swapchain_image_views(logical_device, swapchain, swapchain_support);
+        auto swapchain_image_views = initialize_swapchain_image_views(logical_device, swapchain_support, swapchain.getImages());
 
         auto render_pass = create_render_pass(logical_device, swapchain_support.surface_format);
         auto framebuffers = create_framebuffers(logical_device, render_pass, swapchain_image_views, framebuffer_extents);
         auto command_pool = create_command_pool(logical_device, queue_support);
-        auto command_buffers = create_command_buffers(logical_device, command_pool, 2);
+        auto command_buffers = create_command_buffers(logical_device, command_pool, VX_GRAPHICS_FRAME_POOL_SIZE);
 
-        return { nullptr };
+        // TODO: this can probably be factored better
+
+        auto render_target_allocator = ResourceAllocator<RenderTarget, HandleType::RenderTarget>::create_shared();
+        auto render_context_allocator = ResourceAllocator<RenderContext, HandleType::RenderContext>::create_shared();
+        auto command_buffer_allocator = ResourceAllocator<vk::raii::CommandBuffer, HandleType::CommandBuffer>::create_shared();
+        auto graphics_pipeline_allocator = ResourceAllocator<vk::raii::Pipeline, HandleType::GraphicsPipeline>::create_shared();
+
+        std::vector<SwapFrame> swap_frames;
+
+        VX_GRAPHICS_ASSERT(swapchain_image_views.size() == framebuffers.size(), "Expected framebuffers to correspond to the swapchain views");
+        for (auto i = 0; i < framebuffers.size(); i++) {
+            auto& image_view = swapchain_image_views[i];
+            auto& framebuffer = framebuffers[i];
+            auto render_target_handle = render_target_allocator->create_resource([&](){
+                return RenderTarget(std::move(image_view), std::move(framebuffer), framebuffer_extents);
+            });
+
+            vk::SemaphoreCreateInfo semaphore_create_info = { };
+            vk::FenceCreateInfo fence_create_info = { .flags = vk::FenceCreateFlagBits::eSignaled };
+            auto render_fence = logical_device.createFence(fence_create_info);
+            auto wait_semaphore = logical_device.createSemaphore(semaphore_create_info);
+            auto signal_semaphore = logical_device.createSemaphore(semaphore_create_info);
+            auto render_context_handle = render_context_allocator->create_resource([&](){
+               return RenderContext(std::move(render_fence),
+                                    std::move(wait_semaphore),
+                                    std::move(signal_semaphore));
+            });
+
+            swap_frames.emplace_back(std::move(render_target_handle), std::move(render_context_handle));
+        }
+
+        std::vector<SwapBuffer> swap_buffers;
+        for (auto &command_buffer : command_buffers) {
+            auto command_buffer_handle = command_buffer_allocator->create_resource(std::move(command_buffer));
+            swap_buffers.emplace_back(std::move(command_buffer_handle));
+        }
+
+        Swapchain swapchain_wrapper(std::move(swapchain),
+                                    swapchain_support.present_mode,
+                                    swapchain_support.surface_format,
+                                    swapchain_support.surface_capabilities,
+                                    std::move(swap_frames),
+                                    std::move(swap_buffers));
+
+        auto instance_impl = std::make_shared<InstanceImpl>(std::move(context),
+                                                            std::move(instance),
+                                                            std::move(callbacks),
+                                                            std::move(surface),
+                                                            std::move(physical_device),
+                                                            std::move(logical_device),
+                                                            std::move(swapchain_wrapper),
+                                                            std::move(render_pass),
+                                                            std::move(command_pool),
+                                                            std::move(render_target_allocator),
+                                                            std::move(render_context_allocator),
+                                                            std::move(command_buffer_allocator),
+                                                            std::move(graphics_pipeline_allocator),
+                                                            std::move(queue_support));
+
+        return Instance(std::move(instance_impl));
     }
 
     VX::Expected<Instance> init(const GraphicsInfo &info, const PlatformDelegate& delegate) {
