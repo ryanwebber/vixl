@@ -14,24 +14,10 @@ namespace VX::Core {
             system->update(m_entity_registry);
     }
 
-    void Scene::render(RenderContext &context, const RenderTarget &target) {
-        glm::vec3 eye(0.0f, 0.0f, -5.0f);
-        glm::vec3 center(0.0f, 0.0f, 0.0f);
-        glm::vec3 up(0.0f, 1.0f, 0.0f);
-        auto view_matrix = glm::lookAt(eye, center, up);
-
-        auto viewport_size = target.viewport_size().cast<float>();
-        auto aspect_ratio = viewport_size.width / viewport_size.height;
-        auto proj_matrix = glm::perspective(80.0f, aspect_ratio, 0.1f, 100.0f);
-        SceneCamera camera(view_matrix, proj_matrix);
-
-        context.set_view_projection({
-            .view_matrix = camera.view_matrix(),
-            .projection_matrix = camera.projection_matrix(),
-        });
-
+    void Scene::render(RenderPass &render_pass) {
+        RenderContext context;
         for (auto &&system : m_render_systems)
-            system->render(context.buffer(), m_entity_registry);
+            system->render(context, render_pass, m_entity_registry);
     }
 
     void Scene::reset() {

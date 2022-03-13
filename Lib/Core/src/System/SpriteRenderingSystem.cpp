@@ -9,10 +9,11 @@ namespace VX::Core::System {
     {
     }
 
-    void SpriteRenderingSystem::render(RenderBuffer &buffer, entt::registry &entities) {
+    void SpriteRenderingSystem::render(const RenderContext &context, RenderPass &render_pass, entt::registry &entities) {
         auto view = entities.view<const Component::TransformComponent, const Component::SpriteComponent>();
-        for(auto [_, transform, sprite]: view.each()) {
-            buffer.draw_texture_quad(transform.transform(), sprite.material);
+        for(auto [_0, _1, _2]: view.each()) {
+#warning "Not implemented"
+//            buffer.draw_texture_quad(transform.transform(), sprite.material);
         }
     }
 }

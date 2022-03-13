@@ -16,7 +16,7 @@ namespace VX::Core {
 
     void RenderBuiltins::ensure_initialized() {
 
-#warning "RenderBuiltins::ensure_initialized not implemented"
+#warning "Not implemented"
 
         // Load shapes
         m_shapes.push_back({ });

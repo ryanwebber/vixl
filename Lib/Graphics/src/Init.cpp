@@ -624,61 +624,60 @@ namespace VX::Graphics {
 
         // TODO: this can probably be factored better
 
-        auto render_target_allocator = ResourceAllocator<RenderTarget, HandleType::RenderTarget>::create_shared();
-        auto render_context_allocator = ResourceAllocator<RenderContext, HandleType::RenderContext>::create_shared();
-        auto command_buffer_allocator = ResourceAllocator<vk::raii::CommandBuffer, HandleType::CommandBuffer>::create_shared();
-        auto graphics_pipeline_allocator = ResourceAllocator<vk::raii::Pipeline, HandleType::GraphicsPipeline>::create_shared();
+        auto resource_manager = std::make_shared<ResourceManager>();
 
         std::vector<SwapFrame> swap_frames;
-
         VX_GRAPHICS_ASSERT(swapchain_image_views.size() == framebuffers.size(), "Expected framebuffers to correspond to the swapchain views");
         for (auto i = 0; i < framebuffers.size(); i++) {
             auto& image_view = swapchain_image_views[i];
             auto& framebuffer = framebuffers[i];
-            auto render_target_handle = render_target_allocator->create_resource([&](){
+            auto render_target_handle = resource_manager->render_targets().create_resource([&](){
                 return RenderTarget(std::move(image_view), std::move(framebuffer), framebuffer_extents);
             });
+
+            swap_frames.emplace_back(std::move(render_target_handle));
+        }
+
+        std::vector<SwapContext> swap_contexts;
+        for (auto &command_buffer : command_buffers) {
+            auto command_buffer_handle = resource_manager->command_buffers().create_resource(std::move(command_buffer));
 
             vk::SemaphoreCreateInfo semaphore_create_info = { };
             vk::FenceCreateInfo fence_create_info = { .flags = vk::FenceCreateFlagBits::eSignaled };
             auto render_fence = logical_device.createFence(fence_create_info);
             auto wait_semaphore = logical_device.createSemaphore(semaphore_create_info);
             auto signal_semaphore = logical_device.createSemaphore(semaphore_create_info);
-            auto render_context_handle = render_context_allocator->create_resource([&](){
-               return RenderContext(std::move(render_fence),
-                                    std::move(wait_semaphore),
-                                    std::move(signal_semaphore));
+            auto render_context_handle = resource_manager->render_contexts().create_resource([&](){
+                return RenderContext(std::move(render_fence),
+                                     std::move(wait_semaphore),
+                                     std::move(signal_semaphore));
             });
 
-            swap_frames.emplace_back(std::move(render_target_handle), std::move(render_context_handle));
+            swap_contexts.emplace_back(std::move(render_context_handle), std::move(command_buffer_handle));
         }
 
-        std::vector<SwapBuffer> swap_buffers;
-        for (auto &command_buffer : command_buffers) {
-            auto command_buffer_handle = command_buffer_allocator->create_resource(std::move(command_buffer));
-            swap_buffers.emplace_back(std::move(command_buffer_handle));
-        }
+        auto shared_logical_device = std::make_shared<vk::raii::Device>(std::move(logical_device));
 
         Swapchain swapchain_wrapper(std::move(swapchain),
+                                    shared_logical_device,
+                                    resource_manager,
                                     swapchain_support.present_mode,
                                     swapchain_support.surface_format,
                                     swapchain_support.surface_capabilities,
                                     std::move(swap_frames),
-                                    std::move(swap_buffers));
+                                    std::move(swap_contexts),
+                                    queue_support);
 
         auto instance_impl = std::make_shared<InstanceImpl>(std::move(context),
                                                             std::move(instance),
                                                             std::move(callbacks),
                                                             std::move(surface),
                                                             std::move(physical_device),
-                                                            std::move(logical_device),
+                                                            std::move(shared_logical_device),
+                                                            std::move(command_pool),
                                                             std::move(swapchain_wrapper),
                                                             std::move(render_pass),
-                                                            std::move(command_pool),
-                                                            std::move(render_target_allocator),
-                                                            std::move(render_context_allocator),
-                                                            std::move(command_buffer_allocator),
-                                                            std::move(graphics_pipeline_allocator),
+                                                            std::move(resource_manager),
                                                             std::move(queue_support));
 
         return Instance(std::move(instance_impl));

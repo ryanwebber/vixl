@@ -76,6 +76,9 @@ namespace VX::Graphics {
         Handle<H> create_resource(const std::function<T()> &);
         Handle<H> create_resource(T);
 
+        T &lookup(const Handle<H> &handle);
+        const T &lookup(const Handle<H> &handle) const;
+
         static std::shared_ptr<ResourceAllocator<T, H>> create_shared() {
             return std::shared_ptr<ResourceAllocator<T, H>>(new ResourceAllocator<T, H>());
         }
@@ -131,6 +134,18 @@ namespace VX::Graphics {
         return Handle<H>(identifier, this->shared_from_this());
     }
 
+    template<class T, HandleType H>
+    T &ResourceAllocator<T, H>::lookup(const Handle<H> &handle)
+    {
+        return m_resources.find(handle.identifier())->second;
+    }
+
+    template<class T, HandleType H>
+    const T &ResourceAllocator<T, H>::lookup(const Handle<H> &handle) const
+    {
+        return m_resources.find(handle.identifier())->second;
+    }
+
     using CommandBufferHandle = Handle<HandleType::CommandBuffer>;
     using GraphicsPipelineHandle = Handle<HandleType::GraphicsPipeline>;
     using RenderContextHandle = Handle<HandleType::RenderContext>;
@@ -142,19 +157,18 @@ namespace VX::Graphics {
     template<> class Handle<HandleType::RenderTarget>;
 
     struct SwapState {
+        size_t swap_index;
         std::shared_ptr<RenderContextHandle> context;
         std::shared_ptr<RenderTargetHandle> frame_buffer;
         std::shared_ptr<CommandBufferHandle> command_buffer;
     };
 
-    VX::Expected<void> begin_render_pass(const Instance&, const RenderContextHandle&, const RenderTargetHandle&, const CommandBufferHandle&);
-    VX::Expected<void> end_render_pass(const Instance&);
+    VX::Expected<void> begin_render_pass(Instance&, const RenderContextHandle&, const RenderTargetHandle&, const CommandBufferHandle&);
+    VX::Expected<void> end_render_pass(Instance&);
 
-    VX::Expected<SwapState> begin_frame(const Instance&);
-    VX::Expected<void> end_frame(const Instance&);
+    VX::Expected<SwapState> begin_frame(Instance&);
+    VX::Expected<void> end_frame(Instance&, const SwapState&);
 
-    VX::Expected<GraphicsPipelineHandle> create_graphics_pipeline(const Instance&);
-
-    void Bind(const Instance&, const GraphicsPipelineHandle&);
-    void Draw(const Instance&);
+    void bind(Instance&, const GraphicsPipelineHandle&);
+    void draw(Instance&);
 }

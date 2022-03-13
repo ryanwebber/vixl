@@ -23,5 +23,14 @@ namespace VX::Graphics {
         {}
 
         ~RenderContext() = default;
+
+        vk::raii::Fence &render_fence() { return m_render_fence; }
+        [[nodiscard]] const vk::raii::Fence &render_fence() const { return m_render_fence; }
+
+        vk::raii::Semaphore &wait_semaphore() { return m_wait_semaphore; }
+        [[nodiscard]] const vk::raii::Semaphore &wait_semaphore() const { return m_wait_semaphore; }
+
+        vk::raii::Semaphore &signal_semaphore() { return m_signal_semaphore; }
+        [[nodiscard]] const vk::raii::Semaphore &signal_semaphore() const { return m_signal_semaphore; }
     };
 }

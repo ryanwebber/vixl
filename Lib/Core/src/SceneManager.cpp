@@ -1,22 +1,16 @@
 #include <VX/Core/SceneManager.h>
 
 namespace VX::Core {
-    SceneManager::SceneManager()
-        : m_current_scene(nullptr)
+    void SceneManager::set_current_scene(std::shared_ptr<Scene> current_scene) {
+        if (current_scene != m_current_scene) {
+            m_current_scene = current_scene;
+            m_render_delegate.set_current_scene(current_scene);
+        }
+    }
+
+    void SceneManager::update() const
     {
-    }
-
-    void SceneManager::update() {
-        if (m_current_scene == nullptr)
-            return;
-
-        m_current_scene->update();
-    }
-
-    void SceneManager::render(RenderContext &context, const RenderTarget &target) {
-        if (m_current_scene == nullptr)
-            return;
-
-        m_current_scene->render(context, target);
+        if (m_current_scene != nullptr)
+            m_current_scene->update();
     }
 }

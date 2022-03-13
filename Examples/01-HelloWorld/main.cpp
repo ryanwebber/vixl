@@ -1,89 +1,62 @@
-#include <VX/Core/Application.h>
 #include <VX/Core/Async.h>
-#include <VX/Core/Component/SpriteComponent.h>
-#include <VX/Core/Component/TransformComponent.h>
+#include <VX/Core/Input.h>
 #include <VX/Core/Logger.h>
-#include <VX/Core/Platform/Platform.h>
-#include <VX/Core/RenderTarget.h>
-#include <VX/Core/ResourceManager.h>
-#include <VX/Core/Scene.h>
+#include <VX/Core/Renderer.h>
 #include <VX/Core/SceneManager.h>
-#include <VX/Core/SceneRenderer.h>
-#include <VX/Core/System/SpriteRenderingSystem.h>
+#include <VX/Core/Window.h>
+#include <VX/Entry/Main.h>
+#include <VX/Platform/Platform.h>
+#include <VX/Platform/Abstraction/FileSystem.h>
+#include <VX/Platform/Abstraction/GraphicsInitializer.h>
+#include <VX/Platform/Abstraction/WindowFactory.h>
 
 #ifndef TARGET_FPS
-    #define TARGET_FPS 60
+#define TARGET_FPS 60
 #endif
 
-int main()
-{
-    auto logger = VX::Logger::create_named("myapp");
-    logger->debug("Running hello world example");
+int vixl_main(const VX::Entry::Context &ctx) {
 
-    // Create a resource loader using the default resource directory for the current platform and load the builtin assets
-    VX::Core::ResourceLocator resource_locator(VX::Core::Platform::Current::get_resource_directory());
-    std::shared_ptr<VX::Core::RenderBuiltins> builtins = VX::Core::RenderBuiltins::load_sync(resource_locator, "builtins.asset");
+    auto logger = VX::Core::Logger::create_named("vulkan-test");
 
-    VX::Core::ApplicationSettings app_settings {
-        .window_size = { .width = 800, .height = 600 },
-        .resource_locator = resource_locator,
+    VX::Platform::Abstraction::WindowOptions window_options = {
+            .name = "Entry Test",
+            .size = { 800, 600 }
     };
 
-    // Create an application, which opens up a native window
-    auto app = VX::Core::Application::create_from_settings(app_settings).value();
+    auto native_window = VX::Platform::get_abstraction<VX::Platform::Abstraction::WindowFactory>()
+            .create_with_options(window_options);
 
-    // Create a new scene renderer and add it to the render stack
-    auto scene_renderer = std::make_shared<VX::Core::SceneRenderer>(builtins);
-    app->renderer().render_stack().add_layer(scene_renderer);
+    auto graphics = VX::Platform::get_abstraction<VX::Platform::Abstraction::GraphicsInitializer>()
+            .initialize_with_window(*native_window);
 
-    // Create a render context for our scene to render into
-    auto render_context = scene_renderer->create_render_context();
+    auto resource_locator = VX::Platform::get_abstraction<VX::Platform::Abstraction::FileSystem>()
+            .resource_locator();
 
-    // Create a new scene manager that will manage our various scenes
     VX::Core::SceneManager scene_manager;
-
-    // Create a scene and set it as the active scene
-    auto scene = VX::Core::Scene::create_named("Main");
-    scene_manager.set_active_scene(scene);
-
-    // Add some systems to the scene
-    scene->render_systems().push_back(std::make_shared<VX::Core::System::SpriteRenderingSystem>(*builtins));
-
-    // Create an entity in the scene
-    auto entity = scene->entities().create();
-
-    // Create a sprite material for our entity and assign a texture
-    auto texture = builtins->get_texture(VX::Core::Textures::LogoDefault);
-    auto sprite_material = std::make_shared<VX::Core::Material>(builtins->get_material(VX::Core::Materials::Sprite).clone());
-    sprite_material->set_texture<0>("s_texColor", texture);
-
-    // Add a transform component and sprite component that the sprite rendering system will use to paint the entity
-    scene->entities().emplace<VX::Core::Component::SpriteComponent>(entity, std::move(sprite_material));
-    scene->entities().emplace<VX::Core::Component::TransformComponent>(entity);
+    VX::Core::EventLoop event_loop;
+    VX::Core::Window window(native_window);
+    VX::Core::Input input(native_window, *event_loop.executor());
+    VX::Core::Renderer renderer(graphics, scene_manager.render_delegate());
 
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");
     auto mills_per_frame = VX::Core::Millis(1000 / TARGET_FPS);
-    auto render_timer = VX::Core::Time::Timer(app->event_loop().executor(), { }, mills_per_frame, true);
+    auto render_timer = VX::Core::Time::Timer(event_loop.executor(), { }, mills_per_frame, true);
 
     // Process events every main tick
     auto process_input_handle = render_timer.subscriber().on([&](auto) {
-        auto cs = app->input().process_events();
+        auto cs = input.process_events();
         if (cs == VX::Core::ControlState::Terminate) {
-            app->terminate();
+            event_loop.close();
         }
     });
 
-    // Update the scene and render a frame every main tick
-    auto render_handle = render_timer.subscriber().on([&](auto _) {
-        // Update the scene and render it into our target
-        scene_manager.update();
-        scene_manager.render(*render_context, VX::Core::RenderTarget::to_window(app->window()));
-
-        // Present the rendered scene onto our window
-        app->renderer().render_frame();
+    // Render the scene every main tick
+    auto render_handle = render_timer.subscriber().on([&](auto) {
+        renderer.render_frame();
     });
 
-    // Start the application event loop
-    app->run();
+    event_loop.run();
+
+    return 0;
 }

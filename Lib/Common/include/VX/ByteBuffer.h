@@ -34,5 +34,9 @@ namespace VX {
             memcpy(buffer.get(), &m_buffer[offset], size);
             return { std::move(buffer), size };
         }
+
+        static ByteBuffer initialized_with_size(size_t size) {
+            return { std::unique_ptr<std::byte[]>(new std::byte[size]()), size };
+        }
     };
 }

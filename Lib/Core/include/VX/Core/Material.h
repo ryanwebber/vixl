@@ -56,7 +56,7 @@ namespace VX::Core {
 
         template <uint8_t SLOT>
         void set_texture(const std::string sampler_name, const Texture &texture) {
-#warning "Material#set_texture not implemented"
+#warning "Not implemented"
         }
     };
 }

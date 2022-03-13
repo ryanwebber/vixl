@@ -8,6 +8,7 @@
 
 #include <VX/Noncopyable.h>
 #include <VX/Core/RenderContext.h>
+#include <VX/Core/RenderPass.h>
 #include <VX/Core/RenderSystem.h>
 #include <VX/Core/RenderTarget.h>
 #include <VX/Core/UpdateSystem.h>
@@ -20,10 +21,10 @@ class Scene final : public std::enable_shared_from_this<Scene> {
     private:
         std::string m_name;
 
-        entt::registry m_entity_registry;
-        std::vector<std::shared_ptr<UpdateSystem>> m_update_systems;
-        std::vector<std::shared_ptr<RenderSystem>> m_render_systems;
-        std::vector<std::shared_ptr<MetaSystem>> m_meta_systems;
+        entt::registry m_entity_registry { };
+        std::vector<std::shared_ptr<UpdateSystem>> m_update_systems { };
+        std::vector<std::shared_ptr<RenderSystem>> m_render_systems { };
+        std::vector<std::shared_ptr<MetaSystem>> m_meta_systems { };
 
         explicit Scene(const std::string_view &name)
             : m_name(name)
@@ -35,7 +36,7 @@ class Scene final : public std::enable_shared_from_this<Scene> {
 
         void configure();
         void update();
-        void render(RenderContext &context, const RenderTarget &target);
+        void render(RenderPass &render_pass);
 
         [[nodiscard]] const std::string &name() const { return m_name; }
 

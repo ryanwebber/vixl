@@ -4,7 +4,7 @@
 
 namespace VX::Core {
     VX::Expected<Texture> Texture::create(std::span<const std::byte> data, uint64_t flags) {
-#warning "Texture#create not implemented"
+#warning "Not implemented"
         return Texture(nullptr);
     }
 }

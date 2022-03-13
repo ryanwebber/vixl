@@ -1,30 +1,23 @@
 #pragma once
 
-#include <memory>
-
-#include <VX/Noncopyable.h>
-
-#include <VX/Core/RenderContext.h>
-#include <VX/Core/RenderTarget.h>
+#include <VX/Core/Renderer.h>
 #include <VX/Core/Scene.h>
-#include <VX/Core/SceneRenderer.h>
+#include <VX/Core/SceneRenderDelegate.h>
 
 namespace VX::Core {
     class SceneManager final {
-        VX_MAKE_NONCOPYABLE(SceneManager);
-        VX_MAKE_NONMOVABLE(SceneManager);
     private:
-        std::shared_ptr<Scene> m_current_scene;
-
+        SceneRenderDelegate m_render_delegate { };
+        std::shared_ptr<Scene> m_current_scene { };
     public:
-        SceneManager();
+        explicit SceneManager() = default;
+        ~SceneManager() = default;
 
-        void update();
-        void render(RenderContext&, const RenderTarget &target);
+        [[nodiscard]] const std::shared_ptr<Scene> &current_scene() const { return m_current_scene; }
+        void set_current_scene(std::shared_ptr<Scene> current_scene);
 
-        void set_active_scene(std::shared_ptr<Scene> scene) {
-            m_current_scene = std::move(scene);
-            m_current_scene->configure();
-        }
+        void update() const;
+
+        [[nodiscard]] const RenderDelegate &render_delegate() const { return m_render_delegate; }
     };
 }

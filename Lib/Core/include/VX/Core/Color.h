@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include <glm/glm.hpp>
-#include <pixman/pixman.h>
 
 namespace VX::Core {
 
@@ -52,6 +51,6 @@ namespace VX::Core {
 
     namespace Colors {
         const Color transparent { };
-        const Color workspace_background = {.r = 1.0, .g = 0.0, .b = 1.0, .a = 1.0};
+        const Color red = { .r = 1.0, .g = 0.0, .b = 1.0, .a = 1.0 };
     }
 }

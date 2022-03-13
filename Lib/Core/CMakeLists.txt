@@ -6,23 +6,19 @@ set(TARGET vixl-core)
 set(GRAPHICS_API METAL)
 
 set(SOURCES
-        src/Application.cpp
         src/Assert.cpp
         src/Closable.cpp
         src/Input.cpp
         src/Logger.cpp
         src/Material.cpp
-        src/RenderBuffer.cpp
         src/RenderBuiltins.cpp
         src/RenderContext.cpp
         src/RenderPass.cpp
-        src/RenderStack.cpp
         src/RenderSystem.cpp
         src/Renderer.cpp
         src/ResourceManager.cpp
         src/Scene.cpp
         src/SceneManager.cpp
-        src/SceneRenderer.cpp
         src/Shader.cpp
         src/Texture.cpp
         src/Window.cpp
@@ -44,13 +40,13 @@ target_link_libraries(${TARGET}
 target_include_directories(${TARGET}
         PRIVATE
             "${PROJECT_SOURCE_DIR}/Lib/Common/include"
-            "${PROJECT_SOURCE_DIR}/Lib/Graphics/include"
-            "${PROJECT_SOURCE_DIR}/Lib/Platform/include"
 
             # Generated code
             "${CMAKE_CURRENT_BINARY_DIR}/include"
         PUBLIC
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
+            "${PROJECT_SOURCE_DIR}/Lib/Graphics/include"
+            "${PROJECT_SOURCE_DIR}/Lib/Platform/include"
         )
 
 target_include_directories(${TARGET}

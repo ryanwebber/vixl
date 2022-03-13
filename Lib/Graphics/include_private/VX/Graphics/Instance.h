@@ -12,6 +12,7 @@
 #include <VX/Graphics/QueueSupport.h>
 #include <VX/Graphics/RenderContext.h>
 #include <VX/Graphics/RenderTarget.h>
+#include <VX/Graphics/ResourceManager.h>
 #include <VX/Graphics/Swapchain.h>
 #include <VX/Graphics/Vulkan.h>
 
@@ -26,16 +27,11 @@ namespace VX::Graphics {
         std::vector<std::shared_ptr<void>> m_callbacks;
         vk::raii::SurfaceKHR m_surface;
         vk::raii::PhysicalDevice m_physical_device;
-        vk::raii::Device m_logical_device;
+        std::shared_ptr<vk::raii::Device> m_logical_device;
+        vk::raii::CommandPool m_command_pool;
         Swapchain m_swapchain;
         vk::raii::RenderPass m_render_pass;
-        vk::raii::CommandPool m_command_pool;
-
-        std::shared_ptr<ResourceAllocator<RenderTarget, HandleType::RenderTarget>> m_render_targets;
-        std::shared_ptr<ResourceAllocator<RenderContext, HandleType::RenderContext>> m_render_contexts;
-        std::shared_ptr<ResourceAllocator<vk::raii::CommandBuffer, HandleType::CommandBuffer>> m_command_buffers;
-        std::shared_ptr<ResourceAllocator<vk::raii::Pipeline, HandleType::GraphicsPipeline>> m_graphics_pipelines;
-
+        std::shared_ptr<ResourceManager> m_resource_manager;
         QueueSupport m_queue_support;
 
     public:
@@ -44,14 +40,11 @@ namespace VX::Graphics {
                      std::vector<std::shared_ptr<void>> callbacks,
                      vk::raii::SurfaceKHR surface,
                      vk::raii::PhysicalDevice physical_device,
-                     vk::raii::Device logical_device,
+                     std::shared_ptr<vk::raii::Device> logical_device,
+                     vk::raii::CommandPool command_pool,
                      Swapchain swapchain,
                      vk::raii::RenderPass render_pass,
-                     vk::raii::CommandPool command_pool,
-                     std::shared_ptr<ResourceAllocator<RenderTarget, HandleType::RenderTarget>> render_targets,
-                     std::shared_ptr<ResourceAllocator<RenderContext, HandleType::RenderContext>> render_contexts,
-                     std::shared_ptr<ResourceAllocator<vk::raii::CommandBuffer, HandleType::CommandBuffer>> command_buffers,
-                     std::shared_ptr<ResourceAllocator<vk::raii::Pipeline, HandleType::GraphicsPipeline>> graphics_pipelines,
+                     std::shared_ptr<ResourceManager> resource_manager,
                      QueueSupport queue_support)
             : m_context(std::move(context))
             , m_instance(std::move(instance))
@@ -59,17 +52,23 @@ namespace VX::Graphics {
             , m_surface(std::move(surface))
             , m_physical_device(std::move(physical_device))
             , m_logical_device(std::move(logical_device))
+            , m_command_pool(std::move(command_pool))
             , m_swapchain(std::move(swapchain))
             , m_render_pass(std::move(render_pass))
-            , m_command_pool(std::move(command_pool))
-            , m_render_targets(std::move(render_targets))
-            , m_render_contexts(std::move(render_contexts))
-            , m_command_buffers(std::move(command_buffers))
-            , m_graphics_pipelines(std::move(graphics_pipelines))
+            , m_resource_manager(std::move(resource_manager))
             , m_queue_support(std::move(queue_support))
         {}
 
         ~InstanceImpl() = default;
+
+        VX::Expected<void> begin_render_pass(const RenderContextHandle&, const RenderTargetHandle&, const CommandBufferHandle&);
+        VX::Expected<void> end_render_pass();
+
+        VX::Expected<SwapState> begin_frame();
+        VX::Expected<void> end_frame(const SwapState&);
+
+        void bind(const GraphicsPipelineHandle&);
+        void draw();
 
         template <HandleType T>
         void destroy_handle(const Handle<T>&) {
