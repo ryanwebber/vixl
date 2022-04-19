@@ -17,9 +17,9 @@
 #include <VX/Graphics/ExampleFragmentShader.h>
 #include <VX/Graphics/ExampleVertexShader.h>
 
-#define VX_GRAPHICS_FRAME_POOL_SIZE 2
-
 namespace VX::Graphics {
+
+    static constexpr auto frame_resource_pool_size = 2;
 
     static const std::vector<const char*> default_validation_layers = {
 #if VX_GRAPHICS_VALIDATION
@@ -35,6 +35,7 @@ namespace VX::Graphics {
     {
         if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
             Log::warn("[{}] {}", pCallbackData->pMessageIdName, pCallbackData->pMessage);
+            VX_GRAPHICS_ASSERT_NOT_REACHED();
         }
 
         return VK_FALSE;
@@ -620,53 +621,56 @@ namespace VX::Graphics {
         auto render_pass = create_render_pass(logical_device, swapchain_support.surface_format);
         auto framebuffers = create_framebuffers(logical_device, render_pass, swapchain_image_views, framebuffer_extents);
         auto command_pool = create_command_pool(logical_device, queue_support);
-        auto command_buffers = create_command_buffers(logical_device, command_pool, VX_GRAPHICS_FRAME_POOL_SIZE);
+        auto command_buffers = create_command_buffers(logical_device, command_pool, frame_resource_pool_size);
 
         // TODO: this can probably be factored better
 
-        auto resource_manager = std::make_shared<ResourceManager>();
+        Allocator allocator;
 
-        std::vector<SwapFrame> swap_frames;
+        std::vector<InstancePtr<RenderTarget>> swap_targets;
         VX_GRAPHICS_ASSERT(swapchain_image_views.size() == framebuffers.size(), "Expected framebuffers to correspond to the swapchain views");
         for (auto i = 0; i < framebuffers.size(); i++) {
             auto& image_view = swapchain_image_views[i];
             auto& framebuffer = framebuffers[i];
-            auto render_target_handle = resource_manager->render_targets().create_resource([&](){
-                return RenderTarget(std::move(image_view), std::move(framebuffer), framebuffer_extents);
-            });
+            auto render_target_resource = allocator.allocate<RenderTarget>(
+                    std::move(image_view),
+                    std::move(framebuffer),
+                    framebuffer_extents);
 
-            swap_frames.emplace_back(std::move(render_target_handle));
+            swap_targets.push_back(std::move(render_target_resource));
         }
 
-        std::vector<SwapContext> swap_contexts;
+        std::vector<Swapchain::SwapContext> swap_contexts;
         for (auto &command_buffer : command_buffers) {
-            auto command_buffer_handle = resource_manager->command_buffers().create_resource(std::move(command_buffer));
 
             vk::SemaphoreCreateInfo semaphore_create_info = { };
             vk::FenceCreateInfo fence_create_info = { .flags = vk::FenceCreateFlagBits::eSignaled };
-            auto render_fence = logical_device.createFence(fence_create_info);
-            auto wait_semaphore = logical_device.createSemaphore(semaphore_create_info);
-            auto signal_semaphore = logical_device.createSemaphore(semaphore_create_info);
-            auto render_context_handle = resource_manager->render_contexts().create_resource([&](){
-                return RenderContext(std::move(render_fence),
-                                     std::move(wait_semaphore),
-                                     std::move(signal_semaphore));
-            });
 
-            swap_contexts.emplace_back(std::move(render_context_handle), std::move(command_buffer_handle));
+            auto in_flight_fence_resource = allocator.allocate<vk::raii::Fence>(logical_device, fence_create_info);
+            auto image_available_semaphore_resource = allocator.allocate<vk::raii::Semaphore>(logical_device, semaphore_create_info);
+            auto render_finished_semaphore_resource = allocator.allocate<vk::raii::Semaphore>(logical_device, semaphore_create_info);
+            auto command_buffer_resource = allocator.allocate<vk::raii::CommandBuffer>(std::move(command_buffer));
+
+            swap_contexts.push_back({
+                .in_flight_fence = in_flight_fence_resource,
+                .image_available_semaphore = image_available_semaphore_resource,
+                .render_finished_semaphore = render_finished_semaphore_resource,
+                .command_buffer = command_buffer_resource,
+            });
         }
 
         auto shared_logical_device = std::make_shared<vk::raii::Device>(std::move(logical_device));
 
         Swapchain swapchain_wrapper(std::move(swapchain),
                                     shared_logical_device,
-                                    resource_manager,
                                     swapchain_support.present_mode,
                                     swapchain_support.surface_format,
                                     swapchain_support.surface_capabilities,
-                                    std::move(swap_frames),
+                                    std::move(swap_targets),
                                     std::move(swap_contexts),
                                     queue_support);
+
+        ResourceManager resource_manager(std::move(allocator));
 
         auto instance_impl = std::make_shared<InstanceImpl>(std::move(context),
                                                             std::move(instance),

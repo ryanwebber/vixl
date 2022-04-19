@@ -1,20 +1,55 @@
 #pragma once
 
-#include <functional>
+#include <any>
+#include <bitset>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include <glm/glm.hpp>
 
-#include <VX/Error.h>
+#include <VX/Copyable.h>
 #include <VX/Expected.h>
 #include <VX/Noncopyable.h>
 
 namespace VX::Graphics {
 
+    class GraphicsDelegate;
+    class GraphicsPipelineBuilder;
+    class GraphicsStage;
+    class Instance;
     class InstanceImpl;
-    
+
+    using Flags = std::bitset<32>;
+    using Identifier = int32_t;
+
+    enum class HandleType {
+        GraphicsPipeline,
+        RenderTarget,
+    };
+
+    template <HandleType H>
+    class Handle final {
+        VX_DEFAULT_MOVABLE(Handle);
+        VX_DEFAULT_COPYABLE(Handle);
+    private:
+        HandleType m_type;
+        Identifier m_identifier;
+        Flags m_flags;
+    public:
+        explicit Handle(Identifier identifier, Flags flags = { })
+            : m_type(H)
+            , m_identifier(identifier)
+            , m_flags(flags)
+        {};
+
+        [[nodiscard]] HandleType type() const { return m_type; }
+        [[nodiscard]] Identifier identifier() const { return m_identifier; }
+        [[nodiscard]] Flags flags() const { return m_flags; }
+    };
+
+    using GraphicsPipelineHandle = Handle<HandleType::GraphicsPipeline>;
+    using RenderTargetHandle = Handle<HandleType::RenderTarget>;
+
     class Instance final {
     private:
         std::shared_ptr<InstanceImpl> m_impl;
@@ -26,7 +61,7 @@ namespace VX::Graphics {
 
         Instance(const Instance&) noexcept;
         Instance& operator=(const Instance&) noexcept;
-        
+
         ~Instance();
 
         const InstanceImpl* operator->() const;
@@ -34,141 +69,77 @@ namespace VX::Graphics {
 
         const InstanceImpl &operator*() const;
         InstanceImpl &operator*();
+
+        // API
+
+        template <HandleType H>
+        void destroy(const Handle<H>&);
+
+        VX::Expected<RenderTargetHandle> create_render_target(glm::vec<2, int> size);
+
+        VX::Expected<GraphicsPipelineHandle> create_graphics_pipeline(const GraphicsPipelineBuilder&);
+
+        VX::Expected<void> execute_graphics_pipeline(const GraphicsPipelineHandle&, const GraphicsDelegate&);
     };
+
+    template<> void Instance::destroy(const Handle<HandleType::GraphicsPipeline> &);
+    template<> void Instance::destroy(const Handle<HandleType::RenderTarget> &);
 
     struct GraphicsInfo {
         std::vector<const char*> required_extensions { };
         glm::vec<2, int> framebuffer_dimensions { };
     };
 
-    enum class HandleType {
-        CommandBuffer,
-        GraphicsPipeline,
-        RenderContext,
-        RenderTarget,
+    struct GraphicsStageInfo {
+        std::any user_data;
     };
 
-    using HandleIdentifier = uint32_t;
+    using GraphicsStageDependency = std::pair<std::reference_wrapper<const GraphicsStage>, std::reference_wrapper<const GraphicsStage>>;
 
-    template <HandleType T>
-    class Handle;
+    struct GraphicsStage {
+        Identifier identifier;
+        GraphicsStageInfo info;
 
-    template <HandleType H>
-    class ResourceDeallocator {
-    public:
-        virtual ~ResourceDeallocator() = default;
-        virtual void destroy_resource(Handle<H> &handle) = 0;
-    };
+        [[nodiscard]] GraphicsStageDependency depends_on(const GraphicsStage& other) const {
+            return std::make_pair(std::cref(*this), std::cref(other));
+        }
 
-    template <class T, HandleType H>
-    class ResourceAllocator: public std::enable_shared_from_this<ResourceAllocator<T, H>>, public ResourceDeallocator<H> {
-    private:
-        HandleIdentifier m_index { 0 };
-        std::unordered_map<HandleIdentifier, T> m_resources { };
-
-        ResourceAllocator() = default;
-
-    public:
-        ~ResourceAllocator() = default;
-
-        void destroy_resource(Handle<H> &handle) override;
-
-        Handle<H> create_resource(const std::function<T()> &);
-        Handle<H> create_resource(T);
-
-        T &lookup(const Handle<H> &handle);
-        const T &lookup(const Handle<H> &handle) const;
-
-        static std::shared_ptr<ResourceAllocator<T, H>> create_shared() {
-            return std::shared_ptr<ResourceAllocator<T, H>>(new ResourceAllocator<T, H>());
+        [[nodiscard]] GraphicsStageDependency dependency_of(const GraphicsStage& other) const {
+            return std::make_pair(std::cref(other), std::cref(*this));
         }
     };
 
-    template <HandleType H>
-    class Handle final {
-        VX_MAKE_NONCOPYABLE(Handle);
-    private:
-        HandleIdentifier m_identifier;
-        std::weak_ptr<ResourceDeallocator<H>> m_deallocator;
-
+    class GraphicsPipelineBuilder final {
+        Identifier m_current_identifier { 0 };
+        std::vector<GraphicsStage> m_stages { };
+        std::vector<GraphicsStageDependency> m_dependencies { };
     public:
-        Handle(HandleIdentifier identifier, std::weak_ptr<ResourceDeallocator<H>> deallocator)
-            : m_identifier(identifier)
-            , m_deallocator(std::move(deallocator))
-        {}
+        GraphicsPipelineBuilder() = default;
+        ~GraphicsPipelineBuilder() = default;
 
-        Handle(Handle<H>&&) noexcept = default;
-        Handle<H>& operator=(Handle<H>&&) noexcept = default;
+        GraphicsStage add_stage(const GraphicsStageInfo &stage_info) {
+            GraphicsStage stage = {
+                    .identifier = ++m_current_identifier,
+                    .info = stage_info,
+            };
 
-        void invalidate() noexcept { m_identifier = false; }
+            m_stages.push_back(stage);
+            return stage;
+        }
 
-        [[nodiscard]] HandleIdentifier identifier() const { return m_identifier; }
-        [[nodiscard]] bool is_valid() const { return m_identifier && !m_deallocator.expired(); };
-
-        ~Handle() {
-            if (auto deallocator = m_deallocator.lock())
-                deallocator->destroy_resource(*this);
-
-            invalidate();
+        void add_dependency(const GraphicsStageDependency &dep) {
+            m_dependencies.push_back(dep);
         }
     };
 
-    template<class T, HandleType H>
-    void ResourceAllocator<T, H>::destroy_resource(Handle<H> &handle)
-    {
-        m_resources.erase(handle.identifier());
-        handle.invalidate();
-    }
-
-    template<class T, HandleType H>
-    Handle<H> ResourceAllocator<T, H>::create_resource(const std::function<T()> &fn)
-    {
-        return create_resource(fn());
-    }
-
-    template<class T, HandleType H>
-    Handle<H> ResourceAllocator<T, H>::create_resource(T t)
-    {
-        auto identifier = ++m_index;
-        m_resources.insert_or_assign(identifier, std::move(t));
-        return Handle<H>(identifier, this->shared_from_this());
-    }
-
-    template<class T, HandleType H>
-    T &ResourceAllocator<T, H>::lookup(const Handle<H> &handle)
-    {
-        return m_resources.find(handle.identifier())->second;
-    }
-
-    template<class T, HandleType H>
-    const T &ResourceAllocator<T, H>::lookup(const Handle<H> &handle) const
-    {
-        return m_resources.find(handle.identifier())->second;
-    }
-
-    using CommandBufferHandle = Handle<HandleType::CommandBuffer>;
-    using GraphicsPipelineHandle = Handle<HandleType::GraphicsPipeline>;
-    using RenderContextHandle = Handle<HandleType::RenderContext>;
-    using RenderTargetHandle = Handle<HandleType::RenderTarget>;
-
-    template<> class Handle<HandleType::CommandBuffer>;
-    template<> class Handle<HandleType::GraphicsPipeline>;
-    template<> class Handle<HandleType::RenderContext>;
-    template<> class Handle<HandleType::RenderTarget>;
-
-    struct SwapState {
-        size_t swap_index;
-        std::shared_ptr<RenderContextHandle> context;
-        std::shared_ptr<RenderTargetHandle> frame_buffer;
-        std::shared_ptr<CommandBufferHandle> command_buffer;
+    class GraphicsContext {
+    public:
+        virtual ~GraphicsContext() = default;
     };
 
-    VX::Expected<void> begin_render_pass(Instance&, const RenderContextHandle&, const RenderTargetHandle&, const CommandBufferHandle&);
-    VX::Expected<void> end_render_pass(Instance&);
-
-    VX::Expected<SwapState> begin_frame(Instance&);
-    VX::Expected<void> end_frame(Instance&, const SwapState&);
-
-    void bind(Instance&, const GraphicsPipelineHandle&);
-    void draw(Instance&);
+    class GraphicsDelegate {
+    public:
+        virtual ~GraphicsDelegate() = default;
+        virtual void handle_stage(const GraphicsStage& stage, GraphicsContext&) const = 0;
+    };
 }

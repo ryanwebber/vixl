@@ -1,88 +1,134 @@
 #pragma once
 
-#include <memory>
-
-#include <VX/Copyable.h>
-#include <VX/Noncopyable.h>
+#include <span>
 
 #include <VX/Graphics/Graphics.h>
-
+#include <VX/Core/RenderContext.h>
 #include <VX/Core/RenderPass.h>
-#include <VX/Core/Scene.h>
+#include <VX/Core/RenderTarget.h>
 
 namespace VX::Core {
 
-    class RenderTask;
-    using RenderDependency = std::pair<std::reference_wrapper<const RenderTask>, std::reference_wrapper<const RenderTask>>;
+    class RenderHook;
+    class RenderPipeline;
+    class RenderPipelineBuilder;
+    class RenderStage;
+    class Renderer;
 
-    class RenderTask final {
-    public:
-        [[nodiscard]] RenderDependency depends_on(const RenderTask& other) const {
-            return std::make_tuple(std::cref(*this), std::cref(other));
-        }
+    using RenderPriority = int;
 
-        [[nodiscard]] RenderDependency dependency_of(const RenderTask& other) const {
-            return std::make_tuple(std::cref(other), std::cref(*this));
+    struct RenderDependency {
+        const RenderTarget &dependee;
+        const RenderTarget &dependent;
+
+        struct Partial {
+            const RenderTarget &dependee;
+
+            [[nodiscard]] RenderDependency to(const RenderTarget& other) const {
+                return {
+                    .dependee = dependee,
+                    .dependent = other,
+                };
+            }
+        };
+
+        static Partial from(const RenderTarget& target) {
+            return {
+                .dependee = target,
+            };
         }
     };
 
     class RenderStage {
     public:
         virtual ~RenderStage() = default;
-        virtual void render(RenderPass&) const = 0;
+        virtual void do_render(const RenderContext&, RenderPass&) = 0;
+    };
+
+    class RenderHook {
+    public:
+        virtual ~RenderHook() = default;
+
+        virtual bool needs_layout() = 0;
+        virtual void layout_into(RenderPipelineBuilder&) = 0;
     };
 
     class RenderPipeline final {
-        VX_DEFAULT_COPYABLE(RenderPipeline);
         VX_DEFAULT_MOVABLE(RenderPipeline);
+        VX_MAKE_NONCOPYABLE(RenderPipeline);
     private:
-        std::vector<std::shared_ptr<RenderStage>> m_render_stages { };
+        std::shared_ptr<Graphics::GraphicsPipelineHandle> m_graphics_pipeline;
     public:
-        RenderPipeline() = default;
+        explicit RenderPipeline(std::shared_ptr<Graphics::GraphicsPipelineHandle> graphics_pipeline)
+            : m_graphics_pipeline(std::move(graphics_pipeline))
+        {};
+
         ~RenderPipeline() = default;
-
-        [[nodiscard]] const std::vector<std::shared_ptr<RenderStage>> &render_stages() const { return m_render_stages; }
-
-        static RenderPipeline empty() { return {}; }
-        static RenderPipeline from_scene(const Scene &) { return {}; }
     };
 
-//    class RenderPipelineBuilder final {
-//    public:
-//        explicit RenderPipelineBuilder();
-//        ~RenderPipelineBuilder();
-//
-//        RenderTask add_render_task(RenderStage);
-//        RenderTask add_sub_pipeline(RenderPipeline);
-//
-//        void add_dependency(const RenderDependency&);
-//
-//        RenderPipeline Build();
-//    };
-
-    class RenderDelegate {
+    class RenderPipelineBuilder final {
+        VX_MAKE_NONMOVABLE(RenderPipelineBuilder);
+        VX_MAKE_NONCOPYABLE(RenderPipelineBuilder);
     public:
-        virtual ~RenderDelegate() = default;
+        class Entry {
+            VX_DEFAULT_MOVABLE(Entry);
+            VX_DEFAULT_COPYABLE(Entry);
+        private:
+            RenderTarget m_render_target;
+            std::weak_ptr<RenderStage> m_render_stage;
+            RenderPriority m_render_priority;
+        public:
+            Entry(RenderTarget render_target, std::weak_ptr<RenderStage> render_stage, RenderPriority render_priority)
+                : m_render_target(render_target)
+                , m_render_stage(render_stage)
+                , m_render_priority(render_priority)
+            {};
 
-        [[nodiscard]] virtual bool is_invalidated() const = 0;
-        [[nodiscard]] virtual RenderPipeline construct_render_pipeline() const = 0;
+            ~Entry() = default;
+        };
+
+        explicit RenderPipelineBuilder() = default;
+        ~RenderPipelineBuilder() = default;
+
+        void add_render_stage(const RenderTarget&, std::weak_ptr<RenderStage>, RenderPriority);
+        void add_render_dependency(RenderDependency);
+
+        [[nodiscard]] RenderPipeline build() const;
+
+    private:
+        std::vector<Entry> m_entries { };
+        std::vector<RenderDependency> m_dependencies { };
+    };
+
+    class RenderAllocator final {
+        VX_DEFAULT_MOVABLE(RenderAllocator);
+        VX_DEFAULT_COPYABLE(RenderAllocator);
+    private:
+        std::shared_ptr<Graphics::Instance> m_instance;
+    public:
+        explicit RenderAllocator(std::shared_ptr<Graphics::Instance> instance)
+            : m_instance(std::move(instance))
+        {};
+
+        ~RenderAllocator() = default;
+
+        RenderTarget create_render_target(const RenderTarget::AllocationRequest&);
     };
 
     class Renderer final {
+        VX_DEFAULT_MOVABLE(Renderer);
         VX_MAKE_NONCOPYABLE(Renderer);
-        VX_MAKE_NONMOVABLE(Renderer);
     private:
-        Graphics::Instance m_graphics;
-        const RenderDelegate &m_render_delegate;
-
+        std::shared_ptr<Graphics::Instance> m_instance;
+        std::vector<std::shared_ptr<RenderHook>> m_hooks { };
     public:
-        explicit Renderer(Graphics::Instance graphics, const RenderDelegate &render_delegate)
-            : m_graphics(std::move(graphics))
-            , m_render_delegate(render_delegate)
-        {}
+        explicit Renderer(std::shared_ptr<Graphics::Instance> instance)
+            : m_instance(std::move(instance))
+        {};
 
         ~Renderer() = default;
 
+        void add_hook();
         void render_frame() const;
     };
 }

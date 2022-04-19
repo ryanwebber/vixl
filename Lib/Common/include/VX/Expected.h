@@ -15,4 +15,9 @@ namespace VX {
         auto err = VX::make_error(format, std::forward<Args>(args)...);
         return tl::make_unexpected(std::move(err));
     }
+
+    template <typename T>
+    Expected<void> erase(const Expected<T> &expected) {
+        return tl::make_unexpected(expected.error());
+    }
 }

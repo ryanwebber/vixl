@@ -1,7 +1,6 @@
 #pragma once
 
 #include <VX/Core/Handle.h>
-#include <VX/Core/Logger.h>
 
 namespace VX::Core {
 
@@ -13,12 +12,10 @@ namespace VX::Core {
         HandleStub()
             : idx(++s_index)
         {
-            Logger::Core->debug("Handle init: {}", idx);
         }
 
         inline void destroy()
         {
-            Logger::Core->debug("Handle destroy: {}", idx);
         }
     };
 

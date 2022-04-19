@@ -42,19 +42,16 @@ namespace VX::Core {
 
         [[nodiscard]] const Shape& get_shape(Shapes shape) const {
             auto idx = static_cast<size_t>(shape);
-            VX_ASSERT(idx < m_shapes.size(), "Invalid shape. Shapes might not have been loaded yet");
             return m_shapes[idx];
         }
 
         [[nodiscard]] const Texture& get_texture(Textures texture) const {
             auto idx = static_cast<size_t>(texture);
-            VX_ASSERT(idx < m_textures.size(), "Invalid texture. Textures might not have been loaded yet");
             return m_textures[idx];
         }
 
         [[nodiscard]] const Material& get_material(Materials material) const {
             auto idx = static_cast<size_t>(material);
-            VX_ASSERT(idx < m_materials.size(), "Invalid material. Materials might not have been loaded yet");
             return m_materials[idx];
         }
 

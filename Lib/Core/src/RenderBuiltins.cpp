@@ -1,5 +1,6 @@
 #include <vector>
 
+#include <VX/Core/Assert.h>
 #include <VX/Core/Material.h>
 #include <VX/Core/RenderBuiltins.h>
 #include <VX/Core/Shader.h>
@@ -11,7 +12,7 @@ namespace VX::Core {
     RenderBuiltins::RenderBuiltins(AssetBundle &bundle)
         : m_asset_bundle(std::move(bundle))
     {
-        VX_ASSERT(m_asset_bundle.buffer().size() == VX::Core::Generated::Assets::Builtins::file_size, "Asset bundle provided to render builtins is the wrong size");
+        VX_CORE_ASSERT(m_asset_bundle.buffer().size() == VX::Core::Generated::Assets::Builtins::file_size, "Asset bundle provided to render builtins is the wrong size");
     }
 
     void RenderBuiltins::ensure_initialized() {
@@ -50,7 +51,7 @@ namespace VX::Core {
             return std::move(load_builtins);
         });
 
-        VX_ASSERT(builtins != nullptr, "RenderBuiltins not loaded but temporary event loop has exited. Possible async bug.");
+        VX_CORE_ASSERT(builtins != nullptr, "RenderBuiltins not loaded but temporary event loop has exited. Possible async bug.");
 
         return builtins;
     }

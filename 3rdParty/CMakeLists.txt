@@ -5,6 +5,7 @@ add_subdirectory(entt)
 add_subdirectory(fmt)
 add_subdirectory(glm)
 add_subdirectory(json)
+
 add_subdirectory(sdl2)
 
 set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Avoid statically linking fmt twice" FORCE)

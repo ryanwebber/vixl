@@ -10,6 +10,7 @@ message(STATUS "Vulkan info:\n\tLibs: ${Vulkan_LIBRARIES}\n\tincludes: ${Vulkan_
 
 set(SOURCES
         src/Graphics.cpp
+        src/GraphicsPipeline.cpp
         src/Init.cpp
         src/Instance.cpp
         src/QueueSupport.cpp

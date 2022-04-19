@@ -16,7 +16,7 @@ namespace VX::Core {
         , m_vertex_shader(std::move(vertex_shader))
         , m_fragment_shader(std::move(fragment_shader))
     {
-        Logger::Core->debug("Created material '{}', vs={} fs={} program={}",
+        Log::debug("Created material '{}', vs={} fs={} program={}",
                             m_name,
                             m_vertex_shader->get().idx,
                             m_fragment_shader->get().idx,
@@ -34,7 +34,7 @@ namespace VX::Core {
             m_shader_program = compile(*vs, *fs);
             m_vertex_shader = std::move(vs);
             m_fragment_shader = std::move(fs);
-            Logger::Core->debug("Created material '{}': vs={} fs={} program={}",
+            Log::debug("Created material '{}': vs={} fs={} program={}",
                                 m_name,
                                 m_vertex_shader->get().idx,
                                 m_fragment_shader->get().idx,

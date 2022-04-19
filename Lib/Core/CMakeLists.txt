@@ -6,16 +6,16 @@ set(TARGET vixl-core)
 set(GRAPHICS_API METAL)
 
 set(SOURCES
-        src/Assert.cpp
         src/Closable.cpp
+        src/Init.cpp
         src/Input.cpp
-        src/Logger.cpp
         src/Material.cpp
         src/RenderBuiltins.cpp
         src/RenderContext.cpp
         src/RenderPass.cpp
         src/RenderSystem.cpp
         src/Renderer.cpp
+        src/RenderTarget.cpp
         src/ResourceManager.cpp
         src/Scene.cpp
         src/SceneManager.cpp
@@ -39,6 +39,7 @@ target_link_libraries(${TARGET}
 
 target_include_directories(${TARGET}
         PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/include_private"
             "${PROJECT_SOURCE_DIR}/Lib/Common/include"
 
             # Generated code
@@ -63,8 +64,7 @@ target_include_directories(${TARGET}
 
 target_compile_definitions(${TARGET}
         PRIVATE
-            VX_DEBUG_MEMORY=1
-            VX_DEBUG_GRAPHICS=0
+            VX_CORE_DEBUG=1
             VX_GRAPHICS_${GRAPHICS_API}=1
         PUBLIC
             VX_VERSION="${CMAKE_PROJECT_VERSION}"

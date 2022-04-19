@@ -1,7 +1,11 @@
+
+#include <spdlog/spdlog.h>
+
 #include <VX/Core/Async.h>
+#include <VX/Core/Init.h>
 #include <VX/Core/Input.h>
-#include <VX/Core/Logger.h>
 #include <VX/Core/Renderer.h>
+#include <VX/Core/Scene.h>
 #include <VX/Core/SceneManager.h>
 #include <VX/Core/Window.h>
 #include <VX/Entry/Main.h>
@@ -14,9 +18,11 @@
 #define TARGET_FPS 60
 #endif
 
+namespace Log = spdlog;
+
 int vixl_main(const VX::Entry::Context &ctx) {
 
-    auto logger = VX::Core::Logger::create_named("vulkan-test");
+    Log::debug("Booting example-hello-world!");
 
     VX::Platform::Abstraction::WindowOptions window_options = {
             .name = "Entry Test",
@@ -26,8 +32,12 @@ int vixl_main(const VX::Entry::Context &ctx) {
     auto native_window = VX::Platform::get_abstraction<VX::Platform::Abstraction::WindowFactory>()
             .create_with_options(window_options);
 
-    auto graphics = VX::Platform::get_abstraction<VX::Platform::Abstraction::GraphicsInitializer>()
-            .initialize_with_window(*native_window);
+    auto graphics = [&]() {
+        auto graphics_instance = VX::Platform::get_abstraction<VX::Platform::Abstraction::GraphicsInitializer>()
+                .initialize_with_window(*native_window);
+
+        return std::make_shared<VX::Graphics::Instance>(std::move(graphics_instance));
+    }();
 
     auto resource_locator = VX::Platform::get_abstraction<VX::Platform::Abstraction::FileSystem>()
             .resource_locator();
@@ -36,7 +46,7 @@ int vixl_main(const VX::Entry::Context &ctx) {
     VX::Core::EventLoop event_loop;
     VX::Core::Window window(native_window);
     VX::Core::Input input(native_window, *event_loop.executor());
-    VX::Core::Renderer renderer(graphics, scene_manager.render_delegate());
+    VX::Core::Renderer renderer(graphics);
 
     // Configure a main loop that runs at a target FPS
     static_assert(TARGET_FPS > 0, "Invalid target FPS");
@@ -55,6 +65,9 @@ int vixl_main(const VX::Entry::Context &ctx) {
     auto render_handle = render_timer.subscriber().on([&](auto) {
         renderer.render_frame();
     });
+
+    auto scene = VX::Core::Scene::create_named("DemoScene");
+    scene_manager.set_current_scene(scene);
 
     event_loop.run();
 

@@ -1,16 +1,16 @@
 #pragma once
 
-#include <VX/Graphics/Logger.h>
+#include <VX/Core/Logger.h>
 
 #ifndef NDEBUG
-#define VX_GRAPHICS_ASSERT(Expr, Msg, ...) VX::Graphics::runtime_assert(#Expr, Expr, __FILE__, __LINE__, Msg, ##__VA_ARGS__)
-#define VX_GRAPHICS_ASSERT_NOT_REACHED() VX::Graphics::runtime_not_reached(__FILE__, __LINE__)
+#define VX_CORE_ASSERT(Expr, Msg, ...) VX::Core::runtime_assert(#Expr, Expr, __FILE__, __LINE__, Msg, ##__VA_ARGS__)
+#define VX_CORE_ASSERT_NOT_REACHED() VX::Core::runtime_not_reached(__FILE__, __LINE__)
 #else
-#define VX_GRAPHICS_ASSERT(Expr, Msg) ;
-#define VX_GRAPHICS_ASSERT_NOT_REACHED() ;
+#define VX_CORE_ASSERT(Expr, Msg) ;
+#define VX_CORE_ASSERT_NOT_REACHED() ;
 #endif
 
-namespace VX::Graphics {
+namespace VX::Core {
 
     static bool not_reached = false;
 
@@ -24,7 +24,6 @@ namespace VX::Graphics {
         }
     }
 
-    template <typename ...Args>
     [[noreturn]] void runtime_not_reached(const char *file, int line) {
         Log::critical("Unreachable state reached at: {}:{}", file, line);
         abort();

@@ -14,14 +14,17 @@ namespace VX::Graphics {
         vk::raii::Framebuffer m_framebuffer;
         vk::Extent2D m_extents;
     public:
-        RenderTarget(vk::raii::ImageView image_view,
-                     vk::raii::Framebuffer framebuffer,
-                     const vk::Extent2D &extents)
+        RenderTarget(vk::raii::ImageView image_view, vk::raii::Framebuffer framebuffer, vk::Extent2D extents)
                 : m_image_view(std::move(image_view))
                 , m_framebuffer(std::move(framebuffer))
                 , m_extents(extents)
         {}
 
         ~RenderTarget() = default;
+
+        vk::raii::Framebuffer &framebuffer() { return m_framebuffer; }
+        [[nodiscard]] const vk::raii::Framebuffer &framebuffer() const { return m_framebuffer; }
+
+        [[nodiscard]] vk::Extent2D extents() const { return m_extents; }
     };
 }

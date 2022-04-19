@@ -9,14 +9,58 @@
 
 #include <VX/Graphics/Assert.h>
 #include <VX/Graphics/Graphics.h>
+#include <VX/Graphics/GraphicsPipeline.h>
 #include <VX/Graphics/QueueSupport.h>
 #include <VX/Graphics/RenderContext.h>
+#include <VX/Graphics/RenderPass.h>
 #include <VX/Graphics/RenderTarget.h>
-#include <VX/Graphics/ResourceManager.h>
+#include <VX/Graphics/Memory.h>
 #include <VX/Graphics/Swapchain.h>
 #include <VX/Graphics/Vulkan.h>
 
 namespace VX::Graphics {
+
+    class ResourceManager final {
+        VX_DEFAULT_MOVABLE(ResourceManager);
+        VX_MAKE_NONCOPYABLE(ResourceManager);
+    public:
+        struct HandleAllocatorCollection {
+            HandleAllocator<GraphicsPipeline> graphics_pipeline;
+
+            HandleAllocatorCollection() = delete;
+            explicit HandleAllocatorCollection(Allocator &backing_allocator)
+                : graphics_pipeline(backing_allocator)
+            {};
+        };
+
+    private:
+        Allocator m_general_allocator;
+        HandleAllocatorCollection m_handle_allocators;
+
+    public:
+        explicit ResourceManager()
+            : m_general_allocator()
+            , m_handle_allocators(m_general_allocator)
+        {};
+
+        explicit ResourceManager(Allocator allocator)
+                : m_general_allocator(std::move(allocator))
+                , m_handle_allocators(m_general_allocator)
+        {};
+
+        HandleAllocatorCollection &handle_allocators() {
+            return m_handle_allocators;
+        }
+
+        [[nodiscard]] const HandleAllocatorCollection &handle_allocators() const {
+            return m_handle_allocators;
+        }
+
+        Allocator &allocator() { return m_general_allocator; }
+        [[nodiscard]] const Allocator &allocator() const { return m_general_allocator; }
+
+        ~ResourceManager() = default;
+    };
 
     class InstanceImpl final {
         VX_MAKE_NONCOPYABLE(InstanceImpl);
@@ -31,7 +75,7 @@ namespace VX::Graphics {
         vk::raii::CommandPool m_command_pool;
         Swapchain m_swapchain;
         vk::raii::RenderPass m_render_pass;
-        std::shared_ptr<ResourceManager> m_resource_manager;
+        ResourceManager m_resource_manager;
         QueueSupport m_queue_support;
 
     public:
@@ -44,7 +88,7 @@ namespace VX::Graphics {
                      vk::raii::CommandPool command_pool,
                      Swapchain swapchain,
                      vk::raii::RenderPass render_pass,
-                     std::shared_ptr<ResourceManager> resource_manager,
+                     ResourceManager resource_manager,
                      QueueSupport queue_support)
             : m_context(std::move(context))
             , m_instance(std::move(instance))
@@ -61,21 +105,13 @@ namespace VX::Graphics {
 
         ~InstanceImpl() = default;
 
-        VX::Expected<void> begin_render_pass(const RenderContextHandle&, const RenderTargetHandle&, const CommandBufferHandle&);
-        VX::Expected<void> end_render_pass();
+        ResourceManager &resource_manager() { return m_resource_manager; }
+        [[nodiscard]] const ResourceManager &resource_manager() const { return m_resource_manager; }
 
-        VX::Expected<SwapState> begin_frame();
-        VX::Expected<void> end_frame(const SwapState&);
+        Swapchain &swapchain() { return m_swapchain; }
+        [[nodiscard]] const Swapchain &swapchain() const { return m_swapchain; }
 
-        void bind(const GraphicsPipelineHandle&);
-        void draw();
-
-        template <HandleType T>
-        void destroy_handle(const Handle<T>&) {
-            VX_GRAPHICS_ASSERT_NOT_REACHED();
-        }
+        VX::Expected<RenderPass> begin_render_pass(const RenderTarget&, const RenderContext&);
+        VX::Expected<void> end_render_pass(const RenderPass&);
     };
-
-    template<>
-    void InstanceImpl::destroy_handle(const Handle<HandleType::GraphicsPipeline> &handle);
 }

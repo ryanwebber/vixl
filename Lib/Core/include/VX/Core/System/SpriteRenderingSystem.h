@@ -16,6 +16,6 @@ namespace VX::Core::System {
         explicit SpriteRenderingSystem(const RenderBuiltins&);
         ~SpriteRenderingSystem() override = default;
 
-        void render(const RenderContext&, RenderPass&, entt::registry&) override;
+        void render(const RenderContext&, RenderBuffer&, const entt::registry&) override;
     };
 }

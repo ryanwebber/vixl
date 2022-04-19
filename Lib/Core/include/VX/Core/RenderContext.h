@@ -1,17 +1,21 @@
 #pragma once
 
-#include <memory>
-#include <glm/glm.hpp>
 #include <VX/Noncopyable.h>
-
-#include <VX/Core/Size.h>
+#include <VX/Core/RenderTarget.h>
 
 namespace VX::Core {
-    struct ViewProjection {
-        glm::mat4x4 view_matrix { glm::mat4x4(1) };
-        glm::mat4x4 projection_matrix { glm::mat4x4(1) };
-    };
-
     class RenderContext final {
+        VX_MAKE_NONCOPYABLE(RenderContext);
+        VX_MAKE_NONMOVABLE(RenderContext);
+    private:
+        RenderTarget m_render_target;
+    public:
+        explicit RenderContext(const RenderTarget &render_target)
+            : m_render_target(render_target)
+        {};
+
+        ~RenderContext() = default;
+
+        [[nodiscard]] const RenderTarget &render_target() const { return m_render_target; }
     };
 }

@@ -9,7 +9,7 @@ namespace VX::Core::System {
     {
     }
 
-    void SpriteRenderingSystem::render(const RenderContext &context, RenderPass &render_pass, entt::registry &entities) {
+    void SpriteRenderingSystem::render(const RenderContext &context, RenderBuffer &buffer, const entt::registry &entities) {
         auto view = entities.view<const Component::TransformComponent, const Component::SpriteComponent>();
         for(auto [_0, _1, _2]: view.each()) {
 #warning "Not implemented"

@@ -7,10 +7,10 @@
 #include <entt/entity/registry.hpp>
 
 #include <VX/Noncopyable.h>
+#include <VX/Core/RenderBuffer.h>
 #include <VX/Core/RenderContext.h>
 #include <VX/Core/RenderPass.h>
 #include <VX/Core/RenderSystem.h>
-#include <VX/Core/RenderTarget.h>
 #include <VX/Core/UpdateSystem.h>
 #include <VX/Core/MetaSystem.h>
 
@@ -20,11 +20,12 @@ class Scene final : public std::enable_shared_from_this<Scene> {
         VX_MAKE_NONCOPYABLE(Scene);
     private:
         std::string m_name;
-
         entt::registry m_entity_registry { };
         std::vector<std::shared_ptr<UpdateSystem>> m_update_systems { };
         std::vector<std::shared_ptr<RenderSystem>> m_render_systems { };
         std::vector<std::shared_ptr<MetaSystem>> m_meta_systems { };
+
+        bool m_configured { false };
 
         explicit Scene(const std::string_view &name)
             : m_name(name)
@@ -36,7 +37,7 @@ class Scene final : public std::enable_shared_from_this<Scene> {
 
         void configure();
         void update();
-        void render(RenderPass &render_pass);
+        void render(const RenderContext&, RenderBuffer&);
 
         [[nodiscard]] const std::string &name() const { return m_name; }
 

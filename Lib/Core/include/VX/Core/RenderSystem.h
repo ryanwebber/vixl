@@ -7,6 +7,7 @@
 #include <VX/Copyable.h>
 #include <VX/Noncopyable.h>
 
+#include <VX/Core/RenderBuffer.h>
 #include <VX/Core/RenderContext.h>
 #include <VX/Core/RenderPass.h>
 
@@ -19,6 +20,6 @@ namespace VX::Core {
         RenderSystem() = default;
         virtual ~RenderSystem() = default;
 
-        virtual void render(const RenderContext &context, RenderPass &render_pass, entt::registry&) = 0;
+        virtual void render(const RenderContext&, RenderBuffer&, const entt::registry&) = 0;
     };
 }

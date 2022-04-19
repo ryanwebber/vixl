@@ -13,7 +13,6 @@
 #include <VX/ByteBuffer.h>
 #include <VX/Expected.h>
 
-#include <VX/Core/Assert.h>
 #include <VX/Core/Closable.h>
 #include <VX/Core/Types.h>
 
@@ -67,7 +66,6 @@ namespace VX::Core {
     template<typename T>
     inline std::shared_ptr<T> make_handle(Executor &e)
     {
-        VX_ASSERT(e.m_event_loop != nullptr, "The underlying event loop is gone");
         return e.m_event_loop->resource<T>();
     }
 
@@ -309,7 +307,6 @@ namespace VX::Core {
                     [](uvw::AsyncHandle &h) { h.close(); }, // Kill event listeners
                     [](auto &&) {
                         // TODO: Is this assert correct? We should probably let file system handles complete
-                        VX_ASSERT(false, "Event loop not able to close all resources. Program will probably hang...");
                     },
             });
 
@@ -452,7 +449,6 @@ namespace VX::Core {
                 handle_ref.read(offset, length);
             });
 
-            Logger::Core->debug("Attempting to read file: {} (offset={} size={})", path.string(), offset, length);
             read_handle->open(path, 0, 0);
 
             return {std::move(executor), std::move(resolver)};
