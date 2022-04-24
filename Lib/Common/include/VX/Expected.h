@@ -17,6 +17,12 @@ namespace VX {
     }
 
     template <typename T>
+    Unexpected map_unexpected(const Expected<T> &expected) {
+        auto err = expected.error();
+        return tl::make_unexpected(std::move(err));
+    }
+
+    template <typename T>
     Expected<void> erase(const Expected<T> &expected) {
         return tl::make_unexpected(expected.error());
     }

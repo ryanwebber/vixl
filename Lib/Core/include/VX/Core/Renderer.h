@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <span>
 
 #include <VX/Graphics/Graphics.h>
@@ -57,11 +58,13 @@ namespace VX::Core {
         VX_DEFAULT_MOVABLE(RenderPipeline);
         VX_MAKE_NONCOPYABLE(RenderPipeline);
     private:
-        std::shared_ptr<Graphics::GraphicsPipelineHandle> m_graphics_pipeline;
+        Graphics::GraphicsPipelineHandle m_graphics_pipeline;
     public:
-        explicit RenderPipeline(std::shared_ptr<Graphics::GraphicsPipelineHandle> graphics_pipeline)
-            : m_graphics_pipeline(std::move(graphics_pipeline))
+        explicit RenderPipeline(Graphics::GraphicsPipelineHandle graphics_pipeline)
+            : m_graphics_pipeline(graphics_pipeline)
         {};
+
+        [[nodiscard]] const Graphics::GraphicsPipelineHandle &graphics_pipeline() const { return m_graphics_pipeline; }
 
         ~RenderPipeline() = default;
     };
@@ -80,9 +83,11 @@ namespace VX::Core {
         public:
             Entry(RenderTarget render_target, std::weak_ptr<RenderStage> render_stage, RenderPriority render_priority)
                 : m_render_target(render_target)
-                , m_render_stage(render_stage)
+                , m_render_stage(std::move(render_stage))
                 , m_render_priority(render_priority)
             {};
+
+            [[nodiscard]] const RenderTarget &render_target() const { return m_render_target; }
 
             ~Entry() = default;
         };
@@ -90,10 +95,15 @@ namespace VX::Core {
         explicit RenderPipelineBuilder() = default;
         ~RenderPipelineBuilder() = default;
 
-        void add_render_stage(const RenderTarget&, std::weak_ptr<RenderStage>, RenderPriority);
-        void add_render_dependency(RenderDependency);
+        void add_render_stage(const RenderTarget&, std::weak_ptr<RenderStage>, RenderPriority) {
+            // TODO
+        }
 
-        [[nodiscard]] RenderPipeline build() const;
+        void add_render_dependency(RenderDependency) {
+            // TODO
+        }
+
+        [[nodiscard]] VX::Expected<RenderPipeline> build(Graphics::Instance&) const;
 
     private:
         std::vector<Entry> m_entries { };
@@ -112,15 +122,25 @@ namespace VX::Core {
 
         ~RenderAllocator() = default;
 
-        RenderTarget create_render_target(const RenderTarget::AllocationRequest&);
+        RenderTarget create_render_target(const RenderTarget::BackingStore&);
     };
 
     class Renderer final {
         VX_DEFAULT_MOVABLE(Renderer);
         VX_MAKE_NONCOPYABLE(Renderer);
     private:
+        struct State {
+            bool had_construct_failure_last_frame { false };
+            std::optional<RenderPipeline> render_pipeline { };
+        };
+
         std::shared_ptr<Graphics::Instance> m_instance;
         std::vector<std::shared_ptr<RenderHook>> m_hooks { };
+        State m_state;
+
+        void invalidate() { m_state.render_pipeline = { }; }
+        VX::Expected<RenderPipeline> reconstruct();
+
     public:
         explicit Renderer(std::shared_ptr<Graphics::Instance> instance)
             : m_instance(std::move(instance))
@@ -128,7 +148,7 @@ namespace VX::Core {
 
         ~Renderer() = default;
 
-        void add_hook();
-        void render_frame() const;
+        void add_hook(std::shared_ptr<RenderHook>);
+        void render_frame();
     };
 }

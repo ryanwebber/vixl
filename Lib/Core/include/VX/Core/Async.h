@@ -14,7 +14,6 @@
 #include <VX/Expected.h>
 
 #include <VX/Core/Closable.h>
-#include <VX/Core/Types.h>
 
 // A quick and dirty promise-like system for wrapping async
 // operations on the event loop. Is currently not completely memory safe and

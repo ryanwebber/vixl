@@ -1,10 +1,24 @@
 #pragma once
 
-#include <memory>
-#include <span>
+#include <VX/Copyable.h>
+#include <VX/Noncopyable.h>
 
-#include <VX/Core/Types.h>
+#include <VX/Graphics/Graphics.h>
+#include <VX/Core/Shader.h>
 
 namespace VX::Core {
-    std::shared_ptr<ShaderHandle> make_shader(std::span<const uint8_t> data);
+    class Shader final {
+        VX_DEFAULT_MOVABLE(Shader);
+        VX_DEFAULT_COPYABLE(Shader);
+    private:
+        Graphics::SharedHandle<Graphics::HandleType::Shader> m_handle;
+    public:
+        explicit Shader(Graphics::SharedHandle<Graphics::HandleType::Shader> handle)
+            : m_handle(std::move(handle))
+        {};
+
+        ~Shader() = default;
+
+        [[nodiscard]] const Graphics::ShaderHandle &handle() const { return *m_handle; }
+    };
 }

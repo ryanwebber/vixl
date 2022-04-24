@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <variant>
 
 #include <VX/Copyable.h>
 #include <VX/Noncopyable.h>
@@ -8,28 +9,50 @@
 #include <VX/Graphics/Graphics.h>
 
 namespace VX::Core {
-    struct RenderTarget {
+    class RenderTarget final {
+        VX_DEFAULT_MOVABLE(RenderTarget);
+        VX_DEFAULT_COPYABLE(RenderTarget);
+    private:
+        Graphics::SharedHandle<Graphics::HandleType::RenderTarget> m_handle;
+    public:
+        class BackingStore {
+            VX_DEFAULT_MOVABLE(BackingStore);
+            VX_DEFAULT_COPYABLE(BackingStore);
+        public:
+            struct BufferBacked {
+            };
 
-        class AllocationRequest {
-            VX_MAKE_NONCOPYABLE(AllocationRequest);
-            VX_DEFAULT_MOVABLE(AllocationRequest);
+            struct SwapchainBacked {
+            };
+
+            using Descriptor = std::variant<BufferBacked, SwapchainBacked>;
+
         private:
-            std::function<RenderTarget(Graphics::Instance&)> m_initializer;
-            explicit AllocationRequest(std::function<RenderTarget(Graphics::Instance&)> initializer)
-                : m_initializer(std::move(initializer))
+            Descriptor m_descriptor;
+            explicit BackingStore(const Descriptor &descriptor)
+                : m_descriptor(descriptor)
             {};
 
         public:
-            ~AllocationRequest() = default;
+            ~BackingStore() = default;
 
-            RenderTarget construct(Graphics::Instance& instance) const {
-                return m_initializer(instance);
+            [[nodiscard]] const Descriptor& descriptor() const { return m_descriptor; }
+
+            static BackingStore graphics_buffer() {
+                return BackingStore(BufferBacked());
             }
 
-            static AllocationRequest with_texture();
-            static AllocationRequest with_swapchain();
+            static BackingStore swapchain_buffer() {
+                return BackingStore(SwapchainBacked());
+            }
         };
 
-        Graphics::RenderTargetHandle handle;
+        explicit RenderTarget(Graphics::SharedHandle<Graphics::HandleType::RenderTarget> handle)
+            : m_handle(std::move(handle))
+        {};
+
+        ~RenderTarget() = default;
+
+        [[nodiscard]] const Graphics::RenderTargetHandle &handle() const { return *m_handle; }
     };
 }

@@ -26,15 +26,21 @@ namespace VX::Graphics {
     public:
         struct HandleAllocatorCollection {
             HandleAllocator<GraphicsPipeline> graphics_pipeline;
+            HandleAllocator<GraphicsProgram> graphics_program;
+            HandleAllocator<RenderTarget> render_target;
+            HandleAllocator<Shader> shader;
 
             HandleAllocatorCollection() = delete;
-            explicit HandleAllocatorCollection(Allocator &backing_allocator)
+            explicit HandleAllocatorCollection(const std::shared_ptr<Allocator> &backing_allocator)
                 : graphics_pipeline(backing_allocator)
+                , graphics_program(backing_allocator)
+                , render_target(backing_allocator)
+                , shader(backing_allocator)
             {};
         };
 
     private:
-        Allocator m_general_allocator;
+        std::shared_ptr<Allocator> m_general_allocator;
         HandleAllocatorCollection m_handle_allocators;
 
     public:
@@ -44,7 +50,7 @@ namespace VX::Graphics {
         {};
 
         explicit ResourceManager(Allocator allocator)
-                : m_general_allocator(std::move(allocator))
+                : m_general_allocator(std::make_shared<Allocator>(std::move(allocator)))
                 , m_handle_allocators(m_general_allocator)
         {};
 
@@ -56,8 +62,8 @@ namespace VX::Graphics {
             return m_handle_allocators;
         }
 
-        Allocator &allocator() { return m_general_allocator; }
-        [[nodiscard]] const Allocator &allocator() const { return m_general_allocator; }
+        Allocator &allocator() { return *m_general_allocator; }
+        [[nodiscard]] const Allocator &allocator() const { return *m_general_allocator; }
 
         ~ResourceManager() = default;
     };
@@ -111,7 +117,12 @@ namespace VX::Graphics {
         Swapchain &swapchain() { return m_swapchain; }
         [[nodiscard]] const Swapchain &swapchain() const { return m_swapchain; }
 
-        VX::Expected<RenderPass> begin_render_pass(const RenderTarget&, const RenderContext&);
-        VX::Expected<void> end_render_pass(const RenderPass&);
+        [[nodiscard]] VX::Expected<RenderPass> begin_render_pass(const RenderTarget&, const RenderContext&);
+        [[nodiscard]] VX::Expected<void> end_render_pass(const RenderPass&);
+
+        [[nodiscard]] VX::Expected<ShaderHandle> create_shader(const ShaderDescriptor&,
+                                                               std::span<const std::byte> program_data);
+
+        [[nodiscard]] VX::Expected<GraphicsProgramHandle> create_program(const GraphicsProgramDescriptor&);
     };
 }

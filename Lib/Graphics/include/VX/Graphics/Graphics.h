@@ -2,7 +2,9 @@
 
 #include <any>
 #include <bitset>
+#include <cstddef>
 #include <memory>
+#include <span>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -24,7 +26,9 @@ namespace VX::Graphics {
 
     enum class HandleType {
         GraphicsPipeline,
+        GraphicsProgram,
         RenderTarget,
+        Shader,
     };
 
     template <HandleType H>
@@ -48,7 +52,32 @@ namespace VX::Graphics {
     };
 
     using GraphicsPipelineHandle = Handle<HandleType::GraphicsPipeline>;
+    using GraphicsProgramHandle = Handle<HandleType::GraphicsProgram>;
     using RenderTargetHandle = Handle<HandleType::RenderTarget>;
+    using ShaderHandle = Handle<HandleType::Shader>;
+
+    struct ShaderDescriptor {
+        enum class Type { Fragment, Vertex };
+        Type type;
+    };
+
+    struct GraphicsProgramDescriptor {
+        ShaderHandle vertex_shader;
+        ShaderHandle fragment_shader;
+    };
+
+    class SwapchainInfo final {
+    private:
+        const Instance& m_instance;
+    public:
+        explicit SwapchainInfo(const Instance& instance)
+            : m_instance(instance)
+        {};
+
+        ~SwapchainInfo() = default;
+
+        [[nodiscard]] RenderTargetHandle render_target() const;
+    };
 
     class Instance final {
     private:
@@ -72,18 +101,18 @@ namespace VX::Graphics {
 
         // API
 
-        template <HandleType H>
-        void destroy(const Handle<H>&);
+        void destroy(const Handle<HandleType::GraphicsPipeline> &);
+        void destroy(const Handle<HandleType::GraphicsProgram> &);
+        void destroy(const Handle<HandleType::RenderTarget> &);
+        void destroy(const Handle<HandleType::Shader> &);
 
-        VX::Expected<RenderTargetHandle> create_render_target(glm::vec<2, int> size);
-
-        VX::Expected<GraphicsPipelineHandle> create_graphics_pipeline(const GraphicsPipelineBuilder&);
-
+        [[nodiscard]] SwapchainInfo swapchain_info() const;
+        [[nodiscard]] VX::Expected<RenderTargetHandle> create_render_target(glm::vec<2, int> size);
+        [[nodiscard]] VX::Expected<ShaderHandle> create_shader(const ShaderDescriptor&, std::span<const std::byte> program_data);
+        [[nodiscard]] VX::Expected<GraphicsProgramHandle> create_program(const GraphicsProgramDescriptor&);
+        [[nodiscard]] VX::Expected<GraphicsPipelineHandle> create_graphics_pipeline(const GraphicsPipelineBuilder&);
         VX::Expected<void> execute_graphics_pipeline(const GraphicsPipelineHandle&, const GraphicsDelegate&);
     };
-
-    template<> void Instance::destroy(const Handle<HandleType::GraphicsPipeline> &);
-    template<> void Instance::destroy(const Handle<HandleType::RenderTarget> &);
 
     struct GraphicsInfo {
         std::vector<const char*> required_extensions { };
@@ -92,21 +121,34 @@ namespace VX::Graphics {
 
     struct GraphicsStageInfo {
         std::any user_data;
+        RenderTargetHandle render_target;
     };
 
-    using GraphicsStageDependency = std::pair<std::reference_wrapper<const GraphicsStage>, std::reference_wrapper<const GraphicsStage>>;
+    struct GraphicsStageDependency {
+        const Identifier &dependee;
+        const Identifier &dependent;
+
+        struct Partial {
+            const Identifier &dependee;
+
+            [[nodiscard]] GraphicsStageDependency to(const Identifier& other) const {
+                return {
+                    .dependee = dependee,
+                    .dependent = other,
+                };
+            }
+        };
+
+        static Partial from(const Identifier& target) {
+            return {
+                .dependee = target,
+            };
+        }
+    };
 
     struct GraphicsStage {
         Identifier identifier;
         GraphicsStageInfo info;
-
-        [[nodiscard]] GraphicsStageDependency depends_on(const GraphicsStage& other) const {
-            return std::make_pair(std::cref(*this), std::cref(other));
-        }
-
-        [[nodiscard]] GraphicsStageDependency dependency_of(const GraphicsStage& other) const {
-            return std::make_pair(std::cref(other), std::cref(*this));
-        }
     };
 
     class GraphicsPipelineBuilder final {
@@ -117,14 +159,15 @@ namespace VX::Graphics {
         GraphicsPipelineBuilder() = default;
         ~GraphicsPipelineBuilder() = default;
 
-        GraphicsStage add_stage(const GraphicsStageInfo &stage_info) {
+        Identifier add_stage(const GraphicsStageInfo &stage_info) {
+            Identifier  identifier = ++m_current_identifier;
             GraphicsStage stage = {
-                    .identifier = ++m_current_identifier,
+                    .identifier = identifier,
                     .info = stage_info,
             };
 
             m_stages.push_back(stage);
-            return stage;
+            return identifier;
         }
 
         void add_dependency(const GraphicsStageDependency &dep) {
@@ -142,4 +185,17 @@ namespace VX::Graphics {
         virtual ~GraphicsDelegate() = default;
         virtual void handle_stage(const GraphicsStage& stage, GraphicsContext&) const = 0;
     };
+
+    template <HandleType H>
+    using SharedHandle = std::shared_ptr<Handle<H>>;
+
+    template <HandleType H>
+    SharedHandle<H> to_shared_handle(std::weak_ptr<Instance> instance, Handle<H> handle) {
+        return std::shared_ptr<Handle<H>>(new Handle<H>(handle), [weak_instance = std::move(instance)](Handle<H> *inner_handle){
+            if (auto strong_instance = weak_instance.lock()) {
+                strong_instance->destroy(*inner_handle);
+                delete inner_handle;
+            }
+        });
+    }
 }

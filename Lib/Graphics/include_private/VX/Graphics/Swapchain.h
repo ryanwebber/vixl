@@ -14,8 +14,9 @@
 namespace VX::Graphics {
 
     struct SwapIndex {
-        uint32_t next_index { 0 };
-        uint32_t current_index { 0 };
+        uint32_t image_index { 0 };
+        uint32_t acquire_index { 0 };
+        uint32_t present_index { 0 };
     };
 
     class Swapchain final {
@@ -35,6 +36,8 @@ namespace VX::Graphics {
             InstancePtr<vk::raii::Semaphore> image_available_semaphore;
             InstancePtr<vk::raii::Semaphore> render_finished_semaphore;
             InstancePtr<vk::raii::CommandBuffer> command_buffer;
+
+            RenderContext to_render_context();
         };
 
     private:

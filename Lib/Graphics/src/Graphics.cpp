@@ -1,6 +1,7 @@
 #include <VX/Graphics/Graphics.h>
 
 namespace VX::Graphics {
-    template<> class Handle<HandleType::GraphicsPipeline>;
-    template<> class Handle<HandleType::RenderTarget>;
+    RenderTargetHandle SwapchainInfo::render_target() const {
+        return RenderTargetHandle(0);
+    }
 }

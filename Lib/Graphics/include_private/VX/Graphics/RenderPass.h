@@ -16,17 +16,24 @@ namespace VX::Graphics {
 
     class RenderPass final {
         VX_DEFAULT_MOVABLE(RenderPass);
-        VX_DEFAULT_COPYABLE(RenderPass);
+        VX_MAKE_NONCOPYABLE(RenderPass);
     private:
         class GraphicsContextImpl: public GraphicsContext {
+        private:
+            VX_DEFAULT_MOVABLE(GraphicsContextImpl);
+            VX_MAKE_NONCOPYABLE(GraphicsContextImpl);
+        public:
+            explicit GraphicsContextImpl()
+            {};
 
+            ~GraphicsContextImpl() override = default;
         };
 
         RenderContext m_render_context;
         GraphicsContextImpl m_graphics_context_impl;
     public:
         explicit RenderPass(RenderContext render_context)
-            : m_render_context(std::move(render_context))
+            : m_render_context(render_context)
             , m_graphics_context_impl()
         {}
 

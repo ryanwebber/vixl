@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_set>
+#include <vector>
 
 #include <VX/Noncopyable.h>
 #include <VX/Graphics/Assert.h>
@@ -14,27 +14,19 @@ namespace VX::Graphics {
     //  1. Instance-based lifetime
     //  2. Allocated external objects
 
-    class Allocator;
-
     template <class T>
     class InstancePtr final {
         VX_DEFAULT_MOVABLE(InstancePtr);
         VX_DEFAULT_COPYABLE(InstancePtr);
     private:
         std::weak_ptr<T> m_ptr;
-        Allocator *m_allocator;
     public:
-        InstancePtr(std::weak_ptr<T> ptr, Allocator *allocator)
+        InstancePtr(std::weak_ptr<T> ptr)
             : m_ptr(ptr)
-            , m_allocator(allocator)
         {}
 
         [[nodiscard]] const std::weak_ptr<T> &weak() const {
             return m_ptr;
-        }
-
-        [[nodiscard]] const Allocator &allocator() const {
-            return *m_allocator;
         }
 
         T& operator*() {
@@ -61,7 +53,7 @@ namespace VX::Graphics {
         VX_DEFAULT_MOVABLE(Allocator);
         VX_MAKE_NONCOPYABLE(Allocator);
     private:
-        std::unordered_set<std::shared_ptr<void>> m_allocations { };
+        std::vector<std::shared_ptr<void>> m_allocations;
     public:
         explicit Allocator() = default;
         ~Allocator() = default;
@@ -69,16 +61,17 @@ namespace VX::Graphics {
         template <class T, class ...Args>
         InstancePtr<T> allocate(Args&&...args) {
             auto shared_ptr = std::make_shared<T>(std::forward<Args>(args)...);
-            std::weak_ptr<T> weak_ptr = shared_ptr;
-            m_allocations.insert(std::move(shared_ptr));
-            return InstancePtr<T>(weak_ptr, this);
+            VX_GRAPHICS_ASSERT(shared_ptr != nullptr, "Failed to allocate");
+            m_allocations.push_back(shared_ptr);
+            return InstancePtr<T>(shared_ptr);
         }
 
         template <class T>
         void deallocate(const InstancePtr<T> &ptr) {
-            VX_GRAPHICS_ASSERT(&ptr.allocator() == this, "Wrong allocator used to free instance");
-            if (auto shared_instance = ptr.weak().lock()) {
-                m_allocations.erase(shared_instance);
+            if (std::shared_ptr<void> shared_instance = ptr.weak().lock()) {
+                const auto &begin = m_allocations.begin();
+                const auto &end = m_allocations.end();
+                m_allocations.erase(std::remove(begin, end, shared_instance), end);
             }
         }
     };
@@ -88,12 +81,12 @@ namespace VX::Graphics {
         VX_DEFAULT_MOVABLE(HandleAllocator);
         VX_MAKE_NONCOPYABLE(HandleAllocator);
     private:
-        Allocator *m_allocator;
         Identifier m_next_identifier { 1 };
         std::unordered_map<Identifier, InstancePtr<T>> m_lookup_table { };
+        std::shared_ptr<Allocator> m_allocator;
     public:
-        explicit HandleAllocator(Allocator &backing_allocator)
-            : m_allocator(&backing_allocator)
+        explicit HandleAllocator(std::shared_ptr<Allocator> backing_allocator)
+            : m_allocator(std::move(backing_allocator))
         {};
 
         ~HandleAllocator() {

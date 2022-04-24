@@ -19,7 +19,7 @@
 
 namespace VX::Graphics {
 
-    static constexpr auto frame_resource_pool_size = 2;
+    static constexpr auto k_frame_resource_pool_size = 3;
 
     static const std::vector<const char*> default_validation_layers = {
 #if VX_GRAPHICS_VALIDATION
@@ -357,19 +357,6 @@ namespace VX::Graphics {
         return views;
     }
 
-    vk::raii::ShaderModule create_shader_module(const vk::raii::Device &logical_device, const std::vector<unsigned char> &shader_binary) {
-        vk::ShaderModuleCreateInfo create_info = {
-            .codeSize = shader_binary.size(),
-            .pCode = reinterpret_cast<const uint32_t*>(shader_binary.data()),
-        };
-
-        return logical_device.createShaderModule(create_info);
-    }
-
-    vk::raii::PipelineLayout create_pipeline_layout(const vk::raii::Device &logical_device) {
-        return logical_device.createPipelineLayout({});
-    }
-
     vk::raii::RenderPass create_render_pass(const vk::raii::Device &logical_device, vk::SurfaceFormatKHR surface_format) {
         vk::AttachmentDescription color_attachment = {
             .format = surface_format.format,
@@ -542,6 +529,7 @@ namespace VX::Graphics {
     vk::raii::CommandPool create_command_pool(const vk::raii::Device &logical_device, const QueueSupport &queue_support) {
         vk::CommandPoolCreateInfo create_info = {
             .queueFamilyIndex = queue_support.get_queue<QueueFeature::Graphics>(),
+            .flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
         };
 
         return logical_device.createCommandPool(create_info);
@@ -621,7 +609,7 @@ namespace VX::Graphics {
         auto render_pass = create_render_pass(logical_device, swapchain_support.surface_format);
         auto framebuffers = create_framebuffers(logical_device, render_pass, swapchain_image_views, framebuffer_extents);
         auto command_pool = create_command_pool(logical_device, queue_support);
-        auto command_buffers = create_command_buffers(logical_device, command_pool, frame_resource_pool_size);
+        auto command_buffers = create_command_buffers(logical_device, command_pool, k_frame_resource_pool_size);
 
         // TODO: this can probably be factored better
 

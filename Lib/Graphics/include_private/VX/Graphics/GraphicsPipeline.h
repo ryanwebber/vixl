@@ -61,7 +61,8 @@ namespace VX::Graphics {
     public:
         explicit GraphicsPipeline(std::vector<std::unique_ptr<GraphicsStageExecutor>> executors)
             : m_executors(std::move(executors))
-        {};
+        {
+        };
 
         ~GraphicsPipeline() = default;
 
@@ -86,8 +87,6 @@ namespace VX::Graphics {
     class RenderFrameStage final : public GraphicsStageExecutor {
         VX_MAKE_NONMOVABLE(RenderFrameStage);
         VX_MAKE_NONCOPYABLE(RenderFrameStage);
-    private:
-        static RenderContext render_context_from(const Swapchain::SwapState &);
     public:
         explicit RenderFrameStage(GraphicsStage stage)
             : GraphicsStageExecutor(std::move(stage))

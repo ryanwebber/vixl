@@ -14,10 +14,14 @@ set(SOURCES
         src/Init.cpp
         src/Instance.cpp
         src/QueueSupport.cpp
+        src/RenderPass.cpp
         src/Swapchain.cpp
         )
 
 set(DEFINITIONS
+        VERSION="${CMAKE_PROJECT_VERSION}"
+        VX_GRAPHICS_DEBUG=1
+        VX_GRAPHICS_VALIDATION=1
         )
 
 if(${VX_GRAPHICS_MACOS_SUPPORT})
@@ -60,10 +64,5 @@ target_include_directories(${TARGET}
         )
 
 target_compile_definitions(${TARGET} PRIVATE ${DEFINITIONS})
-target_compile_definitions(${TARGET} PRIVATE
-        VERSION="${CMAKE_PROJECT_VERSION}"
-        VX_GRAPHICS_DEBUG=1
-        VX_GRAPHICS_VALIDATION=1
-        )
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

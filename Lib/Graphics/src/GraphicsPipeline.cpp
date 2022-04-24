@@ -1,11 +1,8 @@
+#include <span>
 #include <VX/Graphics/GraphicsPipeline.h>
 #include <VX/Graphics/Instance.h>
 
 namespace VX::Graphics {
-    RenderContext RenderFrameStage::render_context_from(const Swapchain::SwapState &) {
-        // TODO: incorporate other stage semaphores and such
-        VX_GRAPHICS_ASSERT_NOT_REACHED();
-    }
 
     VX::Expected<void> RenderFrameStage::execute(InstanceImpl &instance, GraphicsClient &client) {
 
@@ -14,12 +11,12 @@ namespace VX::Graphics {
             return VX::erase(maybe_swap_state);
 
         auto render_target = maybe_swap_state->render_target;
-        auto render_context = render_context_from(*maybe_swap_state);
+        auto render_context = maybe_swap_state->to_render_context();
         auto maybe_render_pass = instance.begin_render_pass(*render_target, render_context);
         if (!maybe_render_pass)
             return VX::erase(maybe_render_pass);
 
-        auto graphics_context = maybe_render_pass->graphics_context();
+        auto &graphics_context = maybe_render_pass->graphics_context();
         client.do_render(stage(), graphics_context);
 
         auto maybe_render_pass_end = instance.end_render_pass(maybe_render_pass.value());
