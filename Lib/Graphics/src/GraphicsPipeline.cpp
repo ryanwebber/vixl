@@ -1,11 +1,13 @@
-#include <span>
+#include <VX/Noncopyable.h>
+#include <VX/Graphics/Graphics.h>
+#include <VX/Graphics/GraphicsContextImpl.h>
 #include <VX/Graphics/GraphicsPipeline.h>
 #include <VX/Graphics/Instance.h>
+#include <VX/Graphics/RenderPass.h>
 
 namespace VX::Graphics {
 
     VX::Expected<void> RenderFrameStage::execute(InstanceImpl &instance, GraphicsClient &client) {
-
         auto maybe_swap_state = instance.swapchain().try_acquire_next_swap_state();
         if (!maybe_swap_state)
             return VX::erase(maybe_swap_state);
@@ -16,8 +18,8 @@ namespace VX::Graphics {
         if (!maybe_render_pass)
             return VX::erase(maybe_render_pass);
 
-        auto &graphics_context = maybe_render_pass->graphics_context();
-        client.do_render(stage(), graphics_context);
+        GraphicsContextImpl graphics_context(instance, maybe_render_pass.value());
+        client.do_render(graphics_stage(), graphics_context);
 
         auto maybe_render_pass_end = instance.end_render_pass(maybe_render_pass.value());
         if (!maybe_render_pass_end)

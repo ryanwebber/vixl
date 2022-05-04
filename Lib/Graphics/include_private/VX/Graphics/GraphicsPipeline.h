@@ -35,7 +35,7 @@ namespace VX::Graphics {
         virtual void finish() { };
 
 
-        [[nodiscard]] const GraphicsStage &stage() const { return m_stage; }
+        [[nodiscard]] const GraphicsStage &graphics_stage() const { return m_stage; }
     };
 
     class GraphicsPipeline final {
@@ -72,7 +72,9 @@ namespace VX::Graphics {
 
             Client client(delegate);
             for (const auto& executor : m_executors) {
-                executor->execute(instance, client);
+                auto result = executor->execute(instance, client);
+                if (!result)
+                    return result;
             }
 
             for (const auto& executor : m_executors)

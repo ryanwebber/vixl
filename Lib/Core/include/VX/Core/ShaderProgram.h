@@ -15,6 +15,12 @@ namespace VX::Core {
         Shader m_vertex_shader;
         Shader m_fragment_shader;
     public:
+        ShaderProgram(Graphics::SharedHandle<Graphics::HandleType::GraphicsProgram> handle, Shader vertex_shader, Shader fragment_shader)
+            : m_handle(std::move(handle))
+            , m_vertex_shader(std::move(vertex_shader))
+            , m_fragment_shader(std::move(fragment_shader))
+        {}
+
         ~ShaderProgram() = default;
 
         [[nodiscard]] const Graphics::GraphicsProgramHandle &handle() const { return *m_handle; }

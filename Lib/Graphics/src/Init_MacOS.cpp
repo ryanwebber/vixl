@@ -4,6 +4,10 @@
 #include <VX/Graphics/Vulkan.h>
 
 #ifndef VK_USE_PLATFORM_METAL_EXT
+#error "Unexpected undefined VK_USE_PLATFORM_METAL_EXT"
+#endif
+
+#ifndef VK_USE_PLATFORM_MACOS_KHR
 #error "Unexpected undefined VK_USE_PLATFORM_MACOS_KHR"
 #endif
 
@@ -27,8 +31,7 @@ namespace VX::Graphics::MacOS {
 
         vk::raii::SurfaceKHR init_surface(vk::raii::Instance &instance) const override {
             vk::MetalSurfaceCreateInfoEXT create_info = {
-                .sType = vk::StructureType::eMetalSurfaceCreateInfoEXT,
-                .pLayer = m_platform_data.metal_layer
+                .pLayer = m_platform_data.metal_layer,
             };
 
             return instance.createMetalSurfaceEXT(create_info);

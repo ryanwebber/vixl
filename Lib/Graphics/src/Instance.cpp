@@ -8,15 +8,12 @@
 
 namespace VX::Graphics {
 
-    Instance::Instance(std::shared_ptr<InstanceImpl> impl)
+    Instance::Instance(std::unique_ptr<InstanceImpl> impl)
         : m_impl(std::move(impl))
     {}
 
     Instance::Instance(Instance&&) noexcept = default;
     Instance& Instance::operator=(Instance&&) noexcept = default;
-
-    Instance::Instance(const Instance&) noexcept = default;
-    Instance& Instance::operator=(const Instance&) noexcept = default;
 
     Instance::~Instance() = default;
 
@@ -84,6 +81,11 @@ namespace VX::Graphics {
         return allocator.lookup(handle).execute(*m_impl, delegate);
     }
 
+    void Instance::wait_for_idle()
+    {
+        m_impl->wait_for_idle();
+    }
+
     // Instance Impl
 
     VX::Expected<RenderPass> InstanceImpl::begin_render_pass(const RenderTarget &target, const RenderContext &context)
@@ -92,7 +94,7 @@ namespace VX::Graphics {
 
         vk::ClearValue clear_values[] = {
                 {
-                        .color = {{{ 0.0f, 0.0f, 0.0f, 0.0f }}},
+                        .color = {{{ 0.008f, 0.008f, 0.008f, 0.000f }}},
                 }
         };
 
@@ -124,7 +126,7 @@ namespace VX::Graphics {
                 vk::PipelineStageFlagBits::eColorAttachmentOutput
         };
 
-        const auto k_maximum_semaphores = VX::Capacity<SemaphoreBuffer>();
+        const auto k_maximum_semaphores = VX::capacity<SemaphoreBuffer>();
 
         size_t n_signal_semaphores;
         vk::Semaphore signal_semaphores[k_maximum_semaphores];
@@ -160,15 +162,11 @@ namespace VX::Graphics {
 
         auto queue = m_logical_device->getQueue(m_queue_support.get_queue<QueueFeature::Graphics>(), 0);
 
-        try {
+        return VX::try_catch<vk::Error>([&](){
             render_pass.render_context().command_buffer->endRenderPass();
             render_pass.render_context().command_buffer->end();
             queue.submit({submit_info}, **render_pass.render_context().signal_fence);
-        } catch (const vk::Error &err) {
-            return VX::make_unexpected("{}", err.what());
-        }
-
-        return {};
+        });
     }
 
     VX::Expected<ShaderHandle> InstanceImpl::create_shader(const ShaderDescriptor &descriptor,
@@ -206,18 +204,24 @@ namespace VX::Graphics {
                 .primitiveRestartEnable = false,
         };
 
+        // TODO: Use dynamic states for this
         vk::Viewport viewport = {
                 .x = 0.0f,
                 .y = 0.0f,
-                .width = 0.0f,
-                .height = 0.0f,
+
+                .width = 800.0f,
+                .height = 600.0f,
+
                 .minDepth = 0.0f,
                 .maxDepth = 1.0f,
         };
 
+        // TODO: Use dynamic states for this
         vk::Rect2D scissor = {
                 .offset = { 0, 0 },
-                .extent = { 0, 0 },
+
+                // Ditto the comment above about sizing
+                .extent = { 800, 600 },
         };
 
         vk::PipelineViewportStateCreateInfo viewport_state_create_info = {
@@ -250,6 +254,10 @@ namespace VX::Graphics {
                 .srcAlphaBlendFactor = vk::BlendFactor::eOne,
                 .dstAlphaBlendFactor = vk::BlendFactor::eZero,
                 .alphaBlendOp = vk::BlendOp::eAdd,
+                .colorWriteMask = vk::ColorComponentFlagBits::eR
+                                | vk::ColorComponentFlagBits::eG
+                                | vk::ColorComponentFlagBits::eB
+                                | vk::ColorComponentFlagBits::eA
         };
 
         vk::PipelineColorBlendStateCreateInfo color_blend_state_create_info = {
@@ -290,5 +298,12 @@ namespace VX::Graphics {
         };
 
         auto pipeline = m_logical_device->createGraphicsPipeline({ nullptr }, pipeline_create_info);
+
+        auto &allocator = m_resource_manager.handle_allocators().graphics_program;
+        return allocator.allocate<HandleType::GraphicsProgram>(std::move(pipeline_layout), std::move(pipeline));
+    }
+
+    void InstanceImpl::wait_for_idle() {
+        m_logical_device->waitIdle();
     }
 }

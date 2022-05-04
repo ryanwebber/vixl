@@ -17,9 +17,9 @@ namespace VX::Core {
             system->update(m_entity_registry);
     }
 
-    void Scene::render(const RenderContext &context, RenderBuffer &buffer) {
+    void Scene::render(const SceneContext& scene_context, const RenderContext &render_context, RenderPass &render_pass) {
         for (auto &&system : m_render_systems)
-            system->render(context, buffer, m_entity_registry);
+            system->render(scene_context, render_context, render_pass, m_entity_registry);
     }
 
     void Scene::reset() {

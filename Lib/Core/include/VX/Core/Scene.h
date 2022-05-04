@@ -7,12 +7,12 @@
 #include <entt/entity/registry.hpp>
 
 #include <VX/Noncopyable.h>
-#include <VX/Core/RenderBuffer.h>
+#include <VX/Core/MetaSystem.h>
 #include <VX/Core/RenderContext.h>
 #include <VX/Core/RenderPass.h>
 #include <VX/Core/RenderSystem.h>
+#include <VX/Core/SceneContext.h>
 #include <VX/Core/UpdateSystem.h>
-#include <VX/Core/MetaSystem.h>
 
 namespace VX::Core {
 class Scene final : public std::enable_shared_from_this<Scene> {
@@ -37,7 +37,7 @@ class Scene final : public std::enable_shared_from_this<Scene> {
 
         void configure();
         void update();
-        void render(const RenderContext&, RenderBuffer&);
+        void render(const SceneContext&, const RenderContext&, RenderPass&);
 
         [[nodiscard]] const std::string &name() const { return m_name; }
 

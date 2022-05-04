@@ -4,6 +4,7 @@
 
 #include <VX/Core/RenderBuiltins.h>
 #include <VX/Core/RenderSystem.h>
+#include <VX/Core/SceneContext.h>
 
 namespace VX::Core::System {
     class SpriteRenderingSystem final : public RenderSystem {
@@ -14,6 +15,6 @@ namespace VX::Core::System {
         explicit SpriteRenderingSystem();
         ~SpriteRenderingSystem() override = default;
 
-        void render(const RenderContext&, RenderBuffer&, const entt::registry&) override;
+        void render(const SceneContext&, const RenderContext&, RenderPass&, const entt::registry&) override;
     };
 }

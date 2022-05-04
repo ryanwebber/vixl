@@ -39,6 +39,8 @@ namespace VX::Graphics {
         {
         }
 
+        const vk::raii::Pipeline &pipeline() const { return m_pipeline; }
+
         ~GraphicsProgram() = default;
     };
 }

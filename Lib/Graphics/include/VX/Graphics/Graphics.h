@@ -3,6 +3,7 @@
 #include <any>
 #include <bitset>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <span>
 #include <vector>
@@ -57,8 +58,6 @@ namespace VX::Graphics {
     using ShaderHandle = Handle<HandleType::Shader>;
 
     struct ShaderDescriptor {
-        enum class Type { Fragment, Vertex };
-        Type type;
     };
 
     struct GraphicsProgramDescriptor {
@@ -81,15 +80,16 @@ namespace VX::Graphics {
 
     class Instance final {
     private:
-        std::shared_ptr<InstanceImpl> m_impl;
+        std::unique_ptr<InstanceImpl> m_impl;
     public:
-        explicit Instance(std::shared_ptr<InstanceImpl>);
+        explicit Instance(std::unique_ptr<InstanceImpl>);
 
         Instance(Instance&&) noexcept;
         Instance& operator=(Instance&&) noexcept;
 
-        Instance(const Instance&) noexcept;
-        Instance& operator=(const Instance&) noexcept;
+        // No copy
+        Instance(const Instance&) noexcept = delete;
+        Instance& operator=(const Instance&) noexcept = delete;
 
         ~Instance();
 
@@ -111,7 +111,10 @@ namespace VX::Graphics {
         [[nodiscard]] VX::Expected<ShaderHandle> create_shader(const ShaderDescriptor&, std::span<const std::byte> program_data);
         [[nodiscard]] VX::Expected<GraphicsProgramHandle> create_program(const GraphicsProgramDescriptor&);
         [[nodiscard]] VX::Expected<GraphicsPipelineHandle> create_graphics_pipeline(const GraphicsPipelineBuilder&);
+
         VX::Expected<void> execute_graphics_pipeline(const GraphicsPipelineHandle&, const GraphicsDelegate&);
+
+        void wait_for_idle();
     };
 
     struct GraphicsInfo {
@@ -178,6 +181,9 @@ namespace VX::Graphics {
     class GraphicsContext {
     public:
         virtual ~GraphicsContext() = default;
+
+        virtual void bind_program(const GraphicsProgramHandle&) = 0;
+        virtual void draw(uint32_t vertex_count) = 0;
     };
 
     class GraphicsDelegate {

@@ -7,9 +7,9 @@
 #include <VX/Copyable.h>
 #include <VX/Noncopyable.h>
 
-#include <VX/Core/RenderBuffer.h>
 #include <VX/Core/RenderContext.h>
 #include <VX/Core/RenderPass.h>
+#include <VX/Core/SceneContext.h>
 
 namespace VX::Core {
     class RenderSystem {
@@ -20,6 +20,6 @@ namespace VX::Core {
         RenderSystem() = default;
         virtual ~RenderSystem() = default;
 
-        virtual void render(const RenderContext&, RenderBuffer&, const entt::registry&) = 0;
+        virtual void render(const SceneContext&, const RenderContext&, RenderPass&, const entt::registry&) = 0;
     };
 }

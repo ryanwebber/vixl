@@ -1,12 +1,13 @@
 #include <array>
 #include <span>
 
+#include <VX/ArrayUtils.h>
 #include <VX/Overloaded.h>
 #include <VX/Core/Assert.h>
 #include <VX/Core/Renderer.h>
 
 namespace Example {
-    const std::array<unsigned char, 1504> vertex_shader_source = {
+    const std::array<const unsigned char, 1504> vertex_shader_source = {
             0x03, 0x02, 0x23, 0x07,   0x00, 0x00, 0x01, 0x00,   0x0a, 0x00, 0x0d, 0x00,   0x36, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00,   0x11, 0x00, 0x02, 0x00,   0x01, 0x00, 0x00, 0x00,   0x0b, 0x00, 0x06, 0x00,
             0x01, 0x00, 0x00, 0x00,   0x47, 0x4c, 0x53, 0x4c,   0x2e, 0x73, 0x74, 0x64,   0x2e, 0x34, 0x35, 0x30,
@@ -146,30 +147,68 @@ namespace Example {
 namespace VX::Core {
 
     class GraphicsDelegateImpl: public Graphics::GraphicsDelegate {
+    private:
+        const RenderPipeline::Mappings &m_mappings;
     public:
+        explicit GraphicsDelegateImpl(const RenderPipeline::Mappings &mappings)
+            : m_mappings(mappings)
+        {};
+
+        ~GraphicsDelegateImpl() override = default;
+
         void handle_stage(const Graphics::GraphicsStage& stage, Graphics::GraphicsContext& context) const override
         {
+            if (auto render_stage = m_mappings.lookup_stage(stage.identifier).lock()) {
+                auto render_target = m_mappings.lookup_target(stage.info.render_target);
+                VX_CORE_ASSERT(render_target.has_value(), "Unknown render target with identifier: {}", stage.info.render_target.identifier());
 
+                RenderContext render_context(render_target.value());
+                RenderPass render_pass(context);
+                render_stage->do_render(render_context, render_pass);
+            }
         }
     };
 
-    VX::Expected<RenderPipeline> RenderPipelineBuilder::build(Graphics::Instance &instance) const {
+    VX::Expected<void> RenderPipeline::execute(Graphics::Instance &instance) const {
+        GraphicsDelegateImpl delegate(m_mappings);
+        return instance.execute_graphics_pipeline(*m_graphics_pipeline, delegate);
+    }
+
+    void RenderPipelineBuilder::add_render_stage(const RenderTarget &render_target,
+                                                 std::weak_ptr<RenderStage> render_stage,
+                                                 RenderPriority render_priority) {
+        RenderPipelineBuilder::Entry entry(render_target, std::move(render_stage), render_priority);
+        m_entries.push_back(std::move(entry));
+    }
+
+    void RenderPipelineBuilder::add_render_dependency(RenderDependency) {
+        // TODO: Record dependencies
+    }
+
+    VX::Expected<RenderPipeline> RenderPipelineBuilder::build(std::shared_ptr<Graphics::Instance> instance) const {
         Graphics::GraphicsPipelineBuilder builder;
+
+        std::unordered_map<Graphics::Identifier, std::weak_ptr<RenderStage>> stage_mappings;
+
         for (const auto& entry : m_entries) {
             Graphics::GraphicsStageInfo stage_info = {
                     .user_data = { },
                     .render_target = entry.render_target().handle(),
             };
 
-            builder.add_stage(stage_info);
+            auto identifier = builder.add_stage(stage_info);
+            stage_mappings.try_emplace(identifier, entry.render_stage());
         }
 
-        return instance.create_graphics_pipeline(builder).map([&](Graphics::GraphicsPipelineHandle pipeline_handle) {
-           return RenderPipeline(pipeline_handle);
+        // TODO: Supply dependencies to graphics pipeline builder
+
+        RenderPipeline::Mappings mappings(std::move(stage_mappings));
+        return instance->create_graphics_pipeline(builder).map([&](Graphics::GraphicsPipelineHandle pipeline_handle) {
+           return RenderPipeline(Graphics::to_shared_handle(instance, pipeline_handle), std::move(mappings));
         });
     }
 
-    RenderTarget RenderAllocator::create_render_target(const RenderTarget::BackingStore &backing) {
+    VX::Expected<RenderTarget> RenderAllocator::create_render_target(const RenderTarget::BackingStore &backing) {
         Graphics::RenderTargetHandle handle = std::visit(
             VX::Overloaded {
                 [&](const RenderTarget::BackingStore::SwapchainBacked&) {
@@ -191,16 +230,50 @@ namespace VX::Core {
         invalidate();
     }
 
+    class TestStage: public RenderStage {
+    private:
+        Material m_material;
+    public:
+        explicit TestStage(Material material)
+            : m_material(std::move(material))
+        {}
+
+        ~TestStage() override = default;
+
+        void do_render(const RenderContext&, RenderPass &pass) override {
+            pass.bind_material(m_material);
+            pass.draw(3);
+        }
+    };
+
     VX::Expected<RenderPipeline> Renderer::reconstruct()
     {
         // TODO: This doesn't go here
         RenderAllocator allocator(m_instance);
-        RenderTarget target = allocator.create_render_target(RenderTarget::BackingStore::swapchain_buffer());
+        RenderTarget target = allocator
+                .create_render_target(RenderTarget::BackingStore::swapchain_buffer())
+                .value();
+
+        Shader vertex_shader(Graphics::to_shared_handle(m_instance, m_instance->create_shader({}, VX::as_bytes(Example::vertex_shader_source)).value()));
+        Shader fragment_shader(Graphics::to_shared_handle(m_instance, m_instance->create_shader({}, VX::as_bytes(Example::fragment_shader_source)).value()));
+
+        Graphics::GraphicsProgramDescriptor program_descriptor = {
+                .vertex_shader = vertex_shader.handle(),
+                .fragment_shader = fragment_shader.handle(),
+        };
+
+        ShaderProgram shader_program(Graphics::to_shared_handle(m_instance, m_instance->create_program(program_descriptor).value()),
+                                     vertex_shader,
+                                     fragment_shader);
+
+        Material material("My Material", std::move(shader_program));
+
+        m_test = std::make_shared<TestStage>(std::move(material));
 
         RenderPipelineBuilder builder;
-        builder.add_render_stage(target, { }, 0);
+        builder.add_render_stage(target, m_test, 0);
 
-        return builder.build(*m_instance);
+        return builder.build(m_instance);
     }
 
     void Renderer::render_frame()
@@ -220,7 +293,9 @@ namespace VX::Core {
             m_state.had_construct_failure_last_frame = false;
         }
 
-        GraphicsDelegateImpl delegate;
-        m_instance->execute_graphics_pipeline(m_state.render_pipeline->graphics_pipeline(), delegate);
+        auto result = m_state.render_pipeline->execute(*m_instance);
+        if (!result) {
+            Log::error("Rendering error: {}", result.error().what());
+        }
     }
 }

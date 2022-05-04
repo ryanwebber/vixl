@@ -19,6 +19,7 @@ set(SOURCES
         src/ResourceManager.cpp
         src/Scene.cpp
         src/SceneManager.cpp
+        src/SceneRenderer.cpp
         src/Shader.cpp
         src/Texture.cpp
         src/Window.cpp

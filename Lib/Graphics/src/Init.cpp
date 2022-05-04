@@ -2,6 +2,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include <VX/Try.h>
+
 #include <VX/Graphics/Assert.h>
 #include <VX/Graphics/Graphics.h>
 #include <VX/Graphics/Init.h>
@@ -13,9 +15,6 @@
 #include <VX/Graphics/RenderTarget.h>
 #include <VX/Graphics/Swapchain.h>
 #include <VX/Graphics/Vulkan.h>
-
-#include <VX/Graphics/ExampleFragmentShader.h>
-#include <VX/Graphics/ExampleVertexShader.h>
 
 namespace VX::Graphics {
 
@@ -84,6 +83,7 @@ namespace VX::Graphics {
             });
 
             if (found_layer == available_layers.end()) {
+                Log::debug("\t- {}: ???", requested_layer);
                 Log::error("Requested validation layer not found: {}", layer_name);
                 throw std::runtime_error("Requested validation layer not found: " + layer_name);
             }
@@ -128,31 +128,31 @@ namespace VX::Graphics {
     static vk::raii::PhysicalDevice select_physical_device(const vk::raii::Instance &instance, const vk::raii::SurfaceKHR &surface) {
 
         static const std::vector<std::function<int(const vk::raii::PhysicalDevice&)>> evaluators = {
-                [&](const auto& device) {
-                    // Ensure the device supports the render surface
-                    for (auto i = 0; i < device.getQueueFamilyProperties().size(); i++) {
-                        if (device.getSurfaceSupportKHR(i, *surface)) {
-                            return 0;
-                        }
+            [&](const auto& device) {
+                // Ensure the device supports the render surface
+                for (auto i = 0; i < device.getQueueFamilyProperties().size(); i++) {
+                    if (device.getSurfaceSupportKHR(i, *surface)) {
+                        return 0;
                     }
+                }
 
-                    return -1;
-                },
-                [](const auto& device) {
-                    // Order the devices based on the type
-                    switch (device.getProperties().deviceType) {
-                        case vk::PhysicalDeviceType::eDiscreteGpu:
-                            return 100;
-                        case vk::PhysicalDeviceType::eIntegratedGpu:
-                            return 50;
-                        case vk::PhysicalDeviceType::eVirtualGpu:
-                            return 25;
-                        case vk::PhysicalDeviceType::eCpu:
-                            return 10;
-                        default:
-                            return 0;
-                    }
-                },
+                return -1;
+            },
+            [](const auto& device) {
+                // Order the devices based on the type
+                switch (device.getProperties().deviceType) {
+                    case vk::PhysicalDeviceType::eDiscreteGpu:
+                        return 100;
+                    case vk::PhysicalDeviceType::eIntegratedGpu:
+                        return 50;
+                    case vk::PhysicalDeviceType::eVirtualGpu:
+                        return 25;
+                    case vk::PhysicalDeviceType::eCpu:
+                        return 10;
+                    default:
+                        return 0;
+                }
+            },
         };
 
         std::multimap<int, vk::raii::PhysicalDevice> devices_rankings;
@@ -280,7 +280,9 @@ namespace VX::Graphics {
 
         // Recommended use at least the min value plus one, so we don't have to
         // wait on the graphics driver
-        auto image_count = std::max(capabilities.minImageCount + 1, capabilities.maxImageCount);
+        auto image_count = capabilities.maxImageCount == 0
+                ? capabilities.minImageCount + 1
+                : std::min(capabilities.minImageCount + 1, capabilities.maxImageCount);
 
         return {
             .present_mode = selected_presentation_mode,
@@ -337,10 +339,10 @@ namespace VX::Graphics {
                 .viewType = vk::ImageViewType::e2D,
                 .format = swapchain_support.surface_format.format,
                 .components = {
-                    .r = vk::ComponentSwizzle::eR,
-                    .g = vk::ComponentSwizzle::eG,
-                    .b = vk::ComponentSwizzle::eB,
-                    .a = vk::ComponentSwizzle::eA,
+                    .r = vk::ComponentSwizzle::eIdentity,
+                    .g = vk::ComponentSwizzle::eIdentity,
+                    .b = vk::ComponentSwizzle::eIdentity,
+                    .a = vk::ComponentSwizzle::eIdentity,
                 },
                 .subresourceRange = {
                     .aspectMask = vk::ImageAspectFlagBits::eColor,
@@ -402,106 +404,6 @@ namespace VX::Graphics {
         return logical_device.createRenderPass(render_pass_create_info);
     }
 
-    vk::raii::Pipeline create_graphics_pipeline(const vk::raii::Device &logical_device,
-                                                const vk::raii::PipelineLayout &pipeline_layout,
-                                                const vk::raii::RenderPass &render_pass,
-                                                const vk::raii::ShaderModule &vertex_shader,
-                                                const vk::raii::ShaderModule &fragment_shader,
-                                                vk::Extent2D extents) {
-
-        vk::PipelineVertexInputStateCreateInfo vertex_input_state_create_info = { };
-
-        vk::PipelineInputAssemblyStateCreateInfo input_assembly_state_create_info = {
-            .topology = vk::PrimitiveTopology::eTriangleList,
-            .primitiveRestartEnable = false,
-        };
-
-        vk::Viewport viewport = {
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(extents.width),
-            .height = static_cast<float>(extents.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
-
-        vk::Rect2D scissor = {
-            .offset = { 0, 0 },
-            .extent = extents,
-        };
-
-        vk::PipelineViewportStateCreateInfo viewport_state_create_info = {
-            .viewportCount = 1,
-            .pViewports = &viewport,
-            .scissorCount = 1,
-            .pScissors = &scissor,
-        };
-
-        vk::PipelineRasterizationStateCreateInfo rasterization_state_create_info = {
-            .depthClampEnable = false,
-            .rasterizerDiscardEnable = false,
-            .polygonMode = vk::PolygonMode::eFill,
-            .cullMode = vk::CullModeFlagBits::eBack,
-            .frontFace = vk::FrontFace::eClockwise,
-                .depthBiasEnable = false,
-            .lineWidth = 1.0f,
-        };
-
-        vk::PipelineMultisampleStateCreateInfo multisample_state_create_info = {
-            .rasterizationSamples = vk::SampleCountFlagBits::e1,
-            .sampleShadingEnable = false,
-        };
-
-        vk::PipelineColorBlendAttachmentState color_blend_attachment_state = {
-            .blendEnable = true,
-            .srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
-            .dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
-            .colorBlendOp = vk::BlendOp::eAdd,
-            .srcAlphaBlendFactor = vk::BlendFactor::eOne,
-            .dstAlphaBlendFactor = vk::BlendFactor::eZero,
-            .alphaBlendOp = vk::BlendOp::eAdd,
-        };
-
-        vk::PipelineColorBlendStateCreateInfo color_blend_state_create_info = {
-            .logicOpEnable = false,
-            .logicOp = vk::LogicOp::eCopy,
-            .attachmentCount = 1,
-            .pAttachments = &color_blend_attachment_state,
-        };
-
-        vk::PipelineShaderStageCreateInfo shader_stages[] = {
-            {
-                .stage = vk::ShaderStageFlagBits::eVertex,
-                .module = *vertex_shader,
-                .pName = "main",
-            },
-            {
-                .stage = vk::ShaderStageFlagBits::eFragment,
-                .module = *fragment_shader,
-                .pName = "main",
-            },
-        };
-
-        vk::GraphicsPipelineCreateInfo pipeline_create_info = {
-            .stageCount = 2,
-            .pStages = &shader_stages[0],
-            .pVertexInputState = &vertex_input_state_create_info,
-            .pInputAssemblyState = &input_assembly_state_create_info,
-            .pViewportState = &viewport_state_create_info,
-            .pRasterizationState = &rasterization_state_create_info,
-            .pMultisampleState = &multisample_state_create_info,
-            .pDepthStencilState = nullptr,
-            .pColorBlendState = &color_blend_state_create_info,
-            .pDynamicState = nullptr,
-
-            .layout = *pipeline_layout,
-            .renderPass = *render_pass,
-            .subpass = 0,
-        };
-
-        return logical_device.createGraphicsPipeline({ nullptr }, pipeline_create_info);
-    }
-
     std::vector<vk::raii::Framebuffer> create_framebuffers(
             const vk::raii::Device &logical_device,
             const vk::raii::RenderPass &render_pass,
@@ -528,8 +430,8 @@ namespace VX::Graphics {
 
     vk::raii::CommandPool create_command_pool(const vk::raii::Device &logical_device, const QueueSupport &queue_support) {
         vk::CommandPoolCreateInfo create_info = {
-            .queueFamilyIndex = queue_support.get_queue<QueueFeature::Graphics>(),
             .flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+            .queueFamilyIndex = queue_support.get_queue<QueueFeature::Graphics>(),
         };
 
         return logical_device.createCommandPool(create_info);
@@ -539,7 +441,7 @@ namespace VX::Graphics {
         vk::CommandBufferAllocateInfo allocate_info = {
             .commandPool = *command_pool,
             .level = vk::CommandBufferLevel::ePrimary,
-            .commandBufferCount = static_cast<uint32_t >(buffer_count),
+            .commandBufferCount = static_cast<uint32_t>(buffer_count),
         };
 
         return logical_device.allocateCommandBuffers(allocate_info);
@@ -660,7 +562,7 @@ namespace VX::Graphics {
 
         ResourceManager resource_manager(std::move(allocator));
 
-        auto instance_impl = std::make_shared<InstanceImpl>(std::move(context),
+        auto instance_impl = std::make_unique<InstanceImpl>(std::move(context),
                                                             std::move(instance),
                                                             std::move(callbacks),
                                                             std::move(surface),
@@ -675,13 +577,10 @@ namespace VX::Graphics {
         return Instance(std::move(instance_impl));
     }
 
-    VX::Expected<Instance> init(const GraphicsInfo &info, const PlatformDelegate& delegate) {
-        try {
-            return try_init(info, delegate);
-        } catch (const vk::Error &error) {
-            return VX::make_unexpected("Init: {}", error.what());
-        }
-
-        VX_GRAPHICS_ASSERT_NOT_REACHED();
+    VX::Expected<Instance> init(const GraphicsInfo &info, const PlatformDelegate& delegate)
+    {
+        return VX::try_catch<Instance, vk::Error>([&](){
+           return try_init(info, delegate);
+        });
     }
 }

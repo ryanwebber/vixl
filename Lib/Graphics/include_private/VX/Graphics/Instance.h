@@ -124,5 +124,7 @@ namespace VX::Graphics {
                                                                std::span<const std::byte> program_data);
 
         [[nodiscard]] VX::Expected<GraphicsProgramHandle> create_program(const GraphicsProgramDescriptor&);
+
+        void wait_for_idle();
     };
 }

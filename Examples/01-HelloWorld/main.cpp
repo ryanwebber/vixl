@@ -71,5 +71,7 @@ int vixl_main(const VX::Entry::Context &ctx) {
 
     event_loop.run();
 
+    graphics->wait_for_idle();
+
     return 0;
 }

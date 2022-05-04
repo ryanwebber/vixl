@@ -10,11 +10,11 @@ message(STATUS "Vulkan info:\n\tLibs: ${Vulkan_LIBRARIES}\n\tincludes: ${Vulkan_
 
 set(SOURCES
         src/Graphics.cpp
+        src/GraphicsContextImpl.cpp
         src/GraphicsPipeline.cpp
         src/Init.cpp
         src/Instance.cpp
         src/QueueSupport.cpp
-        src/RenderPass.cpp
         src/Swapchain.cpp
         )
 
@@ -31,6 +31,7 @@ if(${VX_GRAPHICS_MACOS_SUPPORT})
 
     list(APPEND DEFINITIONS
             VK_USE_PLATFORM_METAL_EXT=1
+            VK_USE_PLATFORM_MACOS_KHR=1
             )
 endif()
 

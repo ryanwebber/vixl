@@ -13,4 +13,14 @@ namespace VX {
             return VX::make_unexpected("Error: {}", err.what());
         }
     }
+
+    template <class E>
+    VX::Expected<void> try_catch(const std::function<void()> &f) {
+        try {
+            f();
+            return { };
+        } catch (const E &err) {
+            return VX::make_unexpected("Error: {}", err.what());
+        }
+    }
 }
